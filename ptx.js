@@ -49,12 +49,12 @@ const importMetroStation = async function () {
             lon: station.StationPosition.PositionLon,
             address: station.StationAddress,
             line_id: null,
-            sequence: null,
-            previous_seq: null,
-            next_seq: null,
-            run_time_to_previous: null,
-            run_time_to_next: null,
-            stop_time: null
+            // sequence: null,
+            // previous_seq: null,
+            // next_seq: null,
+            // run_time_to_previous: null,
+            // run_time_to_next: null,
+            stop_time: 0
         };
     }
     // const sequenceData = await getPtxData('https://ptx.transportdata.tw/MOTC/v2/Rail/Metro/StationOfLine/TRTC?$filter=LineID%20eq%20%27BL%27&$format=JSON');
@@ -63,34 +63,55 @@ const importMetroStation = async function () {
         for (const stationSeq of line.Stations) {
             const station = stations[stationSeq.StationID];
             station.line_id = line.LineID;
-            station.sequence = stationSeq.Sequence;
+            // station.sequence = stationSeq.Sequence;
         }
     }
 
     // const travelTimeData = await getPtxData('https://ptx.transportdata.tw/MOTC/v2/Rail/Metro/S2STravelTime/TRTC?$filter=LineID%20eq%20%27BL%27&$format=JSON');
     const travelTimeData = await getPtxData('https://ptx.transportdata.tw/MOTC/v2/Rail/Metro/S2STravelTime/TRTC?$format=JSON');
+    const travelTimes = [];
     for (const line of travelTimeData) {
-        for (const travelTime of line.TravelTimes) {
-            const station = stations[travelTime.FromStationID];
-            const toStation = stations[travelTime.ToStationID];
-            if (station.sequence < toStation.sequence) {
-                station.next_seq = toStation.sequence;
-                station.run_time_to_next = travelTime.RunTime;
-                toStation.previous_seq = station.sequence;
-                toStation.run_time_to_previous = travelTime.RunTime;
-            } else {
-                station.previous_seq = toStation.sequence;
-                station.run_time_to_previous = travelTime.RunTime;
-                toStation.next_seq = station.sequence;
-                toStation.run_time_to_next = travelTime.RunTime;
-            }
-            station.stop_time = travelTime.StopTime;
+        for (const tt of line.TravelTimes) {
+            const fromStation = stations[tt.FromStationID];
+            const toStation = stations[tt.ToStationID];
+            // if (fromStation.station_id < toStation.station_id) {
+            //     fromStation.next_seq = toStation.sequence;
+            //     fromStation.run_time_to_next = tt.RunTime;
+            //     toStation.previous_seq = fromStation.sequence;
+            //     toStation.run_time_to_previous = tt.RunTime;
+            // } else {
+            //     fromStation.previous_seq = toStation.sequence;
+            //     fromStation.run_time_to_previous = tt.RunTime;
+            //     toStation.next_seq = fromStation.sequence;
+            //     toStation.run_time_to_next = tt.RunTime;
+            // }
+
+            const forward = {
+                line_id: fromStation.line_id,
+                start_station_id: fromStation.station_id,
+                end_station_id: toStation.station_id,
+                run_time: tt.RunTime
+            };
+
+            const backward = await Metro.createTravelTime({
+                line_id: fromStation.line_id,
+                start_station_id: fromStation.station_id,
+                end_station_id: toStation.station_id,
+                run_time: tt.RunTime
+            });
+
+            travelTimes.push(forward);
+            travelTimes.push(backward);
+            fromStation.stop_time = tt.StopTime;
         }
     }
 
-    for (const stationID in stations) {
-        const station = stations[stationID];
-        const id = await Metro.createStation(station);
+    // for (const stationID in stations) {
+    //     const id = await Metro.createStation(stations[stationID]);
+    // }
+
+    for (const travelTime of travelTimes) {
+        const id = await Metro.createTravelTime(travelTime);
     }
 };
 
@@ -128,5 +149,5 @@ const importMetroRoute = async function () {
 };
 
 // importMetroLines();
-// importMetroStation();
+importMetroStation();
 // importMetroRoute();
