@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 require('dotenv').config();
 const axios = require('axios');
 const jsSHA = require('jssha');
@@ -36,7 +37,9 @@ const importMetroLines = async function () {
     }
 };
 
-const importMetroStation = async function () {
+const importMetroStationAndTravelTime = async function () {
+
+    // Add station data
     // const stationData = await getPtxData('https://ptx.transportdata.tw/MOTC/v2/Rail/Metro/Station/TRTC?$filter=contains(StationID,%27BL%27)&$orderby=StationID%20asc&$format=JSON');
     const stationData = await getPtxData('https://ptx.transportdata.tw/MOTC/v2/Rail/Metro/Station/TRTC?$orderby=StationID%20asc&$format=JSON');
     const stations = {};
@@ -49,11 +52,6 @@ const importMetroStation = async function () {
             lon: station.StationPosition.PositionLon,
             address: station.StationAddress,
             line_id: null,
-            // sequence: null,
-            // previous_seq: null,
-            // next_seq: null,
-            // run_time_to_previous: null,
-            // run_time_to_next: null,
             stop_time: 0
         };
     }
@@ -63,10 +61,10 @@ const importMetroStation = async function () {
         for (const stationSeq of line.Stations) {
             const station = stations[stationSeq.StationID];
             station.line_id = line.LineID;
-            // station.sequence = stationSeq.Sequence;
         }
     }
 
+    // Add line run time data
     // const travelTimeData = await getPtxData('https://ptx.transportdata.tw/MOTC/v2/Rail/Metro/S2STravelTime/TRTC?$filter=LineID%20eq%20%27BL%27&$format=JSON');
     const travelTimeData = await getPtxData('https://ptx.transportdata.tw/MOTC/v2/Rail/Metro/S2STravelTime/TRTC?$format=JSON');
     const travelTimes = [];
@@ -74,31 +72,20 @@ const importMetroStation = async function () {
         for (const tt of line.TravelTimes) {
             const fromStation = stations[tt.FromStationID];
             const toStation = stations[tt.ToStationID];
-            // if (fromStation.station_id < toStation.station_id) {
-            //     fromStation.next_seq = toStation.sequence;
-            //     fromStation.run_time_to_next = tt.RunTime;
-            //     toStation.previous_seq = fromStation.sequence;
-            //     toStation.run_time_to_previous = tt.RunTime;
-            // } else {
-            //     fromStation.previous_seq = toStation.sequence;
-            //     fromStation.run_time_to_previous = tt.RunTime;
-            //     toStation.next_seq = fromStation.sequence;
-            //     toStation.run_time_to_next = tt.RunTime;
-            // }
-
             const forward = {
-                line_id: fromStation.line_id,
-                start_station_id: fromStation.station_id,
-                end_station_id: toStation.station_id,
+                from_line_id: fromStation.line_id,
+                to_line_id: toStation.line_id,
+                from_station_id: fromStation.station_id,
+                to_station_id: toStation.station_id,
                 run_time: tt.RunTime
             };
-
-            const backward = await Metro.createTravelTime({
-                line_id: fromStation.line_id,
-                start_station_id: fromStation.station_id,
-                end_station_id: toStation.station_id,
+            const backward = {
+                from_line_id: toStation.line_id,
+                to_line_id: fromStation.line_id,
+                from_station_id: toStation.station_id,
+                to_station_id: fromStation.station_id,
                 run_time: tt.RunTime
-            });
+            };
 
             travelTimes.push(forward);
             travelTimes.push(backward);
@@ -106,10 +93,34 @@ const importMetroStation = async function () {
         }
     }
 
-    // for (const stationID in stations) {
-    //     const id = await Metro.createStation(stations[stationID]);
-    // }
+    // Add line transfer time data
+    const lineTransferTimeData = await getPtxData('https://ptx.transportdata.tw/MOTC/v2/Rail/Metro/LineTransfer/TRTC?$format=JSON');
+    for (const lineTransfer of lineTransferTimeData) {
+        const forward = {
+            from_line_id: lineTransfer.FromLineID,
+            to_line_id: lineTransfer.ToLineID,
+            from_station_id: lineTransfer.FromStationID,
+            to_station_id: lineTransfer.ToStationID,
+            run_time: lineTransfer.TransferTime * 60
+        };
+        const backward = {
+            from_line_id: lineTransfer.ToLineID,
+            to_line_id: lineTransfer.FromLineID,
+            from_station_id: lineTransfer.ToStationID,
+            to_station_id: lineTransfer.FromStationID,
+            run_time: lineTransfer.TransferTime * 60
+        };
 
+        travelTimes.push(forward);
+        travelTimes.push(backward);
+    }
+
+    // Write station data into database
+    for (const stationID in stations) {
+        const id = await Metro.createStation(stations[stationID]);
+    }
+
+    // Write travel time data into database
     for (const travelTime of travelTimes) {
         const id = await Metro.createTravelTime(travelTime);
     }
@@ -148,6 +159,6 @@ const importMetroRoute = async function () {
     }
 };
 
-// importMetroLines();
-importMetroStation();
-// importMetroRoute();
+importMetroLines();
+importMetroStationAndTravelTime();
+importMetroRoute();
