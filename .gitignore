@@ -80,3 +80,6 @@ midterm
 
 # https
 .well-known
+
+# temp ignore
+tempignore*

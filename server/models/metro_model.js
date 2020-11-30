@@ -48,8 +48,20 @@ const createTravelTime = async (travelTime) => {
     }
 };
 
-const getStation = async (stationID) => {
-    return await query('SELECT * FROM metro_station WHERE station_id = ?', stationID);
+const getStation = async (stationId) => {
+    return await query('SELECT * FROM metro_station WHERE station_id = ?', stationId);
+};
+
+const getAllStations = async () => {
+    return await query('SELECT * FROM metro_station');
+};
+
+const getTravelTimeByFromStation = async (fromStationID) => {
+    return await query('SELECT * FROM metro_travel_time WHERE from_station_id = ?', fromStationID);
+};
+
+const getAllTravelTime = async () => {
+    return await query('SELECT * FROM metro_travel_time');
 };
 
 module.exports = {
@@ -57,5 +69,8 @@ module.exports = {
     createStation,
     createRoute,
     createTravelTime,
-    getStation
+    getStation,
+    getAllStations,
+    getTravelTimeByFromStation,
+    getAllTravelTime
 };

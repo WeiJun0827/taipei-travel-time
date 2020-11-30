@@ -159,6 +159,6 @@ const importMetroRoute = async function () {
     }
 };
 
-importMetroLines();
-importMetroStationAndTravelTime();
-importMetroRoute();
+// importMetroLines();
+// importMetroStationAndTravelTime();
+// importMetroRoute();
