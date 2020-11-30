@@ -1,33 +1,40 @@
+class PriorityQueueNode {
+    constructor(id, priority) {
+        this.id = id;
+        this.priority = priority;
+    }
+}
+
 class PriorityQueue {
     constructor() {
-        this.values = [];
+        this.nodes = [];
     }
 
-    enqueue(val, priority) {
-        let newNode = new Node(val, priority);
-        this.values.push(newNode);
+    enqueue(id, priority) {
+        let newNode = new PriorityQueueNode(id, priority);
+        this.nodes.push(newNode);
         this.bubbleUp();
     }
 
     bubbleUp() {
-        let idx = this.values.length - 1;
-        const element = this.values[idx];
+        let idx = this.nodes.length - 1;
+        const element = this.nodes[idx];
         while (idx > 0) {
             let parentIdx = Math.floor((idx - 1) / 2);
-            let parent = this.values[parentIdx];
+            let parent = this.nodes[parentIdx];
             if (element.priority >= parent.priority) break;
-            this.values[parentIdx] = element;
-            this.values[idx] = parent;
+            this.nodes[parentIdx] = element;
+            this.nodes[idx] = parent;
             idx = parentIdx;
         }
     }
 
     dequeue() {
         if (this.isEmpty()) throw new Error('Queue underflow');
-        const min = this.values[0];
-        const end = this.values.pop();
+        const min = this.nodes[0];
+        const end = this.nodes.pop();
         if (!this.isEmpty()) {
-            this.values[0] = end;
+            this.nodes[0] = end;
             this.sinkDown();
         }
         return min;
@@ -35,8 +42,8 @@ class PriorityQueue {
 
     sinkDown() {
         let idx = 0;
-        const length = this.values.length;
-        const element = this.values[0];
+        const length = this.nodes.length;
+        const element = this.nodes[0];
         while (true) {
             const leftChildIdx = 2 * idx + 1;
             const rightChildIdx = 2 * idx + 2;
@@ -44,13 +51,13 @@ class PriorityQueue {
             let swapIdx = null;
 
             if (leftChildIdx < length) {
-                leftChild = this.values[leftChildIdx];
+                leftChild = this.nodes[leftChildIdx];
                 if (leftChild.priority < element.priority) {
                     swapIdx = leftChildIdx;
                 }
             }
             if (rightChildIdx < length) {
-                rightChild = this.values[rightChildIdx];
+                rightChild = this.nodes[rightChildIdx];
                 if (
                     (swapIdx === null && rightChild.priority < element.priority) ||
                     (swapIdx !== null && rightChild.priority < leftChild.priority)
@@ -59,21 +66,14 @@ class PriorityQueue {
                 }
             }
             if (swapIdx === null) break;
-            this.values[idx] = this.values[swapIdx];
-            this.values[swapIdx] = element;
+            this.nodes[idx] = this.nodes[swapIdx];
+            this.nodes[swapIdx] = element;
             idx = swapIdx;
         }
     }
 
     isEmpty() {
-        return this.values.length === 0;
-    }
-}
-
-class Node {
-    constructor(val, priority) {
-        this.val = val;
-        this.priority = priority;
+        return this.nodes.length === 0;
     }
 }
 
@@ -151,7 +151,7 @@ class Graph {
         }
 
         while (!pq.isEmpty()) {
-            const fromNodeId = pq.dequeue().val;
+            const fromNodeId = pq.dequeue().id;
             if (!isVisited[fromNodeId]) {
                 for (const toNodeId in this.nodes[fromNodeId].edges) {
                     const alt = cost[fromNodeId] + this.nodes[fromNodeId].edges[toNodeId].runTime + this.nodes[fromNodeId].stopTime;
