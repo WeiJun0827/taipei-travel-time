@@ -40,9 +40,9 @@ const importMetroLines = async function () {
 const importMetroStationAndTravelTime = async function () {
 
     // Add station data
+    const stations = {};
     // const stationData = await getPtxData('https://ptx.transportdata.tw/MOTC/v2/Rail/Metro/Station/TRTC?$filter=contains(StationID,%27BL%27)&$orderby=StationID%20asc&$format=JSON');
     const stationData = await getPtxData('https://ptx.transportdata.tw/MOTC/v2/Rail/Metro/Station/TRTC?$orderby=StationID%20asc&$format=JSON');
-    const stations = {};
     for (const station of stationData) {
         stations[station.StationID] = {
             station_id: station.StationID,
@@ -65,9 +65,9 @@ const importMetroStationAndTravelTime = async function () {
     }
 
     // Add line run time data
+    const travelTimes = [];
     // const travelTimeData = await getPtxData('https://ptx.transportdata.tw/MOTC/v2/Rail/Metro/S2STravelTime/TRTC?$filter=LineID%20eq%20%27BL%27&$format=JSON');
     const travelTimeData = await getPtxData('https://ptx.transportdata.tw/MOTC/v2/Rail/Metro/S2STravelTime/TRTC?$format=JSON');
-    const travelTimes = [];
     for (const line of travelTimeData) {
         for (const tt of line.TravelTimes) {
             const fromStation = stations[tt.FromStationID];
@@ -89,36 +89,27 @@ const importMetroStationAndTravelTime = async function () {
 
             travelTimes.push(forward);
             travelTimes.push(backward);
-            fromStation.stop_time = tt.StopTime;
+            fromStation.stop_time = tt.StopTime == 0 ? fromStation.stop_time : tt.StopTime;
         }
     }
 
     // Add line transfer time data
     const lineTransferTimeData = await getPtxData('https://ptx.transportdata.tw/MOTC/v2/Rail/Metro/LineTransfer/TRTC?$format=JSON');
-    for (const lineTransfer of lineTransferTimeData) {
-        const forward = {
-            from_line_id: lineTransfer.FromLineID,
-            to_line_id: lineTransfer.ToLineID,
-            from_station_id: lineTransfer.FromStationID,
-            to_station_id: lineTransfer.ToStationID,
-            run_time: lineTransfer.TransferTime * 60
+    for (const data of lineTransferTimeData) {
+        const transfer = {
+            from_line_id: data.FromLineID,
+            to_line_id: data.ToLineID,
+            from_station_id: data.FromStationID,
+            to_station_id: data.ToStationID,
+            run_time: data.TransferTime * 60
         };
-        const backward = {
-            from_line_id: lineTransfer.ToLineID,
-            to_line_id: lineTransfer.FromLineID,
-            from_station_id: lineTransfer.ToStationID,
-            to_station_id: lineTransfer.FromStationID,
-            run_time: lineTransfer.TransferTime * 60
-        };
-
-        travelTimes.push(forward);
-        travelTimes.push(backward);
+        travelTimes.push(transfer);
     }
 
     // Write station data into database
-    for (const stationID in stations) {
-        const id = await Metro.createStation(stations[stationID]);
-    }
+    // for (const stationID in stations) {
+    //     const id = await Metro.createStation(stations[stationID]);
+    // }
 
     // Write travel time data into database
     for (const travelTime of travelTimes) {

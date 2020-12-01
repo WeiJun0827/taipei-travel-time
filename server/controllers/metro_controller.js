@@ -1,25 +1,35 @@
 const Metro = require('../models/metro_model');
+const Graph = require('../../util/graph');
+const graph = new Graph();
 
-const loadStations = async function () {
+const initializeGraph = async function () {
     const stationData = await Metro.getAllStations();
-    const stations = {};
     for (const data of stationData) {
         const stationId = data.station_id;
-        stations[stationId] = data;
+        const runTime = data.stop_time;
+        const dataObj = Object.assign({}, data);
+        graph.addNode(stationId, runTime, dataObj);
     }
 
     const pathData = await Metro.getAllTravelTime();
-    const paths = {};
     for (const data of pathData) {
-        const fromStationId = data.from_station_id;
-        const toStationId = data.to_station_id;
-        if (!paths[fromStationId]) paths[fromStationId] = {};
-        paths[fromStationId][toStationId] = data;
+        const fromNodeId = data.from_station_id;
+        const toNodeId = data.to_station_id;
+        const runTime = data.run_time;
+        const dataObj = Object.assign({}, data);
+        graph.addEdge(fromNodeId, toNodeId, runTime, dataObj);
     }
 };
 
+initializeGraph().then(() => {
+    console.time('Dijkstra');
+    console.log(graph.dijkstraAlgorithm('BL15'));
+    console.timeEnd('Dijkstra');
+    console.time('Floyd');
+    console.log(graph.floydWarshallAlgorithm());
+    console.timeEnd('Floyd');
+});
 
-loadStations();
 module.exports = {
-    loadStations
+    initializeGraph
 };

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./css/main.css" />
+</head>
+
+<body>
+    <div class="container">
+        <div class="options-box">
+            <div>
+                <input id="search-place" type="text" placeholder="Enter location or address">
+                <input id="search-time" type="number" value="30" min="5" max="90" step="5">
+                <input id="search-btn" type="button" value="Go">
+                <hr>
+                <input id="toggle-drawing" type="button" value="Drawing Tools">
+            </div>
+        </div>
+        <div id="map"></div>
+    </div>
+    <!-- <script src="./js/main.js"></script> -->
+    <script>
+        let map;
+        let placeMarkers = [];
+
+        function initMap() {
+            // Constructor creates a new map - only center and zoom are required.
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: 25.045, lng: 121.53 },
+                zoom: 13,
+                mapTypeControl: false
+            });
+
+            // const textAutocomplete = new google.maps.places.Autocomplete(
+            //     document.getElementById('search-place'));
+            // textAutocomplete.bindTo('bounds', map);
+
+            var searchBox = new google.maps.places.SearchBox(
+                document.getElementById('search-place'));
+            searchBox.setBounds(map.getBounds());
+            searchBox.addListener('places_changed', function () {
+                searchBoxPlaces(this);
+            });
+
+            // Initialize the drawing manager.
+            const drawingManager = new google.maps.drawing.DrawingManager({
+                drawingMode: google.maps.drawing.OverlayType.POLYGON,
+                drawingControl: true,
+                drawingControlOptions: {
+                    position: google.maps.ControlPosition.TOP_LEFT,
+                    drawingModes: [
+                        google.maps.drawing.OverlayType.POLYGON
+                    ]
+                }
+            });
+
+            function searchBoxPlaces(searchBox) {
+                hideMarkers(placeMarkers);
+                var places = searchBox.getPlaces();
+                if (places.length == 0) {
+                    window.alert('We did not find any places matching that search!');
+                } else {
+                    // For each place, get the icon, name and location.
+                    createMarkersForPlaces(places);
+                }
+            }
+
+            function hideMarkers(markers) {
+                for (var i = 0; i < markers.length; i++) {
+                    markers[i].setMap(null);
+                }
+            }
+
+
+            document.getElementById('toggle-drawing').addEventListener('click', toggleDrawing(drawingManager));
+            document.getElementById('search-btn').addEventListener('click', textSearchPlaces);
+
+
+            // This shows and hides (respectively) the drawing options.
+            function toggleDrawing(drawingManager) {
+                if (drawingManager.map) {
+                    drawingManager.setMap(null);
+                } else {
+                    drawingManager.setMap(map);
+                }
+            }
+
+            function textSearchPlaces() {
+                var bounds = map.getBounds();
+                hideMarkers(placeMarkers);
+                var placesService = new google.maps.places.PlacesService(map);
+                placesService.textSearch({
+                    query: document.getElementById('search-place').value,
+                    bounds: bounds
+                }, function (results, status) {
+                    if (status === google.maps.places.PlacesServiceStatus.OK) {
+                        createMarkersForPlaces(results);
+                    }
+                });
+            }
+
+            function createMarkersForPlaces(places) {
+                var bounds = new google.maps.LatLngBounds();
+                for (var i = 0; i < places.length; i++) {
+                    var place = places[i];
+                    var icon = {
+                        url: place.icon,
+                        size: new google.maps.Size(35, 35),
+                        origin: new google.maps.Point(0, 0),
+                        anchor: new google.maps.Point(15, 34),
+                        scaledSize: new google.maps.Size(25, 25)
+                    };
+                    // Create a marker for each place.
+                    var marker = new google.maps.Marker({
+                        map: map,
+                        icon: icon,
+                        title: place.name,
+                        position: place.geometry.location,
+                        id: place.id
+                    });
+                    // If a marker is clicked, do a place details search on it in the next function.
+                    marker.addListener('click', function () {
+                        getPlacesDetails(this, place);
+                    });
+                    placeMarkers.push(marker);
+                    if (place.geometry.viewport) {
+                        // Only geocodes have viewport.
+                        bounds.union(place.geometry.viewport);
+                    } else {
+                        bounds.extend(place.geometry.location);
+                    }
+                }
+                map.fitBounds(bounds);
+            }
+
+            function getPlacesDetails(marker, infowindow) {
+                var service = new google.maps.places.PlacesService(map);
+                service.getDetails({
+                    placeId: marker.id
+                }, function (place, status) {
+                    if (status === google.maps.places.PlacesServiceStatus.OK) {
+                        // Set the marker property on this infowindow so it isn't created again.
+                        infowindow.marker = marker;
+                        var innerHTML = '<div>';
+                        if (place.name) {
+                            innerHTML += '<strong>' + place.name + '</strong>';
+                        }
+                        if (place.formatted_address) {
+                            innerHTML += '<br>' + place.formatted_address;
+                        }
+                        if (place.formatted_phone_number) {
+                            innerHTML += '<br>' + place.formatted_phone_number;
+                        }
+                        if (place.opening_hours) {
+                            innerHTML += '<br><br><strong>Hours:</strong><br>' +
+                                place.opening_hours.weekday_text[0] + '<br>' +
+                                place.opening_hours.weekday_text[1] + '<br>' +
+                                place.opening_hours.weekday_text[2] + '<br>' +
+                                place.opening_hours.weekday_text[3] + '<br>' +
+                                place.opening_hours.weekday_text[4] + '<br>' +
+                                place.opening_hours.weekday_text[5] + '<br>' +
+                                place.opening_hours.weekday_text[6];
+                        }
+                        if (place.photos) {
+                            innerHTML += '<br><br><img src="' + place.photos[0].getUrl(
+                                { maxHeight: 100, maxWidth: 200 }) + '">';
+                        }
+                        innerHTML += '</div>';
+                        infowindow.setContent(innerHTML);
+                        infowindow.open(map, marker);
+                        // Make sure the marker property is cleared if the infowindow is closed.
+                        infowindow.addListener('closeclick', function () {
+                            infowindow.marker = null;
+                        });
+                    }
+                });
+            }
+
+            var bigOne = new google.maps.LatLng(25.041135, 121.565685);
+            var smallOne = new google.maps.LatLng(25.041370, 121.557815);
+            var anotherOne = new google.maps.LatLng(25.040855, 121.5762);
+
+            function drawPolygon() {
+                const joined = new google.maps.Polygon({
+                    paths: [drawCircle(smallOne, 350, 1),
+                    drawCircle(bigOne, 500, 1),
+                    drawCircle(anotherOne, 250, 1)],
+                    strokeColor: "#ff0000",
+                    strokeOpacity: 0.35,
+                    strokeWeight: 0,
+                    fillColor: "#FF0000",
+                    fillOpacity: 0.35
+                });
+                joined.setMap(map)
+            }
+            drawPolygon();
+        }
+
+
+        function drawCircle(point, radius, dir) {
+            var d2r = Math.PI / 180; // degrees to radians 
+            var r2d = 180 / Math.PI; // radians to degrees 
+            var earthsradius = 6371e3; // the radius of the earth in metre
+            var points = 32;
+
+            // find the raidus in lat/lon 
+            var rlat = (radius / earthsradius) * r2d;
+            var rlng = rlat / Math.cos(point.lat() * d2r);
+
+            var extp = [];
+            if (dir == 1) {
+                var start = 0;
+                var end = points + 1
+            } // one extra here makes sure we connect the
+            else {
+                var start = points + 1;
+                var end = 0
+            }
+            for (var i = start;
+                (dir == 1 ? i < end : i > end); i = i + dir) {
+                var theta = Math.PI * (i / (points / 2));
+                ey = point.lng() + (rlng * Math.cos(theta)); // center a + radius x * cos(theta) 
+                ex = point.lat() + (rlat * Math.sin(theta)); // center b + radius y * sin(theta) 
+                extp.push(new google.maps.LatLng(ex, ey));
+            }
+            return extp;
+        }
+    </script>
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?libraries=places,geometry,drawing&key=AIzaSyBFFH-k40TGQI-ktrgnvGTlcNbCHm6JOkY&v=3&callback=initMap"></script>
+</body>
+
+</html>

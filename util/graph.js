@@ -78,18 +78,20 @@ class PriorityQueue {
 }
 
 class GraphNode {
-    constructor(id, stopTime) {
+    constructor(id, stopTime, data) {
         this.id = id;
         this.stopTime = stopTime;
+        this.data = data;
         this.edges = {};
     }
 }
 
 class GraphEdge {
-    constructor(fromNode, toNode, runTime) {
+    constructor(fromNode, toNode, runTime, data) {
         this.fromNode = fromNode;
         this.toNode = toNode;
         this.runTime = runTime;
+        this.data = data;
     }
 }
 
@@ -98,18 +100,18 @@ class Graph {
         this.nodes = {};
     }
 
-    addNode(id, stopTime) {
+    addNode(id, stopTime, data) {
         if (this.nodes[id] != undefined)
             throw new Error('Node already existed');
-        this.nodes[id] = new GraphNode(id, stopTime);
+        this.nodes[id] = new GraphNode(id, stopTime, data);
     }
 
-    addEdge(from, to, runTime) {
-        const fromNode = this.nodes[from];
-        const toNode = this.nodes[to];
+    addEdge(fromNodeId, toNodeId, runTime, data) {
+        const fromNode = this.nodes[fromNodeId];
+        const toNode = this.nodes[toNodeId];
         if (fromNode == undefined) throw new Error('From node not found');
         if (toNode == undefined) throw new Error('To node not found');
-        fromNode.edges[to] = new GraphEdge(fromNode, toNode, runTime);
+        fromNode.edges[toNodeId] = new GraphEdge(fromNode, toNode, runTime, data);
     }
 
     floydWarshallAlgorithm() {
@@ -119,7 +121,7 @@ class Graph {
             cost[fromId] = {};
             for (const toId in this.nodes) {
                 if (fromNode.edges[toId])
-                    cost[fromId][toId] = fromNode.edges[toId].runTime;
+                    cost[fromId][toId] = fromNode.stopTime + fromNode.edges[toId].runTime;
                 else if (fromId === toId)
                     cost[fromId][toId] = 0;
                 else
@@ -127,18 +129,18 @@ class Graph {
             }
         }
 
-        for (const i in this.nodes) {
-            for (const j in this.nodes) {
-                for (const k in this.nodes) {
-                    if (cost[i][j] > cost[i][k] + cost[k][j] + this.nodes[k].stopTime)
-                        cost[i][j] = cost[i][k] + cost[k][j] + this.nodes[k].stopTime;
+        for (const k in this.nodes) {
+            for (const i in this.nodes) {
+                for (const j in this.nodes) {
+                    if (cost[i][j] > cost[i][k] + cost[k][j])
+                        cost[i][j] = cost[i][k] + cost[k][j];
                 }
             }
         }
         return cost;
     }
 
-    djikstraAlgorithm(fromNodeId) {
+    dijkstraAlgorithm(fromNodeId) {
         const cost = {};
         const previousNode = {};
         const isVisited = {};
@@ -168,27 +170,5 @@ class Graph {
     }
 }
 
-let g = new Graph();
-g.addNode('A', 1);
-g.addNode('B', 1);
-g.addNode('C', 1);
-g.addNode('D', 1);
-g.addNode('E', 1);
 
-g.addEdge('A', 'B', 60);
-g.addEdge('A', 'D', 10);
-g.addEdge('B', 'A', 60);
-g.addEdge('B', 'D', 20);
-g.addEdge('B', 'E', 20);
-g.addEdge('B', 'C', 50);
-g.addEdge('C', 'B', 50);
-g.addEdge('C', 'E', 50);
-g.addEdge('D', 'A', 10);
-g.addEdge('D', 'B', 20);
-g.addEdge('D', 'E', 10);
-g.addEdge('E', 'D', 10);
-g.addEdge('E', 'B', 20);
-g.addEdge('E', 'C', 50);
-
-console.log(g.floydWarshallAlgorithm());
-console.log(g.djikstraAlgorithm('A'));
+module.exports = Graph;
