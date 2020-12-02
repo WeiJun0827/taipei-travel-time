@@ -1,15 +1,35 @@
-/* eslint-disable no-undef */
-/* eslint-disable no-unused-vars */
-let map;
-
 function initMap() {
-    // Constructor creates a new map - only center and zoom are required.
-    map = new google.maps.Map(document.getElementById('map'), {
-        center: { lat: 25.045, lng: 121.53 },
-        zoom: 13,
-        mapTypeControl: false
+    const map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 4,
+        center: { lat: -24.345, lng: 134.46 },
     });
-    const textAutocomplete = new google.maps.places.Autocomplete(
-        document.getElementById('search-place'));
-    textAutocomplete.bindTo('bounds', map);
+    const directionsService = new google.maps.DirectionsService();
+    displayRoute(
+        "Perth, WA",
+        "Sydney, NSW",
+        directionsService,
+        directionsRenderer
+    );
+}
+
+function displayRoute(origin, destination, service, display) {
+    service.route(
+        {
+            origin: origin,
+            destination: destination,
+            waypoints: [
+                { location: "Adelaide, SA" },
+                { location: "Broken Hill, NSW" },
+            ],
+            travelMode: google.maps.TravelMode.DRIVING,
+            avoidTolls: true,
+        },
+        (result, status) => {
+            if (status === "OK") {
+                display.setDirections(result);
+            } else {
+                alert("Could not display directions due to: " + status);
+            }
+        }
+    );
 }
