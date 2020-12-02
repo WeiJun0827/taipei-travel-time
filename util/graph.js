@@ -78,20 +78,42 @@ class PriorityQueue {
 }
 
 class GraphNode {
-    constructor(id, stopTime, data) {
+    constructor(id, nameCht, nameEng, lat, lon, address, line, stopTime) {
         this.id = id;
+        this.nameCht = nameCht;
+        this.nameEng = nameEng;
+        this.lat = lat;
+        this.lon = lon;
+        this.address = address;
         this.stopTime = stopTime;
-        this.data = data;
+        this.line = line;
         this.edges = {};
+    }
+
+    getDistanceToNodeInM(lat, lon) {
+        const Radius = 6371e3; // metres
+        const φ1 = lat * Math.PI / 180; // φ, λ in radians
+        const φ2 = this.lat * Math.PI / 180;
+        const Δφ = φ2 - φ1;
+        const Δλ = (this.lon - lon) * Math.PI / 180;
+
+        const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        const distance = Radius * c; // in metres
+        return distance;
     }
 }
 
 class GraphEdge {
-    constructor(fromNode, toNode, runTime, data) {
+    constructor(fromLine, toLine, fromNode, toNode, runTime) {
+        this.fromLine = fromLine;
+        this.toLine = toLine;
         this.fromNode = fromNode;
         this.toNode = toNode;
         this.runTime = runTime;
-        this.data = data;
     }
 }
 
@@ -100,18 +122,35 @@ class Graph {
         this.nodes = {};
     }
 
-    addNode(id, stopTime, data) {
+    addNode(id, nameCht, nameEng, lat, lon, address, line, stopTime) {
         if (this.nodes[id] != undefined)
             throw new Error('Node already existed');
-        this.nodes[id] = new GraphNode(id, stopTime, data);
+        this.nodes[id] = new GraphNode(id, nameCht, nameEng, lat, lon, address, line, stopTime);
     }
 
-    addEdge(fromNodeId, toNodeId, runTime, data) {
+    addEdge(fromLine, toLine, fromNodeId, toNodeId, runTime) {
         const fromNode = this.nodes[fromNodeId];
         const toNode = this.nodes[toNodeId];
         if (fromNode == undefined) throw new Error('From node not found');
         if (toNode == undefined) throw new Error('To node not found');
-        fromNode.edges[toNodeId] = new GraphEdge(fromNode, toNode, runTime, data);
+        fromNode.edges[toNodeId] = new GraphEdge(fromLine, toLine, fromNode, toNode, runTime);
+    }
+
+    addStarterNode(lat, lon, timeInMin, speedInMetrePerMin) {
+        const maxDist = timeInMin * speedInMetrePerMin; // metre
+        this.addNode('starter', '起點', 'starter', lat, lon, null, 'walking', 0);
+        for (const nodeId in this.nodes) {
+            if (nodeId != 'starter') {
+                const node = this.nodes[nodeId];
+                const distFromStarter = node.getDistanceToNodeInM(lat, lon);
+                if (maxDist > distFromStarter) {
+                    const toLine = node.line;
+                    const toNodeId = node.id;
+                    const walkTime = distFromStarter / speedInMetrePerMin * 60; // second
+                    this.addEdge('walking', toLine, 'starter', toNodeId, walkTime);
+                }
+            }
+        }
     }
 
     floydWarshallAlgorithm() {
@@ -156,11 +195,15 @@ class Graph {
             const fromNodeId = pq.dequeue().id;
             if (!isVisited[fromNodeId]) {
                 for (const toNodeId in this.nodes[fromNodeId].edges) {
-                    const alt = cost[fromNodeId] + this.nodes[fromNodeId].edges[toNodeId].runTime + this.nodes[fromNodeId].stopTime;
-                    if (alt < cost[toNodeId]) {
-                        cost[toNodeId] = alt;
+                    const basicTime = cost[fromNodeId];
+                    const waitTime =  this.nodes[fromNodeId].stopTime;
+                    const runTime = this.nodes[fromNodeId].edges[toNodeId].runTime;
+                    const alternative = basicTime + waitTime + runTime;
+                    if (alternative < cost[toNodeId]) {
+                        cost[toNodeId] = alternative;
                         previousNode[toNodeId] = fromNodeId;
-                        pq.enqueue(toNodeId, cost[toNodeId] + this.nodes[toNodeId].stopTime);
+                        const nextWaitTime = this.nodes[toNodeId].stopTime;
+                        pq.enqueue(toNodeId, alternative + nextWaitTime);
                     }
                 }
                 isVisited[fromNodeId] = true;

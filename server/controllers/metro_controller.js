@@ -5,29 +5,38 @@ const graph = new Graph();
 const initializeGraph = async function () {
     const stationData = await Metro.getAllStations();
     for (const data of stationData) {
-        const stationId = data.station_id;
-        const runTime = data.stop_time;
-        const dataObj = Object.assign({}, data);
-        graph.addNode(stationId, runTime, dataObj);
+        graph.addNode(
+            data.station_id,
+            data.name_cht,
+            data.name_eng,
+            data.lat,
+            data.lon,
+            data.address,
+            data.line_id,
+            data.stop_time
+        );
     }
 
     const pathData = await Metro.getAllTravelTime();
     for (const data of pathData) {
-        const fromNodeId = data.from_station_id;
-        const toNodeId = data.to_station_id;
-        const runTime = data.run_time;
-        const dataObj = Object.assign({}, data);
-        graph.addEdge(fromNodeId, toNodeId, runTime, dataObj);
+        graph.addEdge(
+            data.from_line_id,
+            data.to_line_id,
+            data.from_station_id,
+            data.to_station_id,
+            data.run_time
+        );
     }
 };
 
 initializeGraph().then(() => {
+    graph.addStarterNode(25.037, 121.55, 30, 60);
     console.time('Dijkstra');
-    console.log(graph.dijkstraAlgorithm('BL15'));
+    console.log(graph.dijkstraAlgorithm('starter'));
     console.timeEnd('Dijkstra');
-    console.time('Floyd');
-    console.log(graph.floydWarshallAlgorithm());
-    console.timeEnd('Floyd');
+    // console.time('Floyd');
+    // console.log(graph.floydWarshallAlgorithm());
+    // console.timeEnd('Floyd');
 });
 
 module.exports = {

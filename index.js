@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { PORT_TEST, PORT, NODE_ENV } = process.env;
+const { PORT_TEST, PORT, NODE_ENV, API_VERSION } = process.env;
 const port = NODE_ENV == 'test' ? PORT_TEST : PORT;
 
 // Express Initialization
@@ -10,6 +10,13 @@ const app = express();
 app.use(express.static('public'));
 app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({ extended: true }));
+
+// API routes
+app.use('/api/' + API_VERSION,
+    [
+        require('./server/routes/metro_route'),
+    ]
+);
 
 // Page not found
 app.use(function (req, res) {
