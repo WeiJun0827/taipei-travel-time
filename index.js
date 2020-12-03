@@ -14,7 +14,7 @@ app.use(bodyparser.urlencoded({ extended: true }));
 // API routes
 app.use('/api/' + API_VERSION,
     [
-        require('./server/routes/metro_route'),
+        require('./server/routes/travel_time_route'),
     ]
 );
 

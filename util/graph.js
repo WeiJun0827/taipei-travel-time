@@ -90,7 +90,13 @@ class GraphNode {
         this.edges = {};
     }
 
-    getDistanceToNodeInM(lat, lon) {
+    /**
+     * Get distance from specified location to this node.
+     * @param {Number} lat latitude
+     * @param {Number} lon longitude
+     * @returns {Number} distance in metres
+     */
+    getDistanceToNode(lat, lon) {
         const Radius = 6371e3; // metres
         const φ1 = lat * Math.PI / 180; // φ, λ in radians
         const φ2 = this.lat * Math.PI / 180;
@@ -124,33 +130,45 @@ class Graph {
 
     addNode(id, nameCht, nameEng, lat, lon, address, line, stopTime) {
         if (this.nodes[id] != undefined)
-            throw new Error('Node already existed');
+            throw new Error(`Node ${id} already existed`);
         this.nodes[id] = new GraphNode(id, nameCht, nameEng, lat, lon, address, line, stopTime);
     }
 
     addEdge(fromLine, toLine, fromNodeId, toNodeId, runTime) {
         const fromNode = this.nodes[fromNodeId];
         const toNode = this.nodes[toNodeId];
-        if (fromNode == undefined) throw new Error('From node not found');
-        if (toNode == undefined) throw new Error('To node not found');
+        if (fromNode == undefined) throw new Error(`From node ${fromNodeId} not found`);
+        if (toNode == undefined) throw new Error(`To node ${toNodeId} not found`);
         fromNode.edges[toNodeId] = new GraphEdge(fromLine, toLine, fromNode, toNode, runTime);
     }
 
-    addStarterNode(lat, lon, timeInMin, speedInMetrePerMin) {
-        const maxDist = timeInMin * speedInMetrePerMin; // metre
-        this.addNode('starter', '起點', 'starter', lat, lon, null, 'walking', 0);
+    /**
+     * Add a specified starter node into the graph.
+     * @param {String} starterId unique starter node ID
+     * @param {Number} lat latitude
+     * @param {Number} lon longitude
+     * @param {Number} time maximum available time in seconds
+     * @param {Number} speed average moving speed in m/s
+     */
+    addStarterNode(starterId, lat, lon, time, speed) {
+        const maxDist = time * speed; // metre
+        this.addNode(starterId, starterId, starterId, lat, lon, null, 'walking', 0);
         for (const nodeId in this.nodes) {
-            if (nodeId != 'starter') {
+            if (nodeId != starterId) {
                 const node = this.nodes[nodeId];
-                const distFromStarter = node.getDistanceToNodeInM(lat, lon);
+                const distFromStarter = node.getDistanceToNode(lat, lon);
                 if (maxDist > distFromStarter) {
                     const toLine = node.line;
                     const toNodeId = node.id;
-                    const walkTime = distFromStarter / speedInMetrePerMin * 60; // second
-                    this.addEdge('walking', toLine, 'starter', toNodeId, walkTime);
+                    const walkTime = distFromStarter / speed; // second
+                    this.addEdge('walking', toLine, starterId, toNodeId, walkTime);
                 }
             }
         }
+    }
+
+    deleteStarterNode(starterId){
+        if(this.nodes[starterId]) delete this.nodes[starterId];
     }
 
     floydWarshallAlgorithm() {
@@ -179,7 +197,13 @@ class Graph {
         return cost;
     }
 
-    dijkstraAlgorithm(fromNodeId) {
+    /**
+     * Get travel time of single source shortest path for all nodes via Dijkstra's algorithm
+     * @param {String} fromNodeId node ID
+     * @param {Number} maxTimeLimit available maximum time in seconds
+     * @returns {Object} key: node ID, value: travel time in seconds for available nodes, Infinity for unavailable nodes
+     */
+    dijkstraAlgorithm(fromNodeId, maxTimeLimit = Infinity) {
         const cost = {};
         const previousNode = {};
         const isVisited = {};
@@ -196,14 +220,15 @@ class Graph {
             if (!isVisited[fromNodeId]) {
                 for (const toNodeId in this.nodes[fromNodeId].edges) {
                     const basicTime = cost[fromNodeId];
-                    const waitTime =  this.nodes[fromNodeId].stopTime;
+                    const waitTime = this.nodes[fromNodeId].stopTime;
                     const runTime = this.nodes[fromNodeId].edges[toNodeId].runTime;
                     const alternative = basicTime + waitTime + runTime;
-                    if (alternative < cost[toNodeId]) {
+                    if (alternative < cost[toNodeId] && alternative < maxTimeLimit) {
                         cost[toNodeId] = alternative;
                         previousNode[toNodeId] = fromNodeId;
                         const nextWaitTime = this.nodes[toNodeId].stopTime;
-                        pq.enqueue(toNodeId, alternative + nextWaitTime);
+                        const nextBasicTime = alternative + nextWaitTime;
+                        pq.enqueue(toNodeId, nextBasicTime);
                     }
                 }
                 isVisited[fromNodeId] = true;
@@ -212,6 +237,5 @@ class Graph {
         return cost;
     }
 }
-
 
 module.exports = Graph;

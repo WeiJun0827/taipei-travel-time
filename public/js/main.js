@@ -2,6 +2,7 @@
 /* eslint-disable no-undef */
 let map;
 let marker;
+let polygon;
 
 document.getElementById('search-btn').addEventListener('click', textSearchPlaces);
 document.getElementById('my-position-btn').addEventListener('click', goToUsersLocation);
@@ -14,8 +15,8 @@ function initMap() {
     };
     map = new google.maps.Map(document.getElementById('map'), mapOptions);
     initMarker(mapOptions.center);
+    initPolygon();
     initSearchBox();
-    drawPolygon();
 }
 
 function initMarker(position) {
@@ -32,14 +33,29 @@ function initMarker(position) {
         icon: icon
     });
     updateLatLon();
+    drawTransitArea();
     google.maps.event.addListener(marker, 'drag', function () {
         updateLatLon();
+    });
+    google.maps.event.addListener(marker, 'dragend', function () {
+        drawTransitArea();
     });
 }
 
 function updateLatLon() {
     document.getElementById('lat').innerHTML = marker.getPosition().lat();
     document.getElementById('lon').innerHTML = marker.getPosition().lng();
+}
+
+function initPolygon() {
+    polygon = new google.maps.Polygon({
+        strokeColor: '#ff0000',
+        strokeOpacity: 0.35,
+        strokeWeight: 0,
+        fillColor: '#FF0000',
+        fillOpacity: 0.35
+    });
+    polygon.setMap(map);
 }
 
 function initSearchBox() {
@@ -71,6 +87,7 @@ function moveMarkerForPlace(place) {
     }
     map.fitBounds(bounds);
     updateLatLon();
+    drawTransitArea();
 }
 
 function textSearchPlaces() {
@@ -96,31 +113,38 @@ function goToUsersLocation() {
             marker.setPosition(currentPosition);
             map.setCenter(currentPosition);
             updateLatLon();
+            drawTransitArea();
         });
     }
 }
 
-function drawPolygon(paths) {
-    const bigOne = new google.maps.LatLng(25.041135, 121.565685);
-    const smallOne = new google.maps.LatLng(25.041370, 121.557815);
-    const anotherOne = new google.maps.LatLng(25.040855, 121.5762);
-    if (!paths || paths.length == 0)
-        paths = [drawCircle(smallOne, 350, 1),
-        drawCircle(bigOne, 500, 1),
-        drawCircle(anotherOne, 250, 1)];
-
-    const joined = new google.maps.Polygon({
-        paths: paths,
-        strokeColor: '#ff0000',
-        strokeOpacity: 0.35,
-        strokeWeight: 0,
-        fillColor: '#FF0000',
-        fillOpacity: 0.35
+function drawTransitArea() {
+    const params = new URLSearchParams({
+        starterId: 'ABC',
+        lat: marker.getPosition().lat(),
+        lon: marker.getPosition().lng(),
+        time: document.getElementById('search-time').value
     });
-    joined.setMap(map);
+    fetch('/api/1.0/tavelTime/transit?' + params).then(response => {
+        if (!response.ok) throw new Error(response.statusText);
+        return response.json();
+    }).then(json => {
+        const paths = [];
+        for (const station of json.data) {
+            const circle = drawCircle(station.lat, station.lon, station.radius, 1);
+            paths.push(circle);
+        }
+        updatePolygon(paths);
+    }).catch(error => {
+        console.log('Fetch Error: ', error);
+    });
 }
 
-function drawCircle(point, radius, dir) {
+function updatePolygon(paths) {
+    if (polygon) polygon.setPaths(paths);
+}
+
+function drawCircle(lat, lon, radius, dir) {
     const d2r = Math.PI / 180; // degrees to radians
     const r2d = 180 / Math.PI; // radians to degrees
     const earthsradius = 6371e3; // the radius of the earth in metre
@@ -128,7 +152,7 @@ function drawCircle(point, radius, dir) {
 
     // find the raidus in lat/lon
     const rlat = (radius / earthsradius) * r2d;
-    const rlng = rlat / Math.cos(point.lat() * d2r);
+    const rlng = rlat / Math.cos(lat * d2r);
 
     const extp = [];
     let start, end;
@@ -136,15 +160,15 @@ function drawCircle(point, radius, dir) {
         start = 0;
         end = points + 1;
     } // one extra here makes sure we connect the
-    else {
+    else if (dir == -1) {
         start = points + 1;
         end = 0;
-    }
+    } else return;
 
     for (let i = start; (dir == 1 ? i < end : i > end); i = i + dir) {
         const theta = Math.PI * (i / (points / 2));
-        ey = point.lng() + (rlng * Math.cos(theta)); // center a + radius x * cos(theta)
-        ex = point.lat() + (rlat * Math.sin(theta)); // center b + radius y * sin(theta)
+        ey = lon + (rlng * Math.cos(theta)); // center a + radius x * cos(theta)
+        ex = lat + (rlat * Math.sin(theta)); // center b + radius y * sin(theta)
         extp.push(new google.maps.LatLng(ex, ey));
     }
 
