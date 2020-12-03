@@ -56,16 +56,6 @@ const getTravelTimeByTransit = async (req, res) => {
 
 initializeGraph();
 
-// initializeGraph().then(() => {
-//     graph.addStarterNode(25.037, 121.55, 30, 60);
-//     console.time('Dijkstra');
-//     console.log(graph.dijkstraAlgorithm('starter', 2400));
-//     console.timeEnd('Dijkstra');
-//     // console.time('Floyd');
-//     // console.log(graph.floydWarshallAlgorithm());
-//     // console.timeEnd('Floyd');
-// });
-
 module.exports = {
     getTravelTimeByTransit
 };

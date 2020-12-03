@@ -5,6 +5,7 @@ let marker;
 let polygon;
 
 document.getElementById('search-btn').addEventListener('click', textSearchPlaces);
+document.getElementById('search-time').addEventListener('change', drawTransitArea);
 document.getElementById('my-position-btn').addEventListener('click', goToUsersLocation);
 
 function initMap() {
@@ -17,6 +18,8 @@ function initMap() {
     initMarker(mapOptions.center);
     initPolygon();
     initSearchBox();
+    updateLatLon();
+    drawTransitArea();
 }
 
 function initMarker(position) {
@@ -32,8 +35,6 @@ function initMarker(position) {
         draggable: true,
         icon: icon
     });
-    updateLatLon();
-    drawTransitArea();
     google.maps.event.addListener(marker, 'drag', function () {
         updateLatLon();
     });
@@ -80,7 +81,6 @@ function moveMarkerForPlace(place) {
     const bounds = new google.maps.LatLngBounds();
     marker.setPosition(place.geometry.location);
     if (place.geometry.viewport) {
-        // Only geocodes have viewport.
         bounds.union(place.geometry.viewport);
     } else {
         bounds.extend(place.geometry.location);
@@ -109,7 +109,6 @@ function goToUsersLocation() {
             const currentPosition = new google.maps.LatLng(
                 position.coords.latitude,
                 position.coords.longitude);
-
             marker.setPosition(currentPosition);
             map.setCenter(currentPosition);
             updateLatLon();
@@ -134,14 +133,10 @@ function drawTransitArea() {
             const circle = drawCircle(station.lat, station.lon, station.radius, 1);
             paths.push(circle);
         }
-        updatePolygon(paths);
+        polygon.setPaths(paths);
     }).catch(error => {
         console.log('Fetch Error: ', error);
     });
-}
-
-function updatePolygon(paths) {
-    if (polygon) polygon.setPaths(paths);
 }
 
 function drawCircle(lat, lon, radius, dir) {
