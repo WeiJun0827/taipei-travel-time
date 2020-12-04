@@ -156,28 +156,12 @@ const importMetroRoute = async function () {
 const importMetroSchedule = async function () {
     const lines = ['BL', 'BR', 'G', 'O', 'R', 'Y'];
     for (const line of lines) {
-        const stationsForward = await Metro.getStationsByLine(line, true);
-        await importMetroScheduleByLine(stationsForward, line);
-        // const stationsBackward = await Metro.getStationsByLine(line, false);
-        // await importMetroScheduleByLine(stationsBackward, line);
-    }
-};
-
-async function importMetroScheduleByLine(stations, line) {
-    // let secondsPassed = 0;
-    for (const station of stations) {
-        // let isFirstTravelTime = true;
-        const travelTimes = await Metro.getTravelTimeByLineAndFromStation(line, station.station_id);
-        for (const travelTime of travelTimes) {
-            // if (travelTime.from_station_id < travelTime.to_station_id) { // forward
+        const stations = await Metro.getStationsByLine(line);
+        for (const station of stations) {
+            const travelTimes = await Metro.getTravelTimeByLineAndFromStation(line, station.station_id);
+            for (const travelTime of travelTimes) {
                 const availableRoutes = await Metro.getCalculatedIntervalByStation(travelTime.from_station_id, travelTime.to_station_id);
-                // secondsPassed += (travelTime.run_time + station.stop_time);
                 for (const ar of availableRoutes) {
-                    // let start_time = moment(ar.start_time, 'HH:mm:ss').add(secondsPassed, 'seconds');
-                    // if (isFirstTravelTime) {
-                    //     start_time = '06:00:00';
-                    //     isFirstTravelTime = false;
-                    // }
                     const schedule = {
                         line_id: line,
                         from_station_id: travelTime.from_station_id,
@@ -191,10 +175,11 @@ async function importMetroScheduleByLine(stations, line) {
                     };
                     const id = await Metro.createSchedule(schedule);
                 }
-            // }
+            }
         }
     }
-}
+    console.log('Done');
+};
 
 const importBusRoutes = async function () {
     // const routes = [];
@@ -217,7 +202,7 @@ const importBusRoutes = async function () {
 // importMetroLines();
 // importMetroStationAndTravelTime();
 // importMetroRoute();
-importMetroSchedule();
+// importMetroSchedule();
 // importBusRoutes();
 
 const format = 'HH:mm:ss';

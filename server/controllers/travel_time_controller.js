@@ -23,14 +23,16 @@ const initializeGraph = async () => {
         const weekday = (await Metro.getFrequency(data.from_station_id, data.to_station_id, false)).map(x => Object.assign({}, x));
         const holiday = (await Metro.getFrequency(data.from_station_id, data.to_station_id, true)).map(x => Object.assign({}, x));
         const freqTable = { weekday, holiday };
-        graph.addEdge(
-            data.from_line_id,
-            data.to_line_id,
-            data.from_station_id,
-            data.to_station_id,
-            data.run_time,
-            freqTable
-        );
+        if (data.from_station_id != data.to_station_id) {
+            graph.addEdge(
+                data.from_line_id,
+                data.to_line_id,
+                data.from_station_id,
+                data.to_station_id,
+                data.run_time,
+                freqTable
+            );
+        }
     }
 };
 

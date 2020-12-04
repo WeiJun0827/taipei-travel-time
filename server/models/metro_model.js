@@ -68,9 +68,8 @@ const getStationById = async (stationId) => {
     return await query('SELECT * FROM metro_station WHERE station_id = ?', stationId);
 };
 
-const getStationsByLine = async (lineId, isStationOrderAsc) => {
-    const orderOption = isStationOrderAsc ? 'ASC' : 'DESC';
-    return await query('SELECT * FROM metro_station WHERE line_id = ?' + orderOption, lineId);
+const getStationsByLine = async (lineId) => {
+    return await query('SELECT * FROM metro_station WHERE line_id = ?', lineId);
 };
 
 const getAllStations = async () => {
@@ -90,11 +89,24 @@ const getAllRoutes = async () => {
 };
 
 const getCalculatedIntervalByStation = async (fromStationId, toStationId) => {
-    return await query('SELECT is_holiday, start_time, end_time, \
+    if (fromStationId[fromStationId.length - 1] === 'A') { // for R22A and G03A
+        return await query('SELECT is_holiday, start_time, end_time, \
         AVG(interval_min) DIV COUNT(*) AS interval_min, \
         AVG(interval_max) DIV COUNT(*) AS interval_max \
-    FROM travel_time.metro_route WHERE ? >= from_station_id AND ? <= to_station_id \
-    GROUP BY line_id, is_holiday, start_time, end_time', [fromStationId, toStationId]);
+        FROM travel_time.metro_route WHERE from_station_id = ? OR to_station_id = ? \
+        GROUP BY line_id, is_holiday, start_time, end_time', [fromStationId, fromStationId]);
+    } else if (toStationId[toStationId.length - 1] === 'A') { // for R22A and G03A
+        return await query('SELECT is_holiday, start_time, end_time, \
+        AVG(interval_min) DIV COUNT(*) AS interval_min, \
+        AVG(interval_max) DIV COUNT(*) AS interval_max \
+        FROM travel_time.metro_route WHERE from_station_id = ? OR to_station_id = ? \
+        GROUP BY line_id, is_holiday, start_time, end_time', [toStationId, toStationId]);
+    } else
+        return await query('SELECT is_holiday, start_time, end_time, \
+        AVG(interval_min) DIV COUNT(*) AS interval_min, \
+        AVG(interval_max) DIV COUNT(*) AS interval_max \
+        FROM travel_time.metro_route WHERE from_station_id <= ? AND to_station_id >= ? \
+        GROUP BY line_id, is_holiday, start_time, end_time', [fromStationId, toStationId]);
 };
 
 const getFrequency = async (fromStationId, toStationId, isHoliday) => {
