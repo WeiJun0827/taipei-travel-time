@@ -4,6 +4,8 @@ const axios = require('axios');
 const jsSHA = require('jssha');
 const { PTX_APP_ID, PTX_APP_KEY } = process.env;
 const Metro = require('./server/models/metro_model');
+const Bus = require('./server/models/bus_model');
+const cities = ['Taipei', 'NewTaipei', 'Keelung'];
 
 
 const getAuthorizationHeader = function () {
@@ -150,6 +152,26 @@ const importMetroRoute = async function () {
     }
 };
 
+const importBusRoutes = async function () {
+    // const routes = [];
+    for (const city of cities) {
+        const routeData = await getPtxData(`https://ptx.transportdata.tw/MOTC/v2/Bus/Route/City/${city}?$select=RouteUID%2CRouteName%2CSubRoutes%2CCity%20&$orderby=RouteUID%20asc&$format=JSON`);
+        for (const route of routeData) {
+            const id = await Bus.createRoute({
+            // routes.push({
+                route_id: route.RouteUID,
+                route_name_cht: route.RouteName.Zh_tw || route.SubRoutes[0].SubRouteName.Zh_tw,
+                route_name_eng: route.RouteName.En || route.SubRoutes[0].SubRouteName.En,
+                city: route.City
+            });
+        }
+    }
+};
+
+
+
 // importMetroLines();
 // importMetroStationAndTravelTime();
 // importMetroRoute();
+
+// importBusRoutes();
