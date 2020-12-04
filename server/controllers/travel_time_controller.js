@@ -1,10 +1,10 @@
-const TravelTime = require('../models/travel_time_model');
+const Metro = require('../models/metro_model');
 const Graph = require('../../util/graph');
 const graph = new Graph();
 const walkingSpeed = 1;
 
 const initializeGraph = async () => {
-    const stationData = await TravelTime.getAllStations();
+    const stationData = await Metro.getAllStations();
     for (const data of stationData) {
         graph.addNode(
             data.station_id,
@@ -18,14 +18,18 @@ const initializeGraph = async () => {
         );
     }
 
-    const pathData = await TravelTime.getAllTravelTime();
+    const pathData = await Metro.getAllTravelTime();
     for (const data of pathData) {
+        const weekday = (await Metro.getFrequency(data.from_station_id, data.to_station_id, false)).map(x => Object.assign({}, x));
+        const holiday = (await Metro.getFrequency(data.from_station_id, data.to_station_id, true)).map(x => Object.assign({}, x));
+        const freqTable = { weekday, holiday };
         graph.addEdge(
             data.from_line_id,
             data.to_line_id,
             data.from_station_id,
             data.to_station_id,
-            data.run_time
+            data.run_time,
+            freqTable
         );
     }
 };

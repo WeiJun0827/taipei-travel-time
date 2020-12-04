@@ -1,3 +1,5 @@
+const moment = require('moment');
+
 class PriorityQueueNode {
     constructor(id, priority) {
         this.id = id;
@@ -114,12 +116,25 @@ class GraphNode {
 }
 
 class GraphEdge {
-    constructor(fromLine, toLine, fromNode, toNode, runTime) {
+    constructor(fromLine, toLine, fromNode, toNode, runTime, freqTable) {
         this.fromLine = fromLine;
         this.toLine = toLine;
         this.fromNode = fromNode;
         this.toNode = toNode;
         this.runTime = runTime;
+        this.freqTable = freqTable;
+    }
+
+    getExpectedTime(atMoment, isHoliday) {
+        const freqTable = isHoliday ? this.freqTable.holiday : this.freqTable.weekday;
+        if (!freqTable || freqTable.length == 0) return Infinity;
+        freqTable.forEach(f => {
+            if (f.startTime > atMoment && f.endTime <= atMoment)
+                return f.expectedTime;
+        });
+        const format = 'HH:mm:ss';
+        const seconds = moment.duration(moment(freqTable[0].startTime, format).subtract(atMoment).format(format)).asSeconds();
+        return seconds;
     }
 }
 
@@ -134,12 +149,12 @@ class Graph {
         this.nodes[id] = new GraphNode(id, nameCht, nameEng, lat, lon, address, line, stopTime);
     }
 
-    addEdge(fromLine, toLine, fromNodeId, toNodeId, runTime) {
+    addEdge(fromLine, toLine, fromNodeId, toNodeId, runTime, freqTable) {
         const fromNode = this.nodes[fromNodeId];
         const toNode = this.nodes[toNodeId];
         if (fromNode == undefined) throw new Error(`From node ${fromNodeId} not found`);
         if (toNode == undefined) throw new Error(`To node ${toNodeId} not found`);
-        fromNode.edges[toNodeId] = new GraphEdge(fromLine, toLine, fromNode, toNode, runTime);
+        fromNode.edges[toNodeId] = new GraphEdge(fromLine, toLine, fromNode, toNode, runTime, freqTable);
     }
 
     /**
@@ -167,8 +182,8 @@ class Graph {
         }
     }
 
-    deleteStarterNode(starterId){
-        if(this.nodes[starterId]) delete this.nodes[starterId];
+    deleteStarterNode(starterId) {
+        if (this.nodes[starterId]) delete this.nodes[starterId];
     }
 
     floydWarshallAlgorithm() {
@@ -203,7 +218,7 @@ class Graph {
      * @param {Number} maxTimeLimit available maximum time in seconds
      * @returns {Object} key: node ID, value: travel time in seconds for available nodes, Infinity for unavailable nodes
      */
-    dijkstraAlgorithm(fromNodeId, maxTimeLimit = Infinity) {
+    dijkstraAlgorithm(fromNodeId, maxTimeLimit = Infinity, departureTime, isHoliday) {
         const cost = {};
         const previousNode = {};
         const isVisited = {};

@@ -2,6 +2,7 @@
 require('dotenv').config();
 const axios = require('axios');
 const jsSHA = require('jssha');
+const moment = require('moment');
 const { PTX_APP_ID, PTX_APP_KEY } = process.env;
 const Metro = require('./server/models/metro_model');
 const Bus = require('./server/models/bus_model');
@@ -128,8 +129,8 @@ const importMetroRoute = async function () {
             const route_id = routeStation.RouteID;
             const stationArray = routeStation.Stations;
             routeStationInfo[route_id] = {
-                start_station_id: stationArray[0].StationID,
-                end_station_id: stationArray[stationArray.length - 1].StationID
+                from_station_id: stationArray[0].StationID,
+                to_station_id: stationArray[stationArray.length - 1].StationID
             };
         }
     }
@@ -140,8 +141,8 @@ const importMetroRoute = async function () {
             const id = Metro.createRoute({
                 route_id: route.RouteID,
                 line_id: route.LineID,
-                start_station_id: routeStationInfo[route.RouteID].start_station_id,
-                end_station_id: routeStationInfo[route.RouteID].end_station_id,
+                from_station_id: routeStationInfo[route.RouteID].from_station_id,
+                to_station_id: routeStationInfo[route.RouteID].to_station_id,
                 is_holiday: route.ServiceDays.Saturday,
                 start_time: freq.StartTime,
                 end_time: freq.EndTime,
@@ -152,13 +153,56 @@ const importMetroRoute = async function () {
     }
 };
 
+const importMetroSchedule = async function () {
+    const lines = ['BL', 'BR', 'G', 'O', 'R', 'Y'];
+    for (const line of lines) {
+        const stationsForward = await Metro.getStationsByLine(line, true);
+        await importMetroScheduleByLine(stationsForward, line);
+        // const stationsBackward = await Metro.getStationsByLine(line, false);
+        // await importMetroScheduleByLine(stationsBackward, line);
+    }
+};
+
+async function importMetroScheduleByLine(stations, line) {
+    // let secondsPassed = 0;
+    for (const station of stations) {
+        // let isFirstTravelTime = true;
+        const travelTimes = await Metro.getTravelTimeByLineAndFromStation(line, station.station_id);
+        for (const travelTime of travelTimes) {
+            // if (travelTime.from_station_id < travelTime.to_station_id) { // forward
+                const availableRoutes = await Metro.getCalculatedIntervalByStation(travelTime.from_station_id, travelTime.to_station_id);
+                // secondsPassed += (travelTime.run_time + station.stop_time);
+                for (const ar of availableRoutes) {
+                    // let start_time = moment(ar.start_time, 'HH:mm:ss').add(secondsPassed, 'seconds');
+                    // if (isFirstTravelTime) {
+                    //     start_time = '06:00:00';
+                    //     isFirstTravelTime = false;
+                    // }
+                    const schedule = {
+                        line_id: line,
+                        from_station_id: travelTime.from_station_id,
+                        to_station_id: travelTime.to_station_id,
+                        is_holiday: ar.is_holiday,
+                        start_time: ar.start_time,
+                        end_time: ar.end_time,
+                        interval_min: ar.interval_min,
+                        interval_max: ar.interval_max,
+                        expected_time: (ar.interval_min + ar.interval_max) / 4 * 60
+                    };
+                    const id = await Metro.createSchedule(schedule);
+                }
+            // }
+        }
+    }
+}
+
 const importBusRoutes = async function () {
     // const routes = [];
     for (const city of cities) {
         const routeData = await getPtxData(`https://ptx.transportdata.tw/MOTC/v2/Bus/Route/City/${city}?$select=RouteUID%2CRouteName%2CSubRoutes%2CCity%20&$orderby=RouteUID%20asc&$format=JSON`);
         for (const route of routeData) {
             const id = await Bus.createRoute({
-            // routes.push({
+                // routes.push({
                 route_id: route.RouteUID,
                 route_name_cht: route.RouteName.Zh_tw || route.SubRoutes[0].SubRouteName.Zh_tw,
                 route_name_eng: route.RouteName.En || route.SubRoutes[0].SubRouteName.En,
@@ -173,5 +217,9 @@ const importBusRoutes = async function () {
 // importMetroLines();
 // importMetroStationAndTravelTime();
 // importMetroRoute();
-
+importMetroSchedule();
 // importBusRoutes();
+
+const format = 'HH:mm:ss';
+const seconds = moment.duration(moment('06:00:00', format).subtract('05:00:00').format(format)).asSeconds();
+console.log(seconds);
