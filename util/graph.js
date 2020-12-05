@@ -130,7 +130,10 @@ class GraphEdge {
         const freqTable = isHoliday ? this.freqTable.holiday : this.freqTable.weekday;
         if (!freqTable || freqTable.length == 0) return Infinity;
         for (const freq of freqTable) {
-            if (freq.startTime < departureTime && departureTime <= freq.endTime)
+            const startTime = moment(freq.startTime, format);
+            const endTime = freq.startTime < freq.endTime ? moment(freq.endTime, format) : moment(freq.endTime, format).add(1, 'day');
+            departureTime = moment(departureTime, format);
+            if (departureTime.isBetween(startTime, endTime, undefined, '[]'))
                 return freq.expectedTime;
         }
         const seconds = moment.duration(moment(freqTable[0].startTime, format).subtract(departureTime).format(format)).asSeconds();

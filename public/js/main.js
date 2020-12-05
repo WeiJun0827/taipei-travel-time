@@ -4,9 +4,11 @@ let map;
 let marker;
 let polygon;
 
-document.getElementById('search-btn').addEventListener('click', textSearchPlaces);
 document.getElementById('search-time').addEventListener('change', drawTransitArea);
 document.getElementById('my-position-btn').addEventListener('click', goToUsersLocation);
+document.getElementById('search-btn').addEventListener('click', drawTransitArea);
+document.getElementById('departure-time').addEventListener('change', drawTransitArea);
+document.getElementById('is-holiday').addEventListener('change', drawTransitArea);
 
 function initMap() {
     const mapOptions = {
@@ -18,7 +20,6 @@ function initMap() {
     initMarker(mapOptions.center);
     initPolygon();
     initSearchBox();
-    updateLatLon();
     drawTransitArea();
 }
 
@@ -35,17 +36,9 @@ function initMarker(position) {
         draggable: true,
         icon: icon
     });
-    google.maps.event.addListener(marker, 'drag', function () {
-        updateLatLon();
-    });
     google.maps.event.addListener(marker, 'dragend', function () {
         drawTransitArea();
     });
-}
-
-function updateLatLon() {
-    document.getElementById('lat').innerHTML = marker.getPosition().lat();
-    document.getElementById('lon').innerHTML = marker.getPosition().lng();
 }
 
 function initPolygon() {
@@ -86,7 +79,6 @@ function moveMarkerForPlace(place) {
         bounds.extend(place.geometry.location);
     }
     map.fitBounds(bounds);
-    updateLatLon();
     drawTransitArea();
 }
 
@@ -111,7 +103,6 @@ function goToUsersLocation() {
                 position.coords.longitude);
             marker.setPosition(currentPosition);
             map.setCenter(currentPosition);
-            updateLatLon();
             drawTransitArea();
         });
     }
@@ -122,7 +113,9 @@ function drawTransitArea() {
         starterId: 'ABC',
         lat: marker.getPosition().lat(),
         lon: marker.getPosition().lng(),
-        time: document.getElementById('search-time').value
+        maxTravelTime: document.getElementById('search-time').value,
+        departureTime: document.getElementById('departure-time').value,
+        isHoliday: document.getElementById('is-holiday').checked
     });
     fetch('/api/1.0/tavelTime/transit?' + params).then(response => {
         if (!response.ok) throw new Error(response.statusText);
