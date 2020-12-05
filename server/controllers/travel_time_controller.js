@@ -41,8 +41,10 @@ const getTravelTimeByTransit = async (req, res) => {
     const lat = Number(req.query.lat);
     const lon = Number(req.query.lon);
     const maxTime = Number(req.query.time) * 60;
+    const departureTime = '08:00:00';
+    const isHoliday = false;
     graph.addStarterNode(starterId, lat, lon, maxTime, walkingSpeed);
-    const cost = graph.dijkstraAlgorithm(starterId, maxTime);
+    const cost = graph.dijkstraAlgorithm(starterId, maxTime, departureTime, isHoliday);
     const data = [];
     for (const stationId in cost) {
         const travelTime = cost[stationId];
@@ -60,7 +62,10 @@ const getTravelTimeByTransit = async (req, res) => {
     res.status(200).json({ data });
 };
 
-initializeGraph();
+initializeGraph()
+    // .then(() => {
+    //     console.log(graph.dijkstraAlgorithm('BL11', 1800, '08:00:00', false));
+    // });
 
 module.exports = {
     getTravelTimeByTransit
