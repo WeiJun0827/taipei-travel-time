@@ -215,17 +215,19 @@ class Graph {
     /**
      * Get travel time of single source shortest path for all nodes via Dijkstra's algorithm
      * @param {String} fromNodeId node ID
-     * @param {Number} maxTimeLimit available maximum time in seconds
+     * @param {Number} maxTime available maximum time in seconds
+     * @param {String} departureTime departure time in 'HH:mm:ss' format
+     * @param {Boolean} isHoliday if the day is on the weekend or national holiday
      * @returns {Object} key: node ID, value: travel time in seconds for available nodes, Infinity for unavailable nodes
      */
-    dijkstraAlgorithm(fromNodeId, maxTimeLimit = Infinity, departureTime, isHoliday) {
+    dijkstraAlgorithm(fromNodeId, maxTime = Infinity, departureTime, isHoliday) {
         const cost = {};
         const previousNode = {};
         const isVisited = {};
         const pq = new PriorityQueue();
         const starter = {
             id: fromNodeId,
-            waitForTransit: false
+            waitForTransit: false // from on foot to stations, no waiting
         };
         pq.enqueue(starter, 0);
         for (const nodeId in this.nodes) {
@@ -249,11 +251,11 @@ class Graph {
                     if (edge.fromLine == edge.toLine) {
                         stopTime = this.nodes[fromNodeId].stopTime;
                     } else {
-                        waitForNextTransit = true;
+                        waitForNextTransit = true; // one will need to wait for another transit coming
                     }
                     const runTime = edge.runTime;
                     const alternative = basicTime + expetedTime + stopTime + runTime;
-                    if (alternative < cost[toNodeId] && alternative < maxTimeLimit) {
+                    if (alternative < cost[toNodeId] && alternative < maxTime) {
                         console.log(`${fromNodeId} - ${toNodeId}: ${basicTime} + ${expetedTime} + ${stopTime} + ${runTime} = ${alternative}`);
                         cost[toNodeId] = alternative;
                         previousNode[toNodeId] = fromNodeId;
