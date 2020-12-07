@@ -36,12 +36,12 @@ const createTravelTime = async (travelTime) => {
     }
 };
 
-const getStation = async (stationId) => {
-    return await query('SELECT * FROM bus_station WHERE station_id = ?', stationId);
+const getStop = async (stopId) => {
+    return await query('SELECT * FROM bus_stop WHERE stop_id = ?', stopId);
 };
 
-const getAllStations = async () => {
-    return await query('SELECT * FROM bus_station');
+const getAllStops = async () => {
+    return await query('SELECT * FROM bus_stop');
 };
 
 const getTravelTimeByFromStation = async (fromStationID) => {
@@ -56,8 +56,8 @@ module.exports = {
     createStop,
     createRoute,
     createTravelTime,
-    getStation,
-    getAllStations,
+    getStop,
+    getAllStops,
     getTravelTimeByFromStation,
     getAllTravelTime
 };

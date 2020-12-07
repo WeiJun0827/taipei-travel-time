@@ -217,7 +217,7 @@ const importBusData = async function () {
                         direction: route.Direction,
                         from_stop_id: prevStopId,
                         to_stop_id: currStopId,
-                        run_time: 180
+                        run_time: 60
                     };
                     const travelTimeId = await Bus.createTravelTime(travelTimeInfo);
                     // console.log(travelTimeId);

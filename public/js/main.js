@@ -4,11 +4,16 @@ let map;
 let marker;
 let polygon;
 
-document.getElementById('search-time').addEventListener('change', drawTransitArea);
 document.getElementById('my-position-btn').addEventListener('click', goToUsersLocation);
-document.getElementById('search-btn').addEventListener('click', drawTransitArea);
+document.getElementById('travel-time').addEventListener('change', drawTransitArea);
 document.getElementById('departure-time').addEventListener('change', drawTransitArea);
 document.getElementById('is-holiday').addEventListener('change', drawTransitArea);
+document.getElementById('apply-max-walk-dist').addEventListener('change', drawTransitArea);
+document.getElementById('max-walk-dist').addEventListener('change', () => {
+    if (document.getElementById('apply-max-walk-dist').checked)
+        drawTransitArea();
+});
+document.getElementById('search-btn').addEventListener('click', drawTransitArea);
 
 function initMap() {
     const mapOptions = {
@@ -109,13 +114,15 @@ function goToUsersLocation() {
 }
 
 function drawTransitArea() {
+    const maxWalkDist = document.getElementById('apply-max-walk-dist').checked ? document.getElementById('max-walk-dist').value : Infinity;
     const params = new URLSearchParams({
         starterId: 'ABC',
         lat: marker.getPosition().lat(),
         lon: marker.getPosition().lng(),
-        maxTravelTime: document.getElementById('search-time').value,
+        maxTravelTime: document.getElementById('travel-time').value,
         departureTime: document.getElementById('departure-time').value,
-        isHoliday: document.getElementById('is-holiday').checked
+        isHoliday: document.getElementById('is-holiday').checked,
+        maxWalkDist: maxWalkDist
     });
     fetch('/api/1.0/tavelTime/transit?' + params).then(response => {
         if (!response.ok) throw new Error(response.statusText);

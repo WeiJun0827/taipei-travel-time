@@ -81,13 +81,12 @@ class PriorityQueue {
 }
 
 class GraphNode {
-    constructor(id, nameCht, nameEng, lat, lon, address, line, stopTime) {
+    constructor(id, nameCht, nameEng, lat, lon, line, stopTime) {
         this.id = id;
         this.nameCht = nameCht;
         this.nameEng = nameEng;
         this.lat = lat;
         this.lon = lon;
-        this.address = address;
         this.stopTime = stopTime;
         this.line = line;
         this.edges = {};
@@ -146,10 +145,10 @@ class Graph {
         this.nodes = {};
     }
 
-    addNode(id, nameCht, nameEng, lat, lon, address, line, stopTime) {
+    addNode(id, nameCht, nameEng, lat, lon, line, stopTime) {
         if (this.nodes[id] != undefined)
             throw new Error(`Node ${id} already existed`);
-        this.nodes[id] = new GraphNode(id, nameCht, nameEng, lat, lon, address, line, stopTime);
+        this.nodes[id] = new GraphNode(id, nameCht, nameEng, lat, lon, line, stopTime);
     }
 
     addEdge(fromLine, toLine, fromNodeId, toNodeId, runTime, freqTable) {
@@ -168,14 +167,14 @@ class Graph {
      * @param {Number} time maximum available time in seconds
      * @param {Number} speed average moving speed in m/s
      */
-    addStarterNode(starterId, lat, lon, time, speed) {
-        const maxDist = time * speed; // metre
+    addStarterNode(starterId, lat, lon, time, speed, maxWalkDist) {
+        const availableDist = Math.min(time * speed, maxWalkDist); // metre
         this.addNode(starterId, starterId, starterId, lat, lon, null, 'walking', 0);
         for (const nodeId in this.nodes) {
             if (nodeId != starterId) {
                 const node = this.nodes[nodeId];
                 const distFromStarter = node.getDistanceToNode(lat, lon);
-                if (maxDist > distFromStarter) {
+                if (distFromStarter <= availableDist) {
                     const toLine = node.line;
                     const toNodeId = node.id;
                     const walkTime = distFromStarter / speed; // second
@@ -223,7 +222,7 @@ class Graph {
      * @param {Boolean} isHoliday if the day is on the weekend or national holiday
      * @returns {Object} key: node ID, value: travel time in seconds for available nodes, Infinity for unavailable nodes
      */
-    dijkstraAlgorithm(fromNodeId, maxTime = Infinity, departureTime, isHoliday) {
+    dijkstraAlgorithm(fromNodeId, maxTime = Infinity, departureTime, isHoliday, maxWalkDist) {
         const cost = {};
         const previousNode = {};
         const isVisited = {};
@@ -253,6 +252,68 @@ class Graph {
                     if (needWaiting) expetedTime = edge.getExpectedTime(current, isHoliday);
                     if (edge.fromLine == edge.toLine) {
                         stopTime = this.nodes[fromNodeId].stopTime;
+                    } else {
+                        waitForNextTransit = true; // one will need to wait for another transit coming
+                    }
+                    const runTime = edge.runTime;
+                    const alternative = basicTime + expetedTime + stopTime + runTime;
+                    if (alternative < cost[toNodeId] && alternative < maxTime) {
+                        console.log(`${fromNodeId} - ${toNodeId}: ${basicTime} + ${expetedTime} + ${stopTime} + ${runTime} = ${alternative}`);
+                        cost[toNodeId] = alternative;
+                        previousNode[toNodeId] = fromNodeId;
+                        const nextWaitTime = this.nodes[toNodeId].stopTime;
+                        const nextBasicTime = alternative + nextWaitTime;
+                        const neighborNode = {
+                            id: toNodeId,
+                            waitForTransit: waitForNextTransit
+                        };
+                        pq.enqueue(neighborNode, nextBasicTime);
+                    }
+                }
+                isVisited[fromNodeId] = true;
+            }
+        }
+        return cost;
+    }
+
+    /**
+     * Get travel time of single source shortest path for all nodes via Dijkstra's algorithm
+     * @param {String} fromNodeId node ID
+     * @param {Number} maxTime available maximum time in seconds
+     * @param {String} departureTime departure time in 'HH:mm:ss' format
+     * @param {Boolean} isHoliday if the day is on the weekend or national holiday
+     * @returns {Object} key: node ID, value: travel time in seconds for available nodes, Infinity for unavailable nodes
+     */
+    dijkstraAlgorithmForBus(fromNodeId, maxTime = Infinity, departureTime, isHoliday, maxWalkDist) {
+        const cost = {};
+        const previousNode = {};
+        const isVisited = {};
+        const pq = new PriorityQueue();
+        const starter = {
+            id: fromNodeId,
+            waitForTransit: false // from on foot to stations, no waiting
+        };
+        pq.enqueue(starter, 0);
+        for (const nodeId in this.nodes) {
+            cost[nodeId] = nodeId == fromNodeId ? 0 : Infinity;
+            previousNode[nodeId] = null;
+            isVisited[nodeId] = false;
+        }
+
+        while (!pq.isEmpty()) {
+            const fromNodeInfo = pq.dequeue().element;
+            const fromNodeId = fromNodeInfo.id;
+            const needWaiting = fromNodeInfo.waitForTransit;
+            if (!isVisited[fromNodeId]) {
+                const current = moment(departureTime, format).add(cost[fromNodeId], 'seconds').format(format);
+                const basicTime = cost[fromNodeId];
+                const edges = this.nodes[fromNodeId].edges;
+                for (const toNodeId in edges) {
+                    const edge = edges[toNodeId];
+                    let expetedTime = 0, stopTime = 10, waitForNextTransit = false;
+                    if (needWaiting) expetedTime = 120; // edge.getExpectedTime(current, isHoliday);
+                    if (edge.fromLine == edge.toLine) {
+                        stopTime = this.nodes[fromNodeId].stopTime || stopTime;
                     } else {
                         waitForNextTransit = true; // one will need to wait for another transit coming
                     }
