@@ -181,30 +181,55 @@ const importMetroSchedule = async function () {
     console.log('Done');
 };
 
-const importBusRoutes = async function () {
-    // const routes = [];
+const importBusData = async function () {
     for (const city of cities) {
-        const routeData = await getPtxData(`https://ptx.transportdata.tw/MOTC/v2/Bus/Route/City/${city}?$select=RouteUID%2CRouteName%2CSubRoutes%2CCity%20&$orderby=RouteUID%20asc&$format=JSON`);
-        for (const route of routeData) {
-            const id = await Bus.createRoute({
-                // routes.push({
-                route_id: route.RouteUID,
-                route_name_cht: route.RouteName.Zh_tw || route.SubRoutes[0].SubRouteName.Zh_tw,
-                route_name_eng: route.RouteName.En || route.SubRoutes[0].SubRouteName.En,
+        const stopData = await getPtxData(`https://ptx.transportdata.tw/MOTC/v2/Bus/StopOfRoute/City/${city}?$top=10&$format=JSON`);
+        for (const route of stopData) {
+            console.log(route.RouteName.Zh_tw);
+            const routeId = route.SubRouteUID;
+            const routeInfo = {
+                route_id: routeId,
+                direction: route.Direction,
+                route_name_cht: route.RouteName.Zh_tw,
+                route_name_eng: route.RouteName.En,
                 city: route.City
-            });
+            };
+            const routeSqlId = await Bus.createRoute(routeInfo);
+            // console.log(routeSqlId);
+
+            let prevStopId, currStopId;
+            for (const stop of route.Stops) {
+                const stopInfo = {
+                    stop_id: stop.StopUID,
+                    name_cht: stop.StopName.Zh_tw,
+                    name_eng: stop.StopName.En,
+                    lat: stop.StopPosition.PositionLat,
+                    lon: stop.StopPosition.PositionLon,
+                };
+                const stopSqlId = await Bus.createStop(stopInfo);
+                // console.log(stopSqlId);
+
+                prevStopId = currStopId;
+                currStopId = stop.StopUID;
+                if (prevStopId && currStopId) {
+                    const travelTimeInfo = {
+                        route_id: routeId,
+                        direction: route.Direction,
+                        from_stop_id: prevStopId,
+                        to_stop_id: currStopId,
+                        run_time: 180
+                    };
+                    const travelTimeId = await Bus.createTravelTime(travelTimeInfo);
+                    // console.log(travelTimeId);
+                }
+            }
         }
     }
+
 };
-
-
 
 // importMetroLines();
 // importMetroStationAndTravelTime();
 // importMetroRoute();
 // importMetroSchedule();
-// importBusRoutes();
-
-const format = 'HH:mm:ss';
-const seconds = moment.duration(moment('06:00:00', format).subtract('05:00:00').format(format)).asSeconds();
-console.log(seconds);
+importBusData();

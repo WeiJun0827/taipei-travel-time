@@ -1,9 +1,9 @@
 const { transaction, commit, rollback, query } = require('./mysqlcon');
 
-const createStation = async (station) => {
+const createStop = async (stop) => {
     try {
         await transaction();
-        const result = await query('INSERT INTO bus_station SET ?', station);
+        const result = await query('INSERT INTO bus_stop SET ?', stop);
         await commit();
         return result.insertId;
     } catch (error) {
@@ -19,7 +19,6 @@ const createRoute = async (route) => {
         await commit();
         return result.insertId;
     } catch (error) {
-        console.error(error);
         await rollback();
         return error;
     }
@@ -54,7 +53,7 @@ const getAllTravelTime = async () => {
 };
 
 module.exports = {
-    createStation,
+    createStop,
     createRoute,
     createTravelTime,
     getStation,
