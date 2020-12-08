@@ -1,5 +1,6 @@
 const moment = require('moment');
 const format = 'HH:mm:ss';
+const walking = 'walking';
 
 class PriorityQueueNode {
     constructor(element, priority) {
@@ -81,15 +82,18 @@ class PriorityQueue {
 }
 
 class GraphNode {
-    constructor(id, nameCht, nameEng, lat, lon, line, stopTime) {
+    constructor(id, nameCht, nameEng, lat, lon, stopTime) {
         this.id = id;
         this.nameCht = nameCht;
         this.nameEng = nameEng;
         this.lat = lat;
         this.lon = lon;
         this.stopTime = stopTime;
-        this.line = line;
         this.edges = {};
+    }
+
+    getStopTime(arriveCurrNodeViaLineId, nextEdgeLineId) {
+        return arriveCurrNodeViaLineId == nextEdgeLineId ? this.stopTime : 0;
     }
 
     /**
@@ -116,18 +120,19 @@ class GraphNode {
 }
 
 class GraphEdge {
-    constructor(fromLine, toLine, fromNode, toNode, runTime, freqTable) {
-        this.fromLine = fromLine;
-        this.toLine = toLine;
+    constructor(lineId, fromNode, toNode, runTime, freqTable) {
+        this.lineId = lineId;
         this.fromNode = fromNode;
         this.toNode = toNode;
         this.runTime = runTime;
         this.freqTable = freqTable;
     }
 
-    getExpectedTime(departureTime, isHoliday) {
+    getExpectedTime(arriveCurrNodeViaLineId, departureTime, isHoliday) {
+        if (arriveCurrNodeViaLineId == this.lineId) return 0;
+        if (!this.freqTable) return 0;
         const freqTable = isHoliday ? this.freqTable.holiday : this.freqTable.weekday;
-        if (!freqTable || freqTable.length == 0) return Infinity;
+        if (!freqTable || freqTable.length == 0) return 0;
         for (const freq of freqTable) {
             const startTime = moment(freq.startTime, format);
             const endTime = freq.startTime < freq.endTime ? moment(freq.endTime, format) : moment(freq.endTime, format).add(1, 'day');
@@ -145,18 +150,18 @@ class Graph {
         this.nodes = {};
     }
 
-    addNode(id, nameCht, nameEng, lat, lon, line, stopTime) {
+    addNode(id, nameCht, nameEng, lat, lon, stopTime) {
         if (this.nodes[id] != undefined)
             throw new Error(`Node ${id} already existed`);
-        this.nodes[id] = new GraphNode(id, nameCht, nameEng, lat, lon, line, stopTime);
+        this.nodes[id] = new GraphNode(id, nameCht, nameEng, lat, lon, stopTime);
     }
 
-    addEdge(fromLine, toLine, fromNodeId, toNodeId, runTime, freqTable) {
+    addEdge(lineId, fromNodeId, toNodeId, runTime, freqTable) {
         const fromNode = this.nodes[fromNodeId];
         const toNode = this.nodes[toNodeId];
         if (fromNode == undefined) throw new Error(`From node ${fromNodeId} not found`);
         if (toNode == undefined) throw new Error(`To node ${toNodeId} not found`);
-        fromNode.edges[toNodeId] = new GraphEdge(fromLine, toLine, fromNode, toNode, runTime, freqTable);
+        fromNode.edges[toNodeId] = new GraphEdge(lineId, fromNode, toNode, runTime, freqTable);
     }
 
     /**
@@ -169,16 +174,15 @@ class Graph {
      */
     addStarterNode(starterId, lat, lon, time, speed, maxWalkDist) {
         const availableDist = Math.min(time * speed, maxWalkDist); // metre
-        this.addNode(starterId, starterId, starterId, lat, lon, null, 'walking', 0);
+        this.addNode(starterId, starterId, starterId, lat, lon, 0);
         for (const nodeId in this.nodes) {
             if (nodeId != starterId) {
                 const node = this.nodes[nodeId];
                 const distFromStarter = node.getDistanceToNode(lat, lon);
                 if (distFromStarter <= availableDist) {
-                    const toLine = node.line;
                     const toNodeId = node.id;
                     const walkTime = distFromStarter / speed; // second
-                    this.addEdge('walking', toLine, starterId, toNodeId, walkTime);
+                    this.addEdge(walking, starterId, toNodeId, walkTime);
                 }
             }
         }
@@ -224,117 +228,54 @@ class Graph {
      */
     dijkstraAlgorithm(fromNodeId, maxTime = Infinity, departureTime, isHoliday, maxWalkDist) {
         const cost = {};
-        const previousNode = {};
+        const prevNodeLog = {};
         const isVisited = {};
         const pq = new PriorityQueue();
         const starter = {
             id: fromNodeId,
-            waitForTransit: false // from on foot to stations, no waiting
+            arriveBy: walking,
         };
         pq.enqueue(starter, 0);
         for (const nodeId in this.nodes) {
             cost[nodeId] = nodeId == fromNodeId ? 0 : Infinity;
-            previousNode[nodeId] = null;
+            prevNodeLog[nodeId] = null;
             isVisited[nodeId] = false;
         }
 
+        console.log('No.A - No.B: \tbasic \t+ \texpect \t+ \tstop \t+ \trun \t= \talter');
         while (!pq.isEmpty()) {
-            const fromNodeInfo = pq.dequeue().element;
-            const fromNodeId = fromNodeInfo.id;
-            const needWaiting = fromNodeInfo.waitForTransit;
-            if (!isVisited[fromNodeId]) {
-                const current = moment(departureTime, format).add(cost[fromNodeId], 'seconds').format(format);
-                const basicTime = cost[fromNodeId];
-                const edges = this.nodes[fromNodeId].edges;
-                for (const toNodeId in edges) {
-                    const edge = edges[toNodeId];
-                    let expetedTime = 0, stopTime = 0, waitForNextTransit = false;
-                    if (needWaiting) expetedTime = edge.getExpectedTime(current, isHoliday);
-                    if (edge.fromLine == edge.toLine) {
-                        stopTime = this.nodes[fromNodeId].stopTime;
-                    } else {
-                        waitForNextTransit = true; // one will need to wait for another transit coming
-                    }
-                    const runTime = edge.runTime;
-                    const alternative = basicTime + expetedTime + stopTime + runTime;
-                    if (alternative < cost[toNodeId] && alternative < maxTime) {
-                        console.log(`${fromNodeId} - ${toNodeId}: ${basicTime} + ${expetedTime} + ${stopTime} + ${runTime} = ${alternative}`);
-                        cost[toNodeId] = alternative;
-                        previousNode[toNodeId] = fromNodeId;
-                        const nextWaitTime = this.nodes[toNodeId].stopTime;
-                        const nextBasicTime = alternative + nextWaitTime;
-                        const neighborNode = {
-                            id: toNodeId,
-                            waitForTransit: waitForNextTransit
+            const currPqNode = pq.dequeue().element;
+            const currNodeId = currPqNode.id;
+            const currNode = this.nodes[currNodeId];
+            if (!isVisited[currNodeId]) {
+                const currTime = moment(departureTime, format).add(cost[currNodeId], 'seconds').format(format);
+                const basicTime = cost[currNodeId];
+                for (const nextNodeId in currNode.edges) {
+                    const currEdge = currNode.edges[nextNodeId];
+                    const expectedTime = currEdge.getExpectedTime(currPqNode.arriveBy, currTime, isHoliday);
+                    const stopTime = currNode.getStopTime(currPqNode.arriveBy, currEdge.lineId);
+                    const runTime = currEdge.runTime;
+                    const alternative = basicTime + expectedTime + stopTime + runTime;
+                    if (alternative < cost[nextNodeId] && alternative < maxTime) {
+                        console.log(`${currNodeId} - ${nextNodeId}: \t${Math.round(basicTime)} \t+ \t${Math.round(expectedTime)} \t+ \t${Math.round(stopTime)} \t+ \t${Math.round(runTime)} \t= \t${Math.round(alternative)}`);
+                        cost[nextNodeId] = alternative;
+                        prevNodeLog[nextNodeId] = {
+                            nodeId: currNodeId,
+                            arriveBy: currEdge.lineId
                         };
-                        pq.enqueue(neighborNode, nextBasicTime);
+                        const nextWaitTime = this.nodes[nextNodeId].stopTime;
+                        const nextBasicTime = alternative + nextWaitTime;
+                        const nextNode = {
+                            id: nextNodeId,
+                            arriveBy: currEdge.lineId
+                        };
+                        pq.enqueue(nextNode, nextBasicTime);
                     }
                 }
-                isVisited[fromNodeId] = true;
+                isVisited[currNodeId] = true;
             }
         }
-        return cost;
-    }
-
-    /**
-     * Get travel time of single source shortest path for all nodes via Dijkstra's algorithm
-     * @param {String} fromNodeId node ID
-     * @param {Number} maxTime available maximum time in seconds
-     * @param {String} departureTime departure time in 'HH:mm:ss' format
-     * @param {Boolean} isHoliday if the day is on the weekend or national holiday
-     * @returns {Object} key: node ID, value: travel time in seconds for available nodes, Infinity for unavailable nodes
-     */
-    dijkstraAlgorithmForBus(fromNodeId, maxTime = Infinity, departureTime, isHoliday, maxWalkDist) {
-        const cost = {};
-        const previousNode = {};
-        const isVisited = {};
-        const pq = new PriorityQueue();
-        const starter = {
-            id: fromNodeId,
-            waitForTransit: false // from on foot to stations, no waiting
-        };
-        pq.enqueue(starter, 0);
-        for (const nodeId in this.nodes) {
-            cost[nodeId] = nodeId == fromNodeId ? 0 : Infinity;
-            previousNode[nodeId] = null;
-            isVisited[nodeId] = false;
-        }
-
-        while (!pq.isEmpty()) {
-            const fromNodeInfo = pq.dequeue().element;
-            const fromNodeId = fromNodeInfo.id;
-            const needWaiting = fromNodeInfo.waitForTransit;
-            if (!isVisited[fromNodeId]) {
-                const current = moment(departureTime, format).add(cost[fromNodeId], 'seconds').format(format);
-                const basicTime = cost[fromNodeId];
-                const edges = this.nodes[fromNodeId].edges;
-                for (const toNodeId in edges) {
-                    const edge = edges[toNodeId];
-                    let expetedTime = 0, stopTime = 10, waitForNextTransit = false;
-                    if (needWaiting) expetedTime = 120; // edge.getExpectedTime(current, isHoliday);
-                    if (edge.fromLine == edge.toLine) {
-                        stopTime = this.nodes[fromNodeId].stopTime || stopTime;
-                    } else {
-                        waitForNextTransit = true; // one will need to wait for another transit coming
-                    }
-                    const runTime = edge.runTime;
-                    const alternative = basicTime + expetedTime + stopTime + runTime;
-                    if (alternative < cost[toNodeId] && alternative < maxTime) {
-                        console.log(`${fromNodeId} - ${toNodeId}: ${basicTime} + ${expetedTime} + ${stopTime} + ${runTime} = ${alternative}`);
-                        cost[toNodeId] = alternative;
-                        previousNode[toNodeId] = fromNodeId;
-                        const nextWaitTime = this.nodes[toNodeId].stopTime;
-                        const nextBasicTime = alternative + nextWaitTime;
-                        const neighborNode = {
-                            id: toNodeId,
-                            waitForTransit: waitForNextTransit
-                        };
-                        pq.enqueue(neighborNode, nextBasicTime);
-                    }
-                }
-                isVisited[fromNodeId] = true;
-            }
-        }
+        console.log('=====================================================================================');
         return cost;
     }
 }

@@ -32,7 +32,8 @@ function initMarker(position) {
     const icon = {
         path: google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
         scale: 5,
-        strokeColor: '#CC2222'
+        strokeColor: '#B3672B',
+        strokeWeight: 4,
     };
     marker = new google.maps.Marker({
         map: map,
@@ -48,10 +49,10 @@ function initMarker(position) {
 
 function initPolygon() {
     polygon = new google.maps.Polygon({
-        strokeColor: '#ff0000',
+        strokeColor: '#FF8C00',
         strokeOpacity: 0.35,
         strokeWeight: 0,
-        fillColor: '#FF0000',
+        fillColor: '#FF8C00',
         fillOpacity: 0.35
     });
     polygon.setMap(map);

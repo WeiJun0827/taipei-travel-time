@@ -13,7 +13,6 @@ const initMetroGraph = async () => {
             data.name_eng,
             data.lat,
             data.lon,
-            data.line_id,
             data.stop_time
         );
     }
@@ -25,8 +24,7 @@ const initMetroGraph = async () => {
         const freqTable = { weekday, holiday };
         if (data.from_station_id != data.to_station_id) { // prevent metro stations O12, R22, and G03 actions
             graph.addEdge(
-                data.from_line_id,
-                data.to_line_id,
+                data.line_id,
                 data.from_station_id,
                 data.to_station_id,
                 data.run_time,
@@ -44,26 +42,23 @@ const initBusGraph = async () => {
             data.name_cht,
             data.name_eng,
             data.lat,
-            data.lon
+            data.lon,
+            15
         );
     }
 
-    for (const nodeIdA in graph.nodes) {
-        for (const nodeIdB in graph.nodes) {
-            const nodeA = graph.nodes[nodeIdA];
-            const nodeB = graph.nodes[nodeIdB];
-            const walkingTime = nodeA.getDistanceToNode(nodeB.lat, nodeB.lon) / walkingSpeed;
-            if (walkingTime <= 1200) { // cancel any edge needs 20+ min walking
-                graph.addEdge(
-                    'walking',
-                    'walking',
-                    nodeIdA,
-                    nodeIdB,
-                    walkingTime
-                );
-            }
-        }
-    }
+    // for (const nodeIdA in graph.nodes) {
+    //     for (const nodeIdB in graph.nodes) {
+    //         if (nodeIdA != nodeIdB) {
+    //             const nodeA = graph.nodes[nodeIdA];
+    //             const nodeB = graph.nodes[nodeIdB];
+    //             const walkingTime = nodeA.getDistanceToNode(nodeB.lat, nodeB.lon);
+    //             if (walkingTime <= 200) { // ignore any edge longer than 200 m
+    //                 graph.addEdge('walking', nodeIdA, nodeIdB, walkingTime);
+    //             }
+    //         }
+    //     }
+    // }
 
     const pathData = await Bus.getAllTravelTime();
     for (const data of pathData) {
@@ -72,13 +67,20 @@ const initBusGraph = async () => {
         // const freqTable = { weekday, holiday };
         graph.addEdge(
             data.route_id,
-            data.route_id,
             data.from_stop_id,
             data.to_stop_id,
             data.run_time,
             // freqTable
         );
     }
+
+    // for (const node in graph.nodes) {
+    //     const edges = graph.nodes[node].edges;
+    //     for (const edgeId in edges) {
+    //         const edge = edges[edgeId];
+    //         console.log(`${edge.fromNode.nameCht} - ${edge.toNode.nameCht}`);
+    //     }
+    // }
 };
 
 const getTravelTimeByTransit = async (req, res) => {

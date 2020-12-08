@@ -53,7 +53,6 @@ const importMetroStationAndTravelTime = async function () {
             name_eng: station.StationName.En,
             lat: station.StationPosition.PositionLat,
             lon: station.StationPosition.PositionLon,
-            address: station.StationAddress,
             line_id: null,
             stop_time: 0
         };
@@ -76,15 +75,13 @@ const importMetroStationAndTravelTime = async function () {
             const fromStation = stations[tt.FromStationID];
             const toStation = stations[tt.ToStationID];
             const forward = {
-                from_line_id: fromStation.line_id,
-                to_line_id: toStation.line_id,
+                line_id: fromStation.line_id,
                 from_station_id: fromStation.station_id,
                 to_station_id: toStation.station_id,
                 run_time: tt.RunTime
             };
             const backward = {
-                from_line_id: toStation.line_id,
-                to_line_id: fromStation.line_id,
+                line_id: toStation.line_id,
                 from_station_id: toStation.station_id,
                 to_station_id: fromStation.station_id,
                 run_time: tt.RunTime
@@ -100,8 +97,7 @@ const importMetroStationAndTravelTime = async function () {
     const lineTransferTimeData = await getPtxData('https://ptx.transportdata.tw/MOTC/v2/Rail/Metro/LineTransfer/TRTC?$format=JSON');
     for (const data of lineTransferTimeData) {
         const transfer = {
-            from_line_id: data.FromLineID,
-            to_line_id: data.ToLineID,
+            line_id: 'metroTransfer',
             from_station_id: data.FromStationID,
             to_station_id: data.ToStationID,
             run_time: data.TransferTime * 60
@@ -182,8 +178,9 @@ const importMetroSchedule = async function () {
 };
 
 const importBusData = async function () {
-    for (const city of cities) {
-        const stopData = await getPtxData(`https://ptx.transportdata.tw/MOTC/v2/Bus/StopOfRoute/City/${city}?$top=10&$format=JSON`);
+    // for (const city of cities) {
+        // const stopData = await getPtxData(`https://ptx.transportdata.tw/MOTC/v2/Bus/StopOfRoute/City/${city}?$top=10&$format=JSON`);
+        const stopData = await getPtxData(`https://ptx.transportdata.tw/MOTC/v2/Bus/StopOfRoute/City/Taipei?$filter=RouteUID%20eq%20'TPE16111'&$top=2&$format=JSON`);
         for (const route of stopData) {
             console.log(route.RouteName.Zh_tw);
             const routeId = route.SubRouteUID;
@@ -224,7 +221,7 @@ const importBusData = async function () {
                 }
             }
         }
-    }
+    // }
 
 };
 
