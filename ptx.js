@@ -6,7 +6,7 @@ const moment = require('moment');
 const { PTX_APP_ID, PTX_APP_KEY } = process.env;
 const Metro = require('./server/models/metro_model');
 const Bus = require('./server/models/bus_model');
-const cities = ['Taipei', 'NewTaipei', 'Keelung'];
+const cities = ['Taipei', 'NewTaipei'];
 
 
 const getAuthorizationHeader = function () {
@@ -106,9 +106,9 @@ const importMetroStationAndTravelTime = async function () {
     }
 
     // Write station data into database
-    // for (const stationID in stations) {
-    //     const id = await Metro.createStation(stations[stationID]);
-    // }
+    for (const stationID in stations) {
+        const id = await Metro.createStation(stations[stationID]);
+    }
 
     // Write travel time data into database
     for (const travelTime of travelTimes) {
@@ -179,54 +179,99 @@ const importMetroSchedule = async function () {
 
 const importBusData = async function () {
     // for (const city of cities) {
-        // const stopData = await getPtxData(`https://ptx.transportdata.tw/MOTC/v2/Bus/StopOfRoute/City/${city}?$top=10&$format=JSON`);
-        const stopData = await getPtxData(`https://ptx.transportdata.tw/MOTC/v2/Bus/StopOfRoute/City/Taipei?$filter=RouteUID%20eq%20'TPE16111'&$top=2&$format=JSON`);
-        for (const route of stopData) {
-            console.log(route.RouteName.Zh_tw);
-            const routeId = route.SubRouteUID;
-            const routeInfo = {
-                route_id: routeId,
-                direction: route.Direction,
-                route_name_cht: route.RouteName.Zh_tw,
-                route_name_eng: route.RouteName.En,
-                city: route.City
+    // const stopData = await getPtxData(`https://ptx.transportdata.tw/MOTC/v2/Bus/StopOfRoute/City/${city}?$top=10&$format=JSON`);
+    const stopData = await getPtxData(`https://ptx.transportdata.tw/MOTC/v2/Bus/StopOfRoute/City/Taipei?$filter=RouteUID%20eq%20'TPE16111'&$top=6&$format=JSON`);
+    for (const route of stopData) {
+        console.log(route.RouteName.Zh_tw);
+        const subRouteId = route.SubRouteUID;
+        const routeInfo = {
+            sub_route_id: subRouteId,
+            route_id: route.RouteUID,
+            direction: route.Direction,
+            route_name_cht: route.RouteName.Zh_tw,
+            route_name_eng: route.RouteName.En,
+            city: route.City
+        };
+        const routeSqlId = await Bus.createRoute(routeInfo);
+        // console.log(routeSqlId);
+
+        let prevStopId, currStopId;
+        for (const stop of route.Stops) {
+            const stopInfo = {
+                stop_id: stop.StopUID,
+                name_cht: stop.StopName.Zh_tw,
+                name_eng: stop.StopName.En,
+                lat: stop.StopPosition.PositionLat,
+                lon: stop.StopPosition.PositionLon,
             };
-            const routeSqlId = await Bus.createRoute(routeInfo);
-            // console.log(routeSqlId);
+            const stopSqlId = await Bus.createStop(stopInfo);
+            // console.log(stopSqlId);
 
-            let prevStopId, currStopId;
-            for (const stop of route.Stops) {
-                const stopInfo = {
-                    stop_id: stop.StopUID,
-                    name_cht: stop.StopName.Zh_tw,
-                    name_eng: stop.StopName.En,
-                    lat: stop.StopPosition.PositionLat,
-                    lon: stop.StopPosition.PositionLon,
+            prevStopId = currStopId;
+            currStopId = stop.StopUID;
+            if (prevStopId && currStopId) {
+                const travelTimeInfo = {
+                    sub_route_id: subRouteId,
+                    direction: route.Direction,
+                    from_stop_id: prevStopId,
+                    to_stop_id: currStopId,
+                    run_time: 60
                 };
-                const stopSqlId = await Bus.createStop(stopInfo);
-                // console.log(stopSqlId);
-
-                prevStopId = currStopId;
-                currStopId = stop.StopUID;
-                if (prevStopId && currStopId) {
-                    const travelTimeInfo = {
-                        route_id: routeId,
-                        direction: route.Direction,
-                        from_stop_id: prevStopId,
-                        to_stop_id: currStopId,
-                        run_time: 60
-                    };
-                    const travelTimeId = await Bus.createTravelTime(travelTimeInfo);
-                    // console.log(travelTimeId);
-                }
+                const travelTimeId = await Bus.createTravelTime(travelTimeInfo);
+                // console.log(travelTimeId);
             }
         }
+    }
     // }
 
 };
+
+
+
+const importBusStopEstimatedTime = async function (routeId) {
+    // N1
+    const stopData = await getPtxData(`https://ptx.transportdata.tw/MOTC/v2/Bus/EstimatedTimeOfArrival/City/Taipei?$filter=RouteUID%20eq%20'${routeId}'&$format=JSON
+        `);
+    for (const estimatedTime of stopData) {
+        const info = {
+            stop_id: estimatedTime.StopUID,
+            route_id: estimatedTime.RouteUID,
+            direction: estimatedTime.Direction,
+            estimated_time: estimatedTime.EstimateTime
+        };
+        const id = await Bus.createEstimatedTimeLog(info);
+        console.log(info);
+    }
+};
+
+const useless = async function () {
+
+    // A2
+    const busData = await getPtxData(`https://ptx.transportdata.tw/MOTC/v2/Bus/RealTimeNearStop/City/Taipei?$filter=SubRouteUID%20eq%20'TPE157462'&$top=30&$format=JSON`);
+    // const busData = await getPtxData(`https://ptx.transportdata.tw/MOTC/v2/Bus/RealTimeNearStop/City/Taipei?$filter=RouteUID%20eq%20'TPE16111'&$top=30&$format=JSON`);
+    // const subRouteId = busData.SubRouteUID;
+    const routeId = busData[0].RouteUID;
+
+    // N1
+    const stopData = await getPtxData(`https://ptx.transportdata.tw/MOTC/v2/Bus/EstimatedTimeOfArrival/City/Taipei?$filter=RouteUID%20eq%20'${routeId}'&$format=JSON
+        `);
+    for (const bus of busData) {
+        const busStatus = bus.A2EventType ? '進站' : '離站';
+        const plateNum = bus.PlateNumb;
+        const stopId = bus.StopUID;
+        const stopName = bus.StopName.Zh_tw;
+        const dir = bus.Direction;
+        const target = stopData.find(x => x.StopUID == stopId && x.Direction == dir);
+        const estimateTime = target.EstimateTime;
+        console.log(`${plateNum}(${busStatus}) - ${stopName}: ${estimateTime}`);
+    }
+};
+
 
 // importMetroLines();
 // importMetroStationAndTravelTime();
 // importMetroRoute();
 // importMetroSchedule();
-importBusData();
+// importBusData();
+setInterval(() => importBusStopEstimatedTime('TPE16111'), 20000);
+// importBusStopEstimatedTime('TPE16111');

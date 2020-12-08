@@ -91,8 +91,9 @@ const getTravelTimeByTransit = async (req, res) => {
     const departureTime = req.query.departureTime;
     const isHoliday = req.query.isHoliday === 'true';
     const maxWalkDist = Number(req.query.maxWalkDist);
+    const maxTransferTimes = Number(req.query.maxTransferTimes);
     graph.addStarterNode(starterId, lat, lon, maxTravelTime, walkingSpeed, maxWalkDist);
-    const cost = graph.dijkstraAlgorithm(starterId, maxTravelTime, departureTime, isHoliday, maxWalkDist);
+    const cost = graph.dijkstraAlgorithm(starterId, maxTravelTime, departureTime, isHoliday, maxTransferTimes);
     const data = [];
     for (const stationId in cost) {
         const travelTime = cost[stationId];

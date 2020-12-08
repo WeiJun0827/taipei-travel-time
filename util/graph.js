@@ -92,8 +92,8 @@ class GraphNode {
         this.edges = {};
     }
 
-    getStopTime(arriveCurrNodeViaLineId, nextEdgeLineId) {
-        return arriveCurrNodeViaLineId == nextEdgeLineId ? this.stopTime : 0;
+    getStopTime(arriveCurrNodeViaEdgeType, nextEdgeType) {
+        return arriveCurrNodeViaEdgeType == nextEdgeType ? this.stopTime : 0;
     }
 
     /**
@@ -120,16 +120,16 @@ class GraphNode {
 }
 
 class GraphEdge {
-    constructor(lineId, fromNode, toNode, runTime, freqTable) {
-        this.lineId = lineId;
+    constructor(edgeType, fromNode, toNode, runTime, freqTable) {
+        this.edgeType = edgeType;
         this.fromNode = fromNode;
         this.toNode = toNode;
         this.runTime = runTime;
         this.freqTable = freqTable;
     }
 
-    getExpectedTime(arriveCurrNodeViaLineId, departureTime, isHoliday) {
-        if (arriveCurrNodeViaLineId == this.lineId) return 0;
+    getExpectedTime(arriveCurrNodeViaEdgeType, departureTime, isHoliday) {
+        if (arriveCurrNodeViaEdgeType == this.edgeType) return 0;
         if (!this.freqTable) return 0;
         const freqTable = isHoliday ? this.freqTable.holiday : this.freqTable.weekday;
         if (!freqTable || freqTable.length == 0) return 0;
@@ -156,12 +156,12 @@ class Graph {
         this.nodes[id] = new GraphNode(id, nameCht, nameEng, lat, lon, stopTime);
     }
 
-    addEdge(lineId, fromNodeId, toNodeId, runTime, freqTable) {
+    addEdge(edgeType, fromNodeId, toNodeId, runTime, freqTable) {
         const fromNode = this.nodes[fromNodeId];
         const toNode = this.nodes[toNodeId];
         if (fromNode == undefined) throw new Error(`From node ${fromNodeId} not found`);
         if (toNode == undefined) throw new Error(`To node ${toNodeId} not found`);
-        fromNode.edges[toNodeId] = new GraphEdge(lineId, fromNode, toNode, runTime, freqTable);
+        fromNode.edges[toNodeId] = new GraphEdge(edgeType, fromNode, toNode, runTime, freqTable);
     }
 
     /**
@@ -226,7 +226,7 @@ class Graph {
      * @param {Boolean} isHoliday if the day is on the weekend or national holiday
      * @returns {Object} key: node ID, value: travel time in seconds for available nodes, Infinity for unavailable nodes
      */
-    dijkstraAlgorithm(fromNodeId, maxTime = Infinity, departureTime, isHoliday, maxWalkDist) {
+    dijkstraAlgorithm(fromNodeId, maxTime = Infinity, departureTime, isHoliday, maxTransferTimes) {
         const cost = {};
         const prevNodeLog = {};
         const isVisited = {};
@@ -234,6 +234,7 @@ class Graph {
         const starter = {
             id: fromNodeId,
             arriveBy: walking,
+            transferTimes: 0
         };
         pq.enqueue(starter, 0);
         for (const nodeId in this.nodes) {
@@ -242,40 +243,46 @@ class Graph {
             isVisited[nodeId] = false;
         }
 
-        console.log('No.A - No.B: \tbasic \t+ \texpect \t+ \tstop \t+ \trun \t= \talter');
+        console.log('No.A - No.B(T)\t: \tbasic \t+ \texpect \t+ \tstop \t+ \trun \t= \talter');
         while (!pq.isEmpty()) {
             const currPqNode = pq.dequeue().element;
             const currNodeId = currPqNode.id;
+            const baseTransferTimes = currPqNode.transferTimes;
             const currNode = this.nodes[currNodeId];
             if (!isVisited[currNodeId]) {
                 const currTime = moment(departureTime, format).add(cost[currNodeId], 'seconds').format(format);
                 const basicTime = cost[currNodeId];
                 for (const nextNodeId in currNode.edges) {
                     const currEdge = currNode.edges[nextNodeId];
-                    const expectedTime = currEdge.getExpectedTime(currPqNode.arriveBy, currTime, isHoliday);
-                    const stopTime = currNode.getStopTime(currPqNode.arriveBy, currEdge.lineId);
-                    const runTime = currEdge.runTime;
-                    const alternative = basicTime + expectedTime + stopTime + runTime;
-                    if (alternative < cost[nextNodeId] && alternative < maxTime) {
-                        console.log(`${currNodeId} - ${nextNodeId}: \t${Math.round(basicTime)} \t+ \t${Math.round(expectedTime)} \t+ \t${Math.round(stopTime)} \t+ \t${Math.round(runTime)} \t= \t${Math.round(alternative)}`);
-                        cost[nextNodeId] = alternative;
-                        prevNodeLog[nextNodeId] = {
-                            nodeId: currNodeId,
-                            arriveBy: currEdge.lineId
-                        };
-                        const nextWaitTime = this.nodes[nextNodeId].stopTime;
-                        const nextBasicTime = alternative + nextWaitTime;
-                        const nextNode = {
-                            id: nextNodeId,
-                            arriveBy: currEdge.lineId
-                        };
-                        pq.enqueue(nextNode, nextBasicTime);
+                    const needTransfer = currEdge.edgeType == 'transfer' || currEdge.edgeType == 'GA' || currEdge.edgeType == 'RA';
+                    const currTransferTimes = needTransfer ? baseTransferTimes + 1 : baseTransferTimes;
+                    if (currTransferTimes <= maxTransferTimes) {
+                        const expectedTime = currEdge.getExpectedTime(currPqNode.arriveBy, currTime, isHoliday);
+                        const stopTime = currNode.getStopTime(currPqNode.arriveBy, currEdge.edgeType);
+                        const runTime = currEdge.runTime;
+                        const alternative = basicTime + expectedTime + stopTime + runTime;
+                        if (alternative < cost[nextNodeId] && alternative < maxTime) {
+                            cost[nextNodeId] = alternative;
+                            prevNodeLog[nextNodeId] = {
+                                nodeId: currNodeId,
+                                arriveBy: currEdge.edgeType
+                            };
+                            const nextWaitTime = this.nodes[nextNodeId].stopTime;
+                            const nextBasicTime = alternative + nextWaitTime;
+                            const nextNode = {
+                                id: nextNodeId,
+                                arriveBy: currEdge.edgeType,
+                                transferTimes: currTransferTimes
+                            };
+                            pq.enqueue(nextNode, nextBasicTime);
+                            console.log(`${currNodeId}(${baseTransferTimes})-${nextNodeId}(${currTransferTimes})\t: \t${Math.round(basicTime)} \t+ \t${Math.round(expectedTime)} \t+ \t${Math.round(stopTime)} \t+ \t${Math.round(runTime)} \t= \t${Math.round(alternative)}`);
+                        }
                     }
                 }
                 isVisited[currNodeId] = true;
             }
         }
-        console.log('=====================================================================================');
+        console.log('================================================================================================');
         return cost;
     }
 }

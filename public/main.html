@@ -26,10 +26,16 @@
                     <label for="is-holiday">周末或國定假日</label>
                 </div>
                 <div>
-                    <input id="apply-max-walk-dist" type="checkbox" name="is-holiday">
+                    <input id="apply-max-walk-dist" type="checkbox">
                     <label for="apply-max-walk-dist">最遠步行距離</label>
                     <input id="max-walk-dist" type="number" value="500" min="100" max="3000" step="100">
                     <label>公尺</label>
+                </div>
+                <div>
+                    <input id="apply-max-transfer-times" type="checkbox">
+                    <label for="apply-max-transfer-times">最大轉乘次數</label>
+                    <input id="max-transfer-times" type="number" value="1" min="0" max="3" step="1">
+                    <label>次</label>
                 </div>
                 <input id="search-btn" type="button" value="Go">
             </div>

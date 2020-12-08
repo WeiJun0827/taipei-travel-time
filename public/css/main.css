@@ -40,10 +40,14 @@ input {
   width: 260px;
 }
 
-#travel-time {
-  width: 50px;
+#travel-time{
+  width: 45px;
 }
 
 #max-walk-dist {
   width: 60px;
+}
+
+#max-transfer-times {
+  width: 30px;
 }

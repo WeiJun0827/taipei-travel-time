@@ -13,6 +13,11 @@ document.getElementById('max-walk-dist').addEventListener('change', () => {
     if (document.getElementById('apply-max-walk-dist').checked)
         drawTransitArea();
 });
+document.getElementById('apply-max-transfer-times').addEventListener('change', drawTransitArea);
+document.getElementById('max-transfer-times').addEventListener('change', () => {
+    if (document.getElementById('apply-max-transfer-times').checked)
+        drawTransitArea();
+});
 document.getElementById('search-btn').addEventListener('click', drawTransitArea);
 
 function initMap() {
@@ -116,6 +121,7 @@ function goToUsersLocation() {
 
 function drawTransitArea() {
     const maxWalkDist = document.getElementById('apply-max-walk-dist').checked ? document.getElementById('max-walk-dist').value : Infinity;
+    const maxTransferTimes = document.getElementById('apply-max-transfer-times').checked ? document.getElementById('max-transfer-times').value : Infinity;
     const params = new URLSearchParams({
         starterId: 'ABC',
         lat: marker.getPosition().lat(),
@@ -123,7 +129,8 @@ function drawTransitArea() {
         maxTravelTime: document.getElementById('travel-time').value,
         departureTime: document.getElementById('departure-time').value,
         isHoliday: document.getElementById('is-holiday').checked,
-        maxWalkDist: maxWalkDist
+        maxWalkDist: maxWalkDist,
+        maxTransferTimes: maxTransferTimes
     });
     fetch('/api/1.0/tavelTime/transit?' + params).then(response => {
         if (!response.ok) throw new Error(response.statusText);

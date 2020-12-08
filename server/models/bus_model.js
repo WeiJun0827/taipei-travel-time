@@ -36,6 +36,18 @@ const createTravelTime = async (travelTime) => {
     }
 };
 
+const createEstimatedTimeLog = async (estimatedTime) =>{
+    try {
+        await transaction();
+        const result = await query('INSERT INTO bus_stop_estimated_time_log SET ?', estimatedTime);
+        await commit();
+        return result.insertId;
+    } catch (error) {
+        await rollback();
+        return error;
+    }
+};
+
 const getStop = async (stopId) => {
     return await query('SELECT * FROM bus_stop WHERE stop_id = ?', stopId);
 };
@@ -56,6 +68,7 @@ module.exports = {
     createStop,
     createRoute,
     createTravelTime,
+    createEstimatedTimeLog,
     getStop,
     getAllStops,
     getTravelTimeByFromStation,
