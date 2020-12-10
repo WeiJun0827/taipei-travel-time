@@ -48,6 +48,14 @@ const createTravelTimeLog = async (travelTimeLog) => {
     }
 };
 
+const getRouteBySubRouteId = async (subRouteId) => {
+    return await query('SELECT * FROM bus_route WHERE sub_route_id = ?', subRouteId);
+};
+
+const getRoutesByRouteId = async (routeId) => {
+    return await query('SELECT * FROM bus_route WHERE route_id = ?', routeId);
+};
+
 const getStop = async (stopId) => {
     return await query('SELECT * FROM bus_stop WHERE stop_id = ?', stopId);
 };
@@ -58,6 +66,10 @@ const getAllStops = async () => {
 
 const getTravelTimeByFromStation = async (fromStationID) => {
     return await query('SELECT * FROM bus_travel_time WHERE from_station_id = ?', fromStationID);
+};
+
+const getTravelTimeBySubRouteId = async (subRouteId) => {
+    return await query('SELECT * FROM bus_travel_time WHERE sub_route_id = ?', subRouteId);
 };
 
 const getAllTravelTime = async () => {
@@ -82,9 +94,12 @@ module.exports = {
     createRoute,
     createTravelTime,
     createTravelTimeLog,
+    getRouteBySubRouteId,
+    getRoutesByRouteId,
     getStop,
     getAllStops,
     getTravelTimeByFromStation,
+    getTravelTimeBySubRouteId,
     getAllTravelTime,
     updateTravelTime
 };

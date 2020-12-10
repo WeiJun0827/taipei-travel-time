@@ -177,7 +177,7 @@ const importMetroSchedule = async function () {
     console.log('Done');
 };
 
-const importBusData = async function () {
+const importBusData = async function (routeId) {
     // for (const city of cities) {
     // const stopData = await getPtxData(`https://ptx.transportdata.tw/MOTC/v2/Bus/StopOfRoute/City/${city}?$top=10&$format=JSON`);
     const stopData = await getPtxData(`https://ptx.transportdata.tw/MOTC/v2/Bus/StopOfRoute/City/Taipei?$filter=RouteUID%20eq%20'${routeId}'&$top=6&$format=JSON`);
@@ -195,25 +195,34 @@ const importBusData = async function () {
             route_name_eng: route.RouteName.En,
             city: route.City
         };
-        // const routeSqlId = await Bus.createRoute(routeInfo);
+        const routeSqlId = await Bus.createRoute(routeInfo);
         // console.log(routeSqlId);
 
-        let prevStopId, currStopId;
+        let prevStopId;
+        let metFirstNotUndefinedEstiTime = false;
         for (const stop of route.Stops) {
+            const currStopId = stop.StopUID;
+            const currEstiTime = realTimeStopData.find(x => x.StopUID == currStopId).EstimateTime;
+            if (currEstiTime != undefined) metFirstNotUndefinedEstiTime = true;
+
+            let stopIsOperating = true;
+            if (currEstiTime == undefined && metFirstNotUndefinedEstiTime && route.Stops.indexOf(stop) != route.Stops.length - 1) {
+                stopIsOperating = false;
+            }
+
             const stopInfo = {
-                stop_id: stop.StopUID,
+                stop_id: currStopId,
                 name_cht: stop.StopName.Zh_tw,
                 name_eng: stop.StopName.En,
                 lat: stop.StopPosition.PositionLat,
                 lon: stop.StopPosition.PositionLon,
+                is_operating: stopIsOperating
             };
-            // const stopSqlId = await Bus.createStop(stopInfo);
-            // console.log(stopSqlId);
+            const stopSqlId = await Bus.createStop(stopInfo);
 
-            prevStopId = currStopId;
-            currStopId = stop.StopUID;
-            const currEstimatedTime = realTimeStopData.find(x => x.StopUID == currStopId).EstimateTime;
-            if (prevStopId && currStopId && currEstimatedTime) {
+            if (!stopIsOperating) continue; // skip this stop for travel time
+
+            if (prevStopId && currStopId) {
                 const travelTimeInfo = {
                     sub_route_id: subRouteId,
                     direction: route.Direction,
@@ -224,13 +233,20 @@ const importBusData = async function () {
                 const travelTimeId = await Bus.createTravelTime(travelTimeInfo);
                 // console.log(travelTimeId);
             }
+            prevStopId = currStopId;
         }
     }
     // }
 
 };
 
-
+async function test() {
+    const realTimeStopData = await getPtxData(`https://ptx.transportdata.tw/MOTC/v2/Bus/EstimatedTimeOfArrival/City/Taipei?$filter=RouteUID%20eq%20'TPE16111'&$orderby=StopID&$format=JSON
+        `);
+    for (const data of realTimeStopData) {
+        if (data.EstimateTime == undefined) console.log(data);
+    }
+}
 
 const importBusStopEstimatedTime = async function (routeId) {
     // N1
@@ -301,12 +317,51 @@ const updateBusRunTimeBySubRouteId = async function (subRouteId) {
     console.log(`================ Update ${updateCount} rows ================`);
 };
 
+const updateBusRunTimeBySubRouteIdV2 = async function (routeId) {
+
+    const realTimeStopData = await getPtxData(`https://ptx.transportdata.tw/MOTC/v2/Bus/EstimatedTimeOfArrival/City/Taipei?$filter=RouteUID%20eq%20'${routeId}'&$orderby=StopID&$format=JSON
+        `);
+    const routes = await Bus.getRoutesByRouteId(routeId);
+    let updateCount = 0;
+    for (const subRoute of routes) {
+        const subRouteId = subRoute.sub_route_id;
+        const routeStopSeq = await Bus.getTravelTimeBySubRouteId(subRouteId);
+
+        for (const stopSeq of routeStopSeq) {
+            const direction = stopSeq.direction;
+            const fromStopId = stopSeq.from_stop_id;
+            const toStopId = stopSeq.to_stop_id;
+            const fromStopInfo = realTimeStopData.find(x => x.StopUID == fromStopId);
+            const toStopInfo = realTimeStopData.find(x => x.StopUID == toStopId);
+            const fromEstiTime = fromStopInfo.EstimateTime;
+            const toEstiTime = toStopInfo.EstimateTime;
+            if (fromEstiTime == undefined || toEstiTime == undefined) continue;
+            const runTime = toEstiTime - fromEstiTime;
+            if (runTime < 0) continue;
+            const travelTimeLog = {
+                sub_route_id: subRouteId,
+                direction: direction,
+                from_stop_id: fromStopId,
+                to_stop_id: toStopId,
+                run_time: runTime
+            };
+            updateCount++;
+            Bus.createTravelTimeLog(travelTimeLog);
+        }
+    }
+    console.log(`================ Update ${updateCount} rows ================`);
+};
+
 
 // importMetroLines();
 // importMetroStationAndTravelTime();
 // importMetroRoute();
 // importMetroSchedule();
 // importBusData();
-updateBusRunTimeBySubRouteId('TPE157462');
-setInterval(() => updateBusRunTimeBySubRouteId('TPE157462'), 20000);
+updateBusRunTimeBySubRouteIdV2('TPE16111');
+setInterval(() => updateBusRunTimeBySubRouteIdV2('TPE16111'), 20000);
 // importBusStopEstimatedTime('TPE16111');
+// importBusData('TPE16111');
+// test();
+// importBusData('TPE16111');
+// updateBusRunTimeBySubRouteIdV2('TPE157462');
