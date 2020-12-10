@@ -36,10 +36,10 @@ const createTravelTime = async (travelTime) => {
     }
 };
 
-const createEstimatedTimeLog = async (estimatedTime) =>{
+const createTravelTimeLog = async (travelTimeLog) => {
     try {
         await transaction();
-        const result = await query('INSERT INTO bus_stop_estimated_time_log SET ?', estimatedTime);
+        const result = await query('INSERT INTO bus_travel_time_log SET ?', travelTimeLog);
         await commit();
         return result.insertId;
     } catch (error) {
@@ -64,13 +64,27 @@ const getAllTravelTime = async () => {
     return await query('SELECT * FROM bus_travel_time');
 };
 
+const updateTravelTime = async (subRouteId, direction, fromStopId, toStopId, runTime) => {
+    const data = (await query('SELECT * FROM bus_travel_time WHERE sub_route_id = ? AND direction = ? AND from_stop_id =? AND to_stop_id = ?', [subRouteId, direction, fromStopId, toStopId]))[0];
+    if (data) {
+        const id = data.id;
+        const oldRunTime = data.run_time;
+        if (runTime > oldRunTime) {
+            await query('UPDATE bus_travel_time SET run_time = ? WHERE id = ?', [runTime, id]);
+            return oldRunTime;
+        }
+    }
+    return null;
+};
+
 module.exports = {
     createStop,
     createRoute,
     createTravelTime,
-    createEstimatedTimeLog,
+    createTravelTimeLog,
     getStop,
     getAllStops,
     getTravelTimeByFromStation,
-    getAllTravelTime
+    getAllTravelTime,
+    updateTravelTime
 };

@@ -21,9 +21,32 @@ document.getElementById('max-transfer-times').addEventListener('change', () => {
 document.getElementById('search-btn').addEventListener('click', drawTransitArea);
 
 function initMap() {
+    const styles = [
+        {
+            featureType: 'road.highway',
+            elementType: 'geometry.stroke',
+            stylers: [
+                { lightness: +60 }
+            ]
+        }, {
+            featureType: 'road.highway',
+            elementType: 'geometry.fill',
+            stylers: [
+                { lightness: +75 }
+            ]
+        }, {
+            featureType: 'road.highway',
+            elementType: 'labels.icon',
+            stylers: [
+                { visibility: 'off' }
+            ]
+        }
+    ];
+
     const mapOptions = {
         center: new google.maps.LatLng(25.0478072, 121.5170185),
         zoom: 13,
+        styles: styles,
         mapTypeControl: false
     };
     map = new google.maps.Map(document.getElementById('map'), mapOptions);
@@ -36,9 +59,9 @@ function initMap() {
 function initMarker(position) {
     const icon = {
         path: google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
-        scale: 5,
+        scale: 7,
         strokeColor: '#B3672B',
-        strokeWeight: 4,
+        strokeWeight: 5,
     };
     marker = new google.maps.Marker({
         map: map,
@@ -53,11 +76,12 @@ function initMarker(position) {
 }
 
 function initPolygon() {
+    // https://coolors.co/c4e5cd-9cc0f9-f1f3f4-fde293-ff8785
     polygon = new google.maps.Polygon({
-        strokeColor: '#FF8C00',
-        strokeOpacity: 0.35,
         strokeWeight: 0,
-        fillColor: '#FF8C00',
+        fillColor: '#FAA916', // 柳橙蘇打，目前第一名
+        // fillColor: '#FF8C00', // 原色，被雪莉嫌像大便
+        // fillColor: '#FFAAA0', // 草莓蘇打
         fillOpacity: 0.35
     });
     polygon.setMap(map);

@@ -65,13 +65,15 @@ const initBusGraph = async () => {
         // const weekday = (await Metro.getFrequency(data.from_station_id, data.to_station_id, false)).map(x => Object.assign({}, x));
         // const holiday = (await Metro.getFrequency(data.from_station_id, data.to_station_id, true)).map(x => Object.assign({}, x));
         // const freqTable = { weekday, holiday };
-        graph.addEdge(
-            data.route_id,
-            data.from_stop_id,
-            data.to_stop_id,
-            data.run_time,
-            // freqTable
-        );
+        if (data.run_time !== 0) {
+            graph.addEdge(
+                data.route_id,
+                data.from_stop_id,
+                data.to_stop_id,
+                data.run_time,
+                // freqTable
+            );
+        }
     }
 
     // for (const node in graph.nodes) {
@@ -112,8 +114,8 @@ const getTravelTimeByTransit = async (req, res) => {
     res.status(200).json({ data });
 };
 
-initMetroGraph();
-// initBusGraph();
+// initMetroGraph();
+initBusGraph();
 // .then(() => {
 //     console.log(graph.dijkstraAlgorithmForBus('TPE33217', 1800, '08:00:00', false));
 // });

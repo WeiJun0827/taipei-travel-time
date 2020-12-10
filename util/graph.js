@@ -254,7 +254,7 @@ class Graph {
                 const basicTime = cost[currNodeId];
                 for (const nextNodeId in currNode.edges) {
                     const currEdge = currNode.edges[nextNodeId];
-                    const needTransfer = currEdge.edgeType == 'transfer' || currEdge.edgeType == 'GA' || currEdge.edgeType == 'RA';
+                    const needTransfer = currEdge.edgeType == 'transfer' || currEdge.edgeType == 'metroTransfer' || currEdge.edgeType == 'GA' || currEdge.edgeType == 'RA';
                     const currTransferTimes = needTransfer ? baseTransferTimes + 1 : baseTransferTimes;
                     if (currTransferTimes <= maxTransferTimes) {
                         const expectedTime = currEdge.getExpectedTime(currPqNode.arriveBy, currTime, isHoliday);
