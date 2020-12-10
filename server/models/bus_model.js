@@ -19,6 +19,7 @@ const createRoute = async (route) => {
         await commit();
         return result.insertId;
     } catch (error) {
+        console.error(error);
         await rollback();
         return error;
     }
@@ -31,6 +32,7 @@ const createTravelTime = async (travelTime) => {
         await commit();
         return result.insertId;
     } catch (error) {
+        console.error(error);
         await rollback();
         return error;
     }
@@ -52,8 +54,12 @@ const getRouteBySubRouteId = async (subRouteId) => {
     return await query('SELECT * FROM bus_route WHERE sub_route_id = ?', subRouteId);
 };
 
-const getRoutesByRouteId = async (routeId) => {
+const getSubRoutesByRouteId = async (routeId) => {
     return await query('SELECT * FROM bus_route WHERE route_id = ?', routeId);
+};
+
+const getRoutes = async (skipNum, limitNum) => {
+    return await query('SELECT * FROM bus_route LIMIT ?, ?', [skipNum, limitNum]);
 };
 
 const getStop = async (stopId) => {
@@ -95,7 +101,8 @@ module.exports = {
     createTravelTime,
     createTravelTimeLog,
     getRouteBySubRouteId,
-    getRoutesByRouteId,
+    getSubRoutesByRouteId,
+    getRoutes,
     getStop,
     getAllStops,
     getTravelTimeByFromStation,

@@ -1,17 +1,17 @@
 DROP TABLE IF EXISTS `bus_travel_time`;
 DROP TABLE IF EXISTS `bus_stop`;
-DROP TABLE IF EXISTS `bus_route`;
-CREATE TABLE `bus_route` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `sub_route_id` varchar(45) COLLATE utf8_bin NOT NULL,
-  `route_id` varchar(45) COLLATE utf8_bin NOT NULL,
-  `direction` int(1) unsigned NOT NULL,
-  `route_name_cht` varchar(255) COLLATE utf8_bin NOT NULL,
-  `route_name_eng` varchar(255) COLLATE utf8_bin NOT NULL,
-  `city` varchar(45) COLLATE utf8_bin NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `sub_route_id_UNIQUE` (`sub_route_id`,`direction`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+-- DROP TABLE IF EXISTS `bus_route`;
+-- CREATE TABLE `bus_route` (
+--   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+--   `sub_route_id` varchar(45) COLLATE utf8_bin NOT NULL,
+--   `route_id` varchar(45) COLLATE utf8_bin NOT NULL,
+--   `direction` int(1) unsigned NOT NULL,
+--   `route_name_cht` varchar(255) COLLATE utf8_bin NOT NULL,
+--   `route_name_eng` varchar(255) COLLATE utf8_bin NOT NULL,
+--   `city` varchar(45) COLLATE utf8_bin NOT NULL,
+--   PRIMARY KEY (`id`),
+--   UNIQUE KEY `sub_route_id_UNIQUE` (`sub_route_id`,`direction`)
+-- ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 CREATE TABLE `bus_stop` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
