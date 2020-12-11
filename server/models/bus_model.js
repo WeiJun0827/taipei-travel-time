@@ -50,6 +50,30 @@ const createTravelTimeLog = async (travelTimeLog) => {
     }
 };
 
+const createTimetables = async (timetable) => {
+    try {
+        await transaction();
+        const result = await query('INSERT INTO bus_timetable SET ?', timetable);
+        await commit();
+        return result.insertId;
+    } catch (error) {
+        await rollback();
+        return error;
+    }
+};
+
+const createFrequency = async (frequency) => {
+    try {
+        await transaction();
+        const result = await query('INSERT INTO bus_frequency SET ?', frequency);
+        await commit();
+        return result.insertId;
+    } catch (error) {
+        await rollback();
+        return error;
+    }
+};
+
 const getRouteBySubRouteId = async (subRouteId) => {
     return await query('SELECT * FROM bus_route WHERE sub_route_id = ?', subRouteId);
 };
@@ -59,7 +83,7 @@ const getSubRoutesByRouteId = async (routeId) => {
 };
 
 const getDistinctRoutes = async (skipNum, limitNum) => {
-    return await query('SELECT DISTINCT route_id, city FROM bus_route LIMIT ?, ?', [skipNum, limitNum]);
+    return await query('SELECT DISTINCT route_id, route_name_cht, city FROM bus_route LIMIT ?, ?', [skipNum, limitNum]);
 };
 
 const getStop = async (stopId) => {
@@ -100,6 +124,8 @@ module.exports = {
     createRoute,
     createTravelTime,
     createTravelTimeLog,
+    createTimetables,
+    createFrequency,
     getRouteBySubRouteId,
     getSubRoutesByRouteId,
     getDistinctRoutes,

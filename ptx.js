@@ -248,11 +248,13 @@ const importBusRoutes = async function (city = 'Taipei', routeNum = 0, skipNum =
     for (const route of routeData) {
         for (const subRoute of route.SubRoutes) {
             const subRouteInfo = {
-                sub_route_id: subRoute.SubRouteUID,
                 route_id: route.RouteUID,
+                sub_route_id: subRoute.SubRouteUID,
                 direction: subRoute.Direction,
-                route_name_cht: subRoute.SubRouteName.Zh_tw,
-                route_name_eng: subRoute.SubRouteName.En,
+                route_name_cht: route.RouteName.Zh_tw,
+                route_name_eng: route.RouteName.En,
+                sub_route_name_cht: subRoute.SubRouteName.Zh_tw,
+                sub_route_name_eng: subRoute.SubRouteName.En,
                 city: route.City
             };
             const routeSqlId = await Bus.createRoute(subRouteInfo);
@@ -262,7 +264,7 @@ const importBusRoutes = async function (city = 'Taipei', routeNum = 0, skipNum =
     console.log('Complete');
 };
 
-const importBusStopsAndTravelTimeByRouteId = async function (city, routeId) {
+const importBusStopsAndTravelTime = async function (city, routeId) {
     const subRouteStopData = await getPtxData(`https://ptx.transportdata.tw/MOTC/v2/Bus/StopOfRoute/City/${city}?$filter=RouteUID%20eq%20'${routeId}'&$top=6&$format=JSON`);
     const realTimeStopData = await getPtxData(`https://ptx.transportdata.tw/MOTC/v2/Bus/EstimatedTimeOfArrival/City/${city}?$filter=RouteUID%20eq%20'${routeId}'&$format=JSON
             `);
@@ -310,15 +312,59 @@ const importBusStopsAndTravelTimeByRouteId = async function (city, routeId) {
     }
 };
 
-const load = async function () {
-    const routeIds = await Bus.getDistinctRoutes(100, 0);
-    let count = 0;
-    for (const route of routeIds) {
-        const routeId = route.route_id;
-        const city = route.city;
-        await importBusStopsAndTravelTimeByRouteId(city, routeId);
-        count++;
-        console.log(count);
+const convertNumOfServiceDay = function (serviceDay) {
+    if (serviceDay.Sunday === 1) return 0;
+    if (serviceDay.Monday === 1) return 1;
+    if (serviceDay.Tuesday === 1) return 2;
+    if (serviceDay.Wednesday === 1) return 3;
+    if (serviceDay.Thursday === 1) return 4;
+    if (serviceDay.Friday === 1) return 5;
+    if (serviceDay.Saturday === 1) return 6;
+    return -1;
+};
+
+const importBusTimetableAndFrequency = async function (city, routeNameCht) {
+    const busRouteScheduleData = await getPtxData(`https://ptx.transportdata.tw/MOTC/v2/Bus/Schedule/City/${city}/${routeNameCht}?$format=JSON`);
+    for (const subRoute of busRouteScheduleData) {
+        const subRouteId = subRoute.SubRouteUID;
+        const direction = subRoute.Direction;
+        const frequencys = subRoute.Frequencys;
+        if (frequencys) {
+            for (const f of frequencys) {
+                const frequencyInfo = {
+                    sub_route_id: subRouteId,
+                    direction: direction,
+                    service_day: convertNumOfServiceDay(f.ServiceDay),
+                    start_time: f.StartTime,
+                    end_time: f.EndTime,
+                    min_interval_mins: f.MinHeadwayMins,
+                    max_interval_mins: f.MaxHeadwayMins,
+                    expected_time_secs: (f.MinHeadwayMins + f.MaxHeadwayMins) * 60 / 2
+                };
+                const id = await Bus.createFrequency(frequencyInfo);
+            }
+        }
+
+        // Skip buses with timetables for ver.1
+        /*
+        const timetables = subRoute.Timetables;
+        if (timetables) {
+            for (const timetable of timetables) {
+                const serviceDay = timetable.ServiceDay;
+                for (const stopTime of timetable.StopTimes) {
+                    const timetableInfo = {
+                        sub_route_id: subRouteId,
+                        direction: direction,
+                        stopId: stopTime.StopUID,
+                        service_day: serviceDay,
+                        arrival_time: stopTime.ArrivalTime,
+                        departure_time: stopTime.DepartureTime
+                    };
+                    await Bus.createTimetables();
+                }
+            }
+        }
+        */
     }
 };
 
@@ -357,15 +403,17 @@ const logBusRunTimeBySubRouteId = async function (city, routeId) {
     console.log(`================ Update ${updateCount} rows ================`);
 };
 
-const load2 = async function () {
-    // console.time();
-    const routeIds = await Bus.getDistinctRoutes(8, 1);
+
+const loadStopsAndTravelTime = async function (skipNum, limitNum) {
+    const routeIds = await Bus.getDistinctRoutes(skipNum, limitNum);
     for (const route of routeIds) {
         const routeId = route.route_id;
+        const routeName = route.route_name_cht;
         const city = route.city;
-        await logBusRunTimeBySubRouteId(city, routeId);
+        await importBusStopsAndTravelTime(city, routeId);
+        await importBusTimetableAndFrequency(city, routeName);
+        // await logBusRunTimeBySubRouteId(city, routeId);
     }
-    // console.timeEnd();
 };
 
 // importMetroLines();
@@ -379,5 +427,4 @@ const load2 = async function () {
 // importBusData('TPE16111');
 // updateBusRunTimeBySubRouteIdV2('TPE157462');
 // importBusRoutes(cities[1]);
-// load();
-load2();
+loadStopsAndTravelTime(0, 3);
