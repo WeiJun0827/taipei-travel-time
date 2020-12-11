@@ -33,13 +33,15 @@ CREATE TABLE `bus_travel_time` (
   `to_stop_id` varchar(45) COLLATE utf8_bin NOT NULL,
   `run_time` bigint(20) unsigned NOT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_index` (`sub_route_id`,`direction`,`from_stop_id`,`to_stop_id`),
   KEY `bus_travel_time_ibfk_1` (`sub_route_id`,`direction`),
   KEY `bus_travel_time_ibfk_2` (`from_stop_id`),
   KEY `bus_travel_time_ibfk_3` (`to_stop_id`),
-  CONSTRAINT `bus_travel_time_ibfk_1` FOREIGN KEY (`sub_route_id`,`direction`) REFERENCES `bus_route` (`sub_route_id`,`direction`),
+  CONSTRAINT `bus_travel_time_ibfk_1` FOREIGN KEY (`sub_route_id`, `direction`) REFERENCES `bus_route` (`sub_route_id`, `direction`),
   CONSTRAINT `bus_travel_time_ibfk_2` FOREIGN KEY (`from_stop_id`) REFERENCES `bus_stop` (`stop_id`),
   CONSTRAINT `bus_travel_time_ibfk_3` FOREIGN KEY (`to_stop_id`) REFERENCES `bus_stop` (`stop_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
 
 SET SQL_SAFE_UPDATES = 0;
 UPDATE bus_travel_time t2,

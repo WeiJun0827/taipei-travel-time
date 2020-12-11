@@ -58,8 +58,8 @@ const getSubRoutesByRouteId = async (routeId) => {
     return await query('SELECT * FROM bus_route WHERE route_id = ?', routeId);
 };
 
-const getRoutes = async (skipNum, limitNum) => {
-    return await query('SELECT * FROM bus_route LIMIT ?, ?', [skipNum, limitNum]);
+const getDistinctRoutes = async (skipNum, limitNum) => {
+    return await query('SELECT DISTINCT route_id, city FROM bus_route LIMIT ?, ?', [skipNum, limitNum]);
 };
 
 const getStop = async (stopId) => {
@@ -102,7 +102,7 @@ module.exports = {
     createTravelTimeLog,
     getRouteBySubRouteId,
     getSubRoutesByRouteId,
-    getRoutes,
+    getDistinctRoutes,
     getStop,
     getAllStops,
     getTravelTimeByFromStation,
