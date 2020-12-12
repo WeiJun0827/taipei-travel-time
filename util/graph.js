@@ -1,8 +1,7 @@
 const moment = require('moment');
-const format = 'HH:mm:ss';
-const walking = 'walking';
+const momentFormat = 'HH:mm:ss';
 const EdgeType = Object.freeze({
-    WALKING: Symbol('walking'),
+    WALKING: Symbol('walking from starter'),
     BUS: Symbol('bus'),
     METRO: Symbol('metro'),
     TRANSFER: Symbol('transfer')
@@ -152,32 +151,35 @@ class GraphEdge {
         }
     }
 
-    getExpectedTime(prevEdgeType, departureTime, weekday) {
+    getExpectedTime(prevEdgeType, departureTime, isHoliday) {
         switch (this.edgeType) {
-            case 'walking':
+            case 'walking from starter':
             case 'transfer':
             case 'metroTransfer':
                 return 0;
         }
         if (prevEdgeType == this.edgeType) return 0;
 
-        const edgeInfo = this.edgeInfo;
-        if (!edgeInfo) throw new Error(`EdgeInfo of edge ${this.fromNode} -${this.edgeType}-> ${this.toNode} not found`);
+        if (!this.edgeInfo || !this.edgeInfo.freqTable) throw new Error(`Frequency table of edge ${this.fromNode} -${this.edgeType}-> ${this.toNode} not found`);
+        const freqTables = this.edgeInfo.freqTable;
 
-        const freqTableOfWeek = edgeInfo.freqTable;
-        if (!freqTableOfWeek) throw new Error(`Frequency table of edge ${this.fromNode} -${this.edgeType}-> ${this.toNode} not found`);
+        let freqTable;
+        if (this.edgeType == 'bus') {
+            // const freqTableOfDay = freqTableOfWeek[isHoliday];
+            freqTable = isHoliday ? freqTables['Sat'] : freqTables['Mon'];
+        } else if (this.edgeType == 'metro') {
+            freqTable = isHoliday ? freqTables.holiday : freqTables.weekday;
+        }
+        if (!freqTable) return Infinity;
 
-        const freqTableOfDay = freqTableOfWeek[weekday];
-        if (!freqTableOfDay) return Infinity;
-
-        for (const freq of freqTableOfDay) {
-            const startTime = moment(freq.startTime, format);
-            const endTime = freq.startTime < freq.endTime ? moment(freq.endTime, format) : moment(freq.endTime, format).add(1, 'day');
-            departureTime = moment(departureTime, format);
+        for (const freq of freqTable) {
+            const startTime = moment(freq.startTime, momentFormat);
+            const endTime = freq.startTime < freq.endTime ? moment(freq.endTime, momentFormat) : moment(freq.endTime, momentFormat).add(1, 'day');
+            departureTime = moment(departureTime, momentFormat);
             if (departureTime.isBetween(startTime, endTime, undefined, '[]'))
                 return freq.expectedTime;
         }
-        const seconds = moment.duration(moment(freqTableOfDay[0].startTime, format).subtract(departureTime).format(format)).asSeconds();
+        const seconds = moment.duration(moment(freqTable[0].startTime, momentFormat).subtract(departureTime).format(momentFormat)).asSeconds();
         return seconds;
     }
 }
@@ -219,7 +221,7 @@ class Graph {
                 if (distFromStarter <= availableDist) {
                     const toNodeId = node.id;
                     const walkTime = distFromStarter / speed; // second
-                    this.addEdge(starterId, toNodeId, walkTime, walking, undefined);
+                    this.addEdge(starterId, toNodeId, walkTime, 'walking from starter', undefined);
                 }
             }
         }
@@ -260,18 +262,18 @@ class Graph {
      * @param {String} fromNodeId node ID
      * @param {Number} maxTime available maximum time in seconds
      * @param {String} departureTime departure time in 'HH:mm:ss' format
-     * @param {Boolean} weekday 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', or 'Sun'
+     * @param {Boolean} isHoliday if the day is on the weekend or national holiday
      * @param {Number} maxTransferTimes maximum transfer time between transits
      * @returns {Object} key: node ID, value: travel time in seconds for available nodes, Infinity for unavailable nodes
      */
-    dijkstraAlgorithm(fromNodeId, maxTime, departureTime, weekday, maxTransferTimes) {
+    dijkstraAlgorithm(fromNodeId, maxTime, departureTime, isHoliday, maxTransferTimes) {
         const cost = {};
         const prevNodeLog = {};
         const isVisited = {};
         const pq = new PriorityQueue();
         const starter = {
             id: fromNodeId,
-            arriveBy: walking,
+            arriveBy: null,
             transferTimes: 0
         };
         pq.enqueue(starter, 0);
@@ -281,20 +283,23 @@ class Graph {
             isVisited[nodeId] = false;
         }
 
-        console.log('No.A - No.B(T)\t: \tbasic \t+ \texpect \t+ \tstop \t+ \trun \t= \talter');
+        // console.log('No.A - No.B(T)\t: \tbasic \t+ \texpect \t+ \tstop \t+ \trun \t= \talter');
         while (!pq.isEmpty()) {
             const currPqNode = pq.dequeue().element;
             const currNodeId = currPqNode.id;
             const baseTransferTimes = currPqNode.transferTimes;
             const currNode = this.nodes[currNodeId];
             if (!isVisited[currNodeId]) {
-                const currTime = moment(departureTime, format).add(cost[currNodeId], 'seconds').format(format);
+                const currTime = moment(departureTime, momentFormat).add(cost[currNodeId], 'seconds').format(momentFormat);
                 const basicTime = cost[currNodeId];
+                let isInvalidStarterNeighborNode = currPqNode.arriveBy == 'walking from starter';
                 for (const nextNodeId in currNode.edges) {
                     const currEdge = currNode.edges[nextNodeId];
-                    const currTransferTimes = currEdge.needTransfer() ? baseTransferTimes + 1 : baseTransferTimes;
+                    const needTransfer = currEdge.needTransfer();
+                    if ((currPqNode.arriveBy == 'transfer' || currPqNode.arriveBy == 'walking from starter') && needTransfer) continue;
+                    const currTransferTimes = needTransfer ? baseTransferTimes + 1 : baseTransferTimes;
                     if (currTransferTimes <= maxTransferTimes) {
-                        const expectedTime = currEdge.getExpectedTime(currPqNode.arriveBy, currTime, weekday);
+                        const expectedTime = currEdge.getExpectedTime(currPqNode.arriveBy, currTime, isHoliday);
                         const stopTime = currNode.getStopTime(currEdge.edgeType);
                         const runTime = currEdge.runTime;
                         const alternative = basicTime + expectedTime + stopTime + runTime;
@@ -310,10 +315,30 @@ class Graph {
                                 transferTimes: currTransferTimes
                             };
                             pq.enqueue(nextPqNode, alternative);
-                            console.log(`${currNode.nameCht.padStart(14)}(${baseTransferTimes})-${this.nodes[nextNodeId].nameCht.padStart(14)}(${currTransferTimes})\t: \t${Math.round(basicTime)} \t+ \t${Math.round(expectedTime)} \t+ \t${Math.round(stopTime)} \t+ \t${Math.round(runTime)} \t= \t${Math.round(alternative)}`);
+                            if (isInvalidStarterNeighborNode) {
+                                switch (currEdge.edgeType) {
+                                    case 'bus':
+                                    case 'metro':
+                                        isInvalidStarterNeighborNode = false;
+                                        break;
+                                }
+                            }
+
+                            let edgeInfo = currEdge.edgeType;
+                            switch (edgeInfo) {
+                                case 'bus':
+                                    edgeInfo = currEdge.edgeInfo.subRouteName;
+                                    break;
+                                default:
+                                    break;
+                            }
+                            console.log(`${currNode.nameCht}(${currNodeId}) -${edgeInfo}-> ${this.nodes[nextNodeId].nameCht}(${nextNodeId})`);
+                            console.log(`==> ${Math.round(basicTime)} + ${Math.round(expectedTime)} + ${Math.round(stopTime)} + ${Math.round(runTime)} = ${Math.round(alternative)}`);
                         }
                     }
                 }
+                if (isInvalidStarterNeighborNode)
+                    cost[currNodeId] = Infinity;
                 isVisited[currNodeId] = true;
             }
         }

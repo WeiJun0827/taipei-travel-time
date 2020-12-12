@@ -24,11 +24,14 @@ const initMetroGraph = async () => {
         const freqTable = { weekday, holiday };
         if (data.from_station_id != data.to_station_id) { // prevent metro stations O12, R22, and G03 actions
             graph.addEdge(
-                data.line_id,
                 data.from_station_id,
                 data.to_station_id,
                 data.run_time,
-                freqTable
+                'metro',
+                {
+                    lineId: data.line_id,
+                    freqTable: freqTable
+                }
             );
         }
     }
@@ -47,21 +50,9 @@ const initBusGraph = async () => {
         );
     }
 
-    // for (const nodeIdA in graph.nodes) {
-    //     for (const nodeIdB in graph.nodes) {
-    //         if (nodeIdA != nodeIdB) {
-    //             const nodeA = graph.nodes[nodeIdA];
-    //             const nodeB = graph.nodes[nodeIdB];
-    //             const walkingTime = nodeA.getDistanceToNode(nodeB.lat, nodeB.lon);
-    //             if (walkingTime <= 200) { // ignore any edge longer than 200 m
-    //                 graph.addEdge('walking', nodeIdA, nodeIdB, walkingTime);
-    //             }
-    //         }
-    //     }
-    // }
-
     const pathData = await Bus.getAllTravelTime();
     const freqData = await Bus.getAllFrequencys();
+    const routeLog = {};
     for (const data of pathData) {
         const routeId = data.route_id;
         let routeFreq = freqData[routeId];
@@ -74,10 +65,11 @@ const initBusGraph = async () => {
                 directionFreq = routeFreq.outbound;
             }
 
+            const runTime = data.run_time == 0 ? 60 : data.run_time;
             graph.addEdge(
                 data.from_stop_id,
                 data.to_stop_id,
-                data.run_time,
+                runTime,
                 'bus',
                 {
                     subRouteId: data.sub_route_id,
@@ -85,16 +77,25 @@ const initBusGraph = async () => {
                     freqTable: directionFreq
                 }
             );
+            routeLog[data.sub_route_name_cht] = true;
+        } else
+            routeLog[data.sub_route_name_cht] = false;
+    }
+    console.log(routeLog);
+};
+
+const createTransferEdges = (maxTransferDist) => {
+    for (const nodeIdA in graph.nodes) {
+        for (const nodeIdB in graph.nodes) {
+            if (nodeIdA != nodeIdB) {
+                const nodeA = graph.nodes[nodeIdA];
+                const nodeB = graph.nodes[nodeIdB];
+                const distance = nodeA.getDistanceToNode(nodeB.lat, nodeB.lon);
+                if (distance <= maxTransferDist)  // ignore edge longer than maxTransferDist
+                    graph.addEdge(nodeIdA, nodeIdB, distance, 'transfer');
+            }
         }
     }
-
-    // for (const node in graph.nodes) {
-    //     const edges = graph.nodes[node].edges;
-    //     for (const edgeId in edges) {
-    //         const edge = edges[edgeId];
-    //         console.log(`${edge.fromNode.nameCht} - ${edge.toNode.nameCht}`);
-    //     }
-    // }
 };
 
 const getTravelTimeByTransit = async (req, res) => {
@@ -106,6 +107,7 @@ const getTravelTimeByTransit = async (req, res) => {
     const isHoliday = req.query.isHoliday === 'true';
     const maxWalkDist = Number(req.query.maxWalkDist);
     const maxTransferTimes = Number(req.query.maxTransferTimes);
+    console.time('getTravelTime');
     graph.addStarterNode(starterId, lat, lon, maxTravelTime, walkingSpeed, maxWalkDist);
     const cost = graph.dijkstraAlgorithm(starterId, maxTravelTime, departureTime, isHoliday, maxTransferTimes);
     const data = [];
@@ -123,16 +125,20 @@ const getTravelTimeByTransit = async (req, res) => {
         }
     }
     graph.deleteStarterNode(starterId);
+    console.timeEnd('getTravelTime');
     res.status(200).json({ data });
 };
 
-// initMetroGraph();
-initBusGraph()
-    .then(() => {
-        // console.log(graph.dijkstraAlgorithm('TPE33217', 1800, '08:00:00', 'Mon', 2));
-    }).catch((e) => {
+(async () => {
+    try {
+        await initMetroGraph();
+        await initBusGraph();
+        createTransferEdges(500);
+        // graph.dijkstraAlgorithm('TPE15927', 1800, '08:00:00', 'Mon', 2);
+    } catch (e) {
         console.error(e);
-    });
+    }
+})();
 
 module.exports = {
     getTravelTimeByTransit
