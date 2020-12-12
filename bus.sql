@@ -2,20 +2,20 @@ DROP TABLE IF EXISTS `bus_frequency`;
 DROP TABLE IF EXISTS `bus_timetable`;
 DROP TABLE IF EXISTS `bus_travel_time`;
 DROP TABLE IF EXISTS `bus_stop`;
-DROP TABLE IF EXISTS `bus_route`;
-CREATE TABLE `bus_route` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `route_id` varchar(45) COLLATE utf8_bin NOT NULL,
-  `sub_route_id` varchar(45) COLLATE utf8_bin NOT NULL,
-  `direction` int(1) unsigned NOT NULL,
-  `route_name_cht` varchar(255) COLLATE utf8_bin NOT NULL,
-  `route_name_eng` varchar(255) COLLATE utf8_bin NOT NULL,
-  `sub_route_name_cht` varchar(255) COLLATE utf8_bin NOT NULL,
-  `sub_route_name_eng` varchar(255) COLLATE utf8_bin NOT NULL,
-  `city` varchar(45) COLLATE utf8_bin NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `sub_route_id_UNIQUE` (`sub_route_id`,`direction`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+-- DROP TABLE IF EXISTS `bus_route`;
+-- CREATE TABLE `bus_route` (
+--   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+--   `route_id` varchar(45) COLLATE utf8_bin NOT NULL,
+--   `sub_route_id` varchar(45) COLLATE utf8_bin NOT NULL,
+--   `direction` int(1) unsigned NOT NULL,
+--   `route_name_cht` varchar(255) COLLATE utf8_bin NOT NULL,
+--   `route_name_eng` varchar(255) COLLATE utf8_bin NOT NULL,
+--   `sub_route_name_cht` varchar(255) COLLATE utf8_bin NOT NULL,
+--   `sub_route_name_eng` varchar(255) COLLATE utf8_bin NOT NULL,
+--   `city` varchar(45) COLLATE utf8_bin NOT NULL,
+--   PRIMARY KEY (`id`),
+--   UNIQUE KEY `sub_route_id_UNIQUE` (`sub_route_id`,`direction`)
+-- ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 CREATE TABLE `bus_stop` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -60,13 +60,15 @@ CREATE TABLE `bus_timetable` (
 
 CREATE TABLE `bus_frequency` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `route_id` varchar(45) COLLATE utf8_bin NOT NULL,
   `sub_route_id` varchar(45) COLLATE utf8_bin NOT NULL,
   `direction` int(1) unsigned NOT NULL,
+  `sub_route_name_cht` varchar(255) COLLATE utf8_bin NOT NULL,
   `service_day` int(1) unsigned NOT NULL,
   `start_time` time NOT NULL,
   `end_time` time NOT NULL,
-  `interval_min_mins` int(10) unsigned NOT NULL,
-  `interval_max_mins` int(10) unsigned NOT NULL,
+  `min_interval_mins` int(10) unsigned NOT NULL,
+  `max_interval_mins` int(10) unsigned NOT NULL,
   `expected_time_secs` int(10) unsigned NOT NULL,
   PRIMARY KEY (`id`),
   KEY `bus_frequency_ibfk_1` (`sub_route_id`,`direction`),
@@ -74,11 +76,11 @@ CREATE TABLE `bus_frequency` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 
-SET SQL_SAFE_UPDATES = 0;
-UPDATE bus_travel_time t2,
-(SELECT * FROM 
-(SELECT from_stop_id, to_stop_id, run_time, COUNT(*) AS count FROM bus_travel_time_log GROUP BY to_stop_id, run_time HAVING run_time > 0 ORDER BY from_stop_id, count DESC) t0 
-GROUP BY from_stop_id) t1
-SET t2.run_time = t1.run_time
-WHERE t1.from_stop_id = t2.from_stop_id AND t1.to_stop_id = t2.to_stop_id;
-SET SQL_SAFE_UPDATES = 1;
+-- SET SQL_SAFE_UPDATES = 0;
+-- UPDATE bus_travel_time t2,
+-- (SELECT * FROM 
+-- (SELECT from_stop_id, to_stop_id, run_time, COUNT(*) AS count FROM bus_travel_time_log GROUP BY to_stop_id, run_time HAVING run_time > 0 ORDER BY from_stop_id, count DESC) t0 
+-- GROUP BY from_stop_id) t1
+-- SET t2.run_time = t1.run_time
+-- WHERE t1.from_stop_id = t2.from_stop_id AND t1.to_stop_id = t2.to_stop_id;
+-- SET SQL_SAFE_UPDATES = 1;

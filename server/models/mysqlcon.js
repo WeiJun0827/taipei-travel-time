@@ -58,6 +58,16 @@ const promiseTransaction = promisify(mysqlCon.beginTransaction).bind(mysqlCon);
 const promiseCommit = promisify(mysqlCon.commit).bind(mysqlCon);
 const promiseRollback = promisify(mysqlCon.rollback).bind(mysqlCon);
 const promiseEnd = promisify(mysqlCon.end).bind(mysqlCon);
+const weekdayToSting = (index) =>{
+    if(index == 0) return 'Mon';
+    if(index == 1) return 'Tue';
+    if(index == 2) return 'Wed';
+    if(index == 3) return 'Thu';
+    if(index == 4) return 'Fri';
+    if(index == 5) return 'Sat';
+    if(index == 6) return 'Sun';
+    return null;
+};
 
 module.exports = {
     core: mysql,
@@ -66,4 +76,5 @@ module.exports = {
     commit: promiseCommit,
     rollback: promiseRollback,
     end: promiseEnd,
+    weekdayToSting,
 };

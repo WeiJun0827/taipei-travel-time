@@ -1,6 +1,12 @@
 const moment = require('moment');
 const format = 'HH:mm:ss';
 const walking = 'walking';
+const EdgeType = Object.freeze({
+    WALKING: Symbol('walking'),
+    BUS: Symbol('bus'),
+    METRO: Symbol('metro'),
+    TRANSFER: Symbol('transfer')
+});
 
 class PriorityQueueNode {
     constructor(element, priority) {
@@ -92,8 +98,14 @@ class GraphNode {
         this.edges = {};
     }
 
-    getStopTime(arriveCurrNodeViaEdgeType, nextEdgeType) {
-        return arriveCurrNodeViaEdgeType == nextEdgeType ? this.stopTime : 0;
+    getStopTime(nextEdgeType) {
+        switch (nextEdgeType) {
+            case 'metro':
+            case 'bus':
+                return this.stopTime;
+            default:
+                return 0;
+        }
     }
 
     /**
@@ -120,27 +132,52 @@ class GraphNode {
 }
 
 class GraphEdge {
-    constructor(edgeType, fromNode, toNode, runTime, freqTable) {
-        this.edgeType = edgeType;
+    constructor(fromNode, toNode, runTime, edgeType, edgeInfo) {
         this.fromNode = fromNode;
         this.toNode = toNode;
         this.runTime = runTime;
-        this.freqTable = freqTable;
+        this.edgeType = edgeType;
+        this.edgeInfo = edgeInfo;
     }
 
-    getExpectedTime(arriveCurrNodeViaEdgeType, departureTime, isHoliday) {
-        if (arriveCurrNodeViaEdgeType == this.edgeType) return 0;
-        if (!this.freqTable) return 0;
-        const freqTable = isHoliday ? this.freqTable.holiday : this.freqTable.weekday;
-        if (!freqTable || freqTable.length == 0) return 0;
-        for (const freq of freqTable) {
+    needTransfer() {
+        switch (this.edgeType) {
+            case 'transfer':
+            case 'metroTransfer':
+                return true;
+            case 'metro':
+                return (this.edgeInfo.line == 'GA' || this.edgeInfo.line == 'RA');
+            default:
+                return false;
+        }
+    }
+
+    getExpectedTime(prevEdgeType, departureTime, weekday) {
+        switch (this.edgeType) {
+            case 'walking':
+            case 'transfer':
+            case 'metroTransfer':
+                return 0;
+        }
+        if (prevEdgeType == this.edgeType) return 0;
+
+        const edgeInfo = this.edgeInfo;
+        if (!edgeInfo) throw new Error(`EdgeInfo of edge ${this.fromNode} -${this.edgeType}-> ${this.toNode} not found`);
+
+        const freqTableOfWeek = edgeInfo.freqTable;
+        if (!freqTableOfWeek) throw new Error(`Frequency table of edge ${this.fromNode} -${this.edgeType}-> ${this.toNode} not found`);
+
+        const freqTableOfDay = freqTableOfWeek[weekday];
+        if (!freqTableOfDay) return Infinity;
+
+        for (const freq of freqTableOfDay) {
             const startTime = moment(freq.startTime, format);
             const endTime = freq.startTime < freq.endTime ? moment(freq.endTime, format) : moment(freq.endTime, format).add(1, 'day');
             departureTime = moment(departureTime, format);
             if (departureTime.isBetween(startTime, endTime, undefined, '[]'))
                 return freq.expectedTime;
         }
-        const seconds = moment.duration(moment(freqTable[0].startTime, format).subtract(departureTime).format(format)).asSeconds();
+        const seconds = moment.duration(moment(freqTableOfDay[0].startTime, format).subtract(departureTime).format(format)).asSeconds();
         return seconds;
     }
 }
@@ -156,12 +193,12 @@ class Graph {
         this.nodes[id] = new GraphNode(id, nameCht, nameEng, lat, lon, stopTime);
     }
 
-    addEdge(edgeType, fromNodeId, toNodeId, runTime, freqTable) {
+    addEdge(fromNodeId, toNodeId, runTime, edgeType, edgeInfo) {
         const fromNode = this.nodes[fromNodeId];
         const toNode = this.nodes[toNodeId];
         if (fromNode == undefined) throw new Error(`From node ${fromNodeId} not found`);
         if (toNode == undefined) throw new Error(`To node ${toNodeId} not found`);
-        fromNode.edges[toNodeId] = new GraphEdge(edgeType, fromNode, toNode, runTime, freqTable);
+        fromNode.edges[toNodeId] = new GraphEdge(fromNode, toNode, runTime, edgeType, edgeInfo);
     }
 
     /**
@@ -182,7 +219,7 @@ class Graph {
                 if (distFromStarter <= availableDist) {
                     const toNodeId = node.id;
                     const walkTime = distFromStarter / speed; // second
-                    this.addEdge(walking, starterId, toNodeId, walkTime);
+                    this.addEdge(starterId, toNodeId, walkTime, walking, undefined);
                 }
             }
         }
@@ -223,10 +260,11 @@ class Graph {
      * @param {String} fromNodeId node ID
      * @param {Number} maxTime available maximum time in seconds
      * @param {String} departureTime departure time in 'HH:mm:ss' format
-     * @param {Boolean} isHoliday if the day is on the weekend or national holiday
+     * @param {Boolean} weekday 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', or 'Sun'
+     * @param {Number} maxTransferTimes maximum transfer time between transits
      * @returns {Object} key: node ID, value: travel time in seconds for available nodes, Infinity for unavailable nodes
      */
-    dijkstraAlgorithm(fromNodeId, maxTime = Infinity, departureTime, isHoliday, maxTransferTimes) {
+    dijkstraAlgorithm(fromNodeId, maxTime, departureTime, weekday, maxTransferTimes) {
         const cost = {};
         const prevNodeLog = {};
         const isVisited = {};
@@ -254,11 +292,10 @@ class Graph {
                 const basicTime = cost[currNodeId];
                 for (const nextNodeId in currNode.edges) {
                     const currEdge = currNode.edges[nextNodeId];
-                    const needTransfer = currEdge.edgeType == 'transfer' || currEdge.edgeType == 'metroTransfer' || currEdge.edgeType == 'GA' || currEdge.edgeType == 'RA';
-                    const currTransferTimes = needTransfer ? baseTransferTimes + 1 : baseTransferTimes;
+                    const currTransferTimes = currEdge.needTransfer() ? baseTransferTimes + 1 : baseTransferTimes;
                     if (currTransferTimes <= maxTransferTimes) {
-                        const expectedTime = currEdge.getExpectedTime(currPqNode.arriveBy, currTime, isHoliday);
-                        const stopTime = currNode.getStopTime(currPqNode.arriveBy, currEdge.edgeType);
+                        const expectedTime = currEdge.getExpectedTime(currPqNode.arriveBy, currTime, weekday);
+                        const stopTime = currNode.getStopTime(currEdge.edgeType);
                         const runTime = currEdge.runTime;
                         const alternative = basicTime + expectedTime + stopTime + runTime;
                         if (alternative < cost[nextNodeId] && alternative < maxTime) {
@@ -267,15 +304,13 @@ class Graph {
                                 nodeId: currNodeId,
                                 arriveBy: currEdge.edgeType
                             };
-                            const nextWaitTime = this.nodes[nextNodeId].stopTime;
-                            const nextBasicTime = alternative + nextWaitTime;
-                            const nextNode = {
+                            const nextPqNode = {
                                 id: nextNodeId,
                                 arriveBy: currEdge.edgeType,
                                 transferTimes: currTransferTimes
                             };
-                            pq.enqueue(nextNode, nextBasicTime);
-                            console.log(`${currNodeId}(${baseTransferTimes})-${nextNodeId}(${currTransferTimes})\t: \t${Math.round(basicTime)} \t+ \t${Math.round(expectedTime)} \t+ \t${Math.round(stopTime)} \t+ \t${Math.round(runTime)} \t= \t${Math.round(alternative)}`);
+                            pq.enqueue(nextPqNode, alternative);
+                            console.log(`${currNode.nameCht.padStart(14)}(${baseTransferTimes})-${this.nodes[nextNodeId].nameCht.padStart(14)}(${currTransferTimes})\t: \t${Math.round(basicTime)} \t+ \t${Math.round(expectedTime)} \t+ \t${Math.round(stopTime)} \t+ \t${Math.round(runTime)} \t= \t${Math.round(alternative)}`);
                         }
                     }
                 }

@@ -1,4 +1,4 @@
-const { transaction, commit, rollback, query } = require('./mysqlcon');
+const { transaction, commit, rollback, query, weekdayToSting } = require('./mysqlcon');
 
 const createStop = async (stop) => {
     try {
@@ -103,7 +103,48 @@ const getTravelTimeBySubRouteId = async (subRouteId) => {
 };
 
 const getAllTravelTime = async () => {
-    return await query('SELECT * FROM bus_travel_time');
+    return await query('SELECT t2.route_id, t2.sub_route_name_cht, t1.* FROM bus_travel_time AS t1 JOIN bus_route AS t2 ON t1.sub_route_id = t2.sub_route_id');
+};
+
+const getFrequencyByRoute = async (routeId) => {
+    return await query('SELECT * FROM bus_frequency WHERE route_id = ?',);
+};
+
+const getAllFrequencys = async () => {
+    const frequencyData = await query('SELECT * FROM bus_frequency');
+    const frequencys = {};
+    for (const f of frequencyData) {
+        const routeId = f.route_id;
+        const subRouteId = f.sub_route_id;
+        const direction = f.direction;
+        const serviceDay = weekdayToSting(f.service_day);
+        const routeName = f.sub_route_name_cht;
+        const startTime = f.start_time;
+        const endTime = f.end_time;
+        const expectedTime = f.expected_time_secs;
+        if (!frequencys[routeId]) {
+            // frequencys[routeId] = {
+            //     routeId,
+            //     subRouteId,
+            //     routeName
+            // };
+            frequencys[routeId] = {};
+        }
+        if (direction == 0) {
+            if (!frequencys[routeId].outbound)
+                frequencys[routeId].outbound = {};
+            if (!frequencys[routeId].outbound[serviceDay])
+                frequencys[routeId].outbound[serviceDay] = [];
+            frequencys[routeId].outbound[serviceDay].push({ startTime, endTime, expectedTime });
+        } else {
+            if (!frequencys[routeId].inbound)
+                frequencys[routeId].inbound = {};
+            if (!frequencys[routeId].inbound[serviceDay])
+                frequencys[routeId].inbound[serviceDay] = [];
+            frequencys[routeId].inbound[serviceDay].push({ startTime, endTime, expectedTime });
+        }
+    }
+    return frequencys;
 };
 
 const updateTravelTime = async (subRouteId, direction, fromStopId, toStopId, runTime) => {
@@ -134,5 +175,7 @@ module.exports = {
     getTravelTimeByFromStation,
     getTravelTimeBySubRouteId,
     getAllTravelTime,
+    getFrequencyByRoute,
+    getAllFrequencys,
     updateTravelTime
 };

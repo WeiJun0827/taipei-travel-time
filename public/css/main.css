@@ -36,12 +36,16 @@ input {
   width: 360px;
 }
 
-#search-place{
+#search-place {
   width: 260px;
 }
 
-#travel-time{
+#travel-time {
   width: 45px;
+}
+
+#weekday {
+  width: 80px;
 }
 
 #max-walk-dist {

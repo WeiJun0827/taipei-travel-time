@@ -61,17 +61,29 @@ const initBusGraph = async () => {
     // }
 
     const pathData = await Bus.getAllTravelTime();
+    const freqData = await Bus.getAllFrequencys();
     for (const data of pathData) {
-        // const weekday = (await Metro.getFrequency(data.from_station_id, data.to_station_id, false)).map(x => Object.assign({}, x));
-        // const holiday = (await Metro.getFrequency(data.from_station_id, data.to_station_id, true)).map(x => Object.assign({}, x));
-        // const freqTable = { weekday, holiday };
-        if (data.run_time !== 0) {
+        const routeId = data.route_id;
+        let routeFreq = freqData[routeId];
+        if (routeFreq) {
+            const isInbound = data.direction === 1;
+            let directionFreq;
+            if (isInbound && routeFreq.inBound) {
+                directionFreq = routeFreq.inbound;
+            } else {
+                directionFreq = routeFreq.outbound;
+            }
+
             graph.addEdge(
-                data.route_id,
                 data.from_stop_id,
                 data.to_stop_id,
                 data.run_time,
-                // freqTable
+                'bus',
+                {
+                    subRouteId: data.sub_route_id,
+                    subRouteName: data.sub_route_name_cht,
+                    freqTable: directionFreq
+                }
             );
         }
     }
@@ -115,10 +127,12 @@ const getTravelTimeByTransit = async (req, res) => {
 };
 
 // initMetroGraph();
-initBusGraph();
-// .then(() => {
-//     console.log(graph.dijkstraAlgorithmForBus('TPE33217', 1800, '08:00:00', false));
-// });
+initBusGraph()
+    .then(() => {
+        // console.log(graph.dijkstraAlgorithm('TPE33217', 1800, '08:00:00', 'Mon', 2));
+    }).catch((e) => {
+        console.error(e);
+    });
 
 module.exports = {
     getTravelTimeByTransit
