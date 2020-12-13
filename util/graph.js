@@ -190,8 +190,7 @@ class Graph {
     }
 
     addNode(id, nameCht, nameEng, lat, lon, stopTime) {
-        if (this.nodes[id] != undefined)
-            throw new Error(`Node ${id} already existed`);
+        if (this.nodes[id] != undefined) throw new Error(`Node ${id} already existed`);
         this.nodes[id] = new GraphNode(id, nameCht, nameEng, lat, lon, stopTime);
     }
 
@@ -200,6 +199,7 @@ class Graph {
         const toNode = this.nodes[toNodeId];
         if (fromNode == undefined) throw new Error(`From node ${fromNodeId} not found`);
         if (toNode == undefined) throw new Error(`To node ${toNodeId} not found`);
+        if (fromNode.edges[toNodeId] != undefined) throw new Error(`Edge ${fromNodeId} -${edgeType}-> ${toNodeId} already existed`);
         fromNode.edges[toNodeId] = new GraphEdge(fromNode, toNode, runTime, edgeType, edgeInfo);
     }
 
@@ -266,11 +266,12 @@ class Graph {
      * @param {Number} maxTransferTimes maximum transfer time between transits
      * @returns {Object} key: node ID, value: travel time in seconds for available nodes, Infinity for unavailable nodes
      */
-    dijkstraAlgorithm(fromNodeId, maxTime, departureTime, isHoliday, maxTransferTimes) {
+    dijkstraAlgorithm(fromNodeId, maxTime, departureTime, isHoliday, takeMetro, takeBus, maxTransferTimes) {
         const cost = {};
-        const prevNodeLog = {};
+        const prevNodeLog = [];
         const isVisited = {};
         const pq = new PriorityQueue();
+        let logSequence = 0;
         const starter = {
             id: fromNodeId,
             arriveBy: null,
@@ -279,7 +280,6 @@ class Graph {
         pq.enqueue(starter, 0);
         for (const nodeId in this.nodes) {
             cost[nodeId] = nodeId == fromNodeId ? 0 : Infinity;
-            prevNodeLog[nodeId] = null;
             isVisited[nodeId] = false;
         }
 
@@ -292,9 +292,11 @@ class Graph {
             if (!isVisited[currNodeId]) {
                 const currTime = moment(departureTime, momentFormat).add(cost[currNodeId], 'seconds').format(momentFormat);
                 const basicTime = cost[currNodeId];
-                let isInvalidStarterNeighborNode = currPqNode.arriveBy == 'walking from starter';
+                let isInvalidStarterNeighborNode = currPqNode.arriveBy == 'transfer' || currPqNode.arriveBy == 'walking from starter';
                 for (const nextNodeId in currNode.edges) {
                     const currEdge = currNode.edges[nextNodeId];
+                    if (currEdge.edgeType == 'metro' && !takeMetro) continue;
+                    if (currEdge.edgeType == 'bus' && !takeBus) continue;
                     const needTransfer = currEdge.needTransfer();
                     if ((currPqNode.arriveBy == 'transfer' || currPqNode.arriveBy == 'walking from starter') && needTransfer) continue;
                     const currTransferTimes = needTransfer ? baseTransferTimes + 1 : baseTransferTimes;
@@ -305,15 +307,14 @@ class Graph {
                         const alternative = basicTime + expectedTime + stopTime + runTime;
                         if (alternative < cost[nextNodeId] && alternative < maxTime) {
                             cost[nextNodeId] = alternative;
-                            prevNodeLog[nextNodeId] = {
-                                nodeId: currNodeId,
-                                arriveBy: currEdge.edgeType
-                            };
+
                             const nextPqNode = {
                                 id: nextNodeId,
                                 arriveBy: currEdge.edgeType,
-                                transferTimes: currTransferTimes
+                                transferTimes: currTransferTimes,
+                                logSequence: logSequence,
                             };
+
                             pq.enqueue(nextPqNode, alternative);
                             if (isInvalidStarterNeighborNode) {
                                 switch (currEdge.edgeType) {
@@ -324,25 +325,42 @@ class Graph {
                                 }
                             }
 
+                            logSequence++;
+
                             let edgeInfo = currEdge.edgeType;
-                            switch (edgeInfo) {
-                                case 'bus':
-                                    edgeInfo = currEdge.edgeInfo.subRouteName;
-                                    break;
-                                default:
-                                    break;
-                            }
-                            console.log(`${currNode.nameCht}(${currNodeId}) -${edgeInfo}-> ${this.nodes[nextNodeId].nameCht}(${nextNodeId})`);
-                            console.log(`==> ${Math.round(basicTime)} + ${Math.round(expectedTime)} + ${Math.round(stopTime)} + ${Math.round(runTime)} = ${Math.round(alternative)}`);
+                            if (edgeInfo == 'bus') edgeInfo = currEdge.edgeInfo.subRouteName;
+
+                            prevNodeLog.push({
+                                prevNodeId: currNodeId,
+                                prevNodeName: currNode.nameCht,
+                                arriveBy: edgeInfo,
+                                currNodeId: nextNodeId,
+                                currNodeName: this.nodes[nextNodeId].nameCht,
+                                basicTime: Math.round(basicTime),
+                                expectedTime: Math.round(expectedTime),
+                                stopTime: Math.round(stopTime),
+                                runTime: Math.round(runTime),
+                                totalTime: Math.round(alternative)
+                            });
+                            // console.log(`${currNode.nameCht}(${currNodeId}) -${edgeInfo}-> ${this.nodes[nextNodeId].nameCht}(${nextNodeId})`);
+                            // console.log(`==> ${Math.round(basicTime)} + ${Math.round(expectedTime)} + ${Math.round(stopTime)} + ${Math.round(runTime)} = ${Math.round(alternative)}`);
                         }
                     }
                 }
-                if (isInvalidStarterNeighborNode)
+                if (isInvalidStarterNeighborNode) {
                     cost[currNodeId] = Infinity;
+                    prevNodeLog[currPqNode.logSequence] = null;
+                }
+
                 isVisited[currNodeId] = true;
             }
         }
         console.log('================================================================================================');
+        for (const log of prevNodeLog) {
+            if (log == null) continue;
+            console.log(`${log.prevNodeName}(${log.prevNodeId}) -${log.arriveBy}-> ${log.currNodeName}(${log.currNodeId})`);
+            console.log(`==> ${log.basicTime} + ${log.expectedTime} + ${log.stopTime} + ${log.runTime} = ${log.totalTime}`);
+        }
         return cost;
     }
 }

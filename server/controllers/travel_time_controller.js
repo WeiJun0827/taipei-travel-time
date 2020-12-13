@@ -22,7 +22,10 @@ const initMetroGraph = async () => {
         const weekday = (await Metro.getFrequency(data.from_station_id, data.to_station_id, false)).map(x => Object.assign({}, x));
         const holiday = (await Metro.getFrequency(data.from_station_id, data.to_station_id, true)).map(x => Object.assign({}, x));
         const freqTable = { weekday, holiday };
-        if (data.from_station_id != data.to_station_id) { // prevent metro stations O12, R22, and G03 actions
+        if (data.from_station_id == data.to_station_id) continue; // prevent metro stations O12, R22, and G03 actions
+
+        if (data.line_id == 'metroTransfer') graph.addEdge(data.from_station_id, data.to_station_id, data.run_time, 'metroTransfer');
+        else
             graph.addEdge(
                 data.from_station_id,
                 data.to_station_id,
@@ -33,7 +36,7 @@ const initMetroGraph = async () => {
                     freqTable: freqTable
                 }
             );
-        }
+
     }
 };
 
@@ -66,6 +69,7 @@ const initBusGraph = async () => {
             }
 
             const runTime = data.run_time == 0 ? 60 : data.run_time;
+            if (graph.nodes[data.from_stop_id].edges[data.to_stop_id] != undefined) continue;
             graph.addEdge(
                 data.from_stop_id,
                 data.to_stop_id,
@@ -89,6 +93,7 @@ const createTransferEdges = (maxTransferDist) => {
         for (const nodeIdB in graph.nodes) {
             if (nodeIdA != nodeIdB) {
                 const nodeA = graph.nodes[nodeIdA];
+                if (nodeA.edges[nodeIdB] != undefined) continue;
                 const nodeB = graph.nodes[nodeIdB];
                 const distance = nodeA.getDistanceToNode(nodeB.lat, nodeB.lon);
                 if (distance <= maxTransferDist)  // ignore edge longer than maxTransferDist
@@ -105,11 +110,13 @@ const getTravelTimeByTransit = async (req, res) => {
     const maxTravelTime = Number(req.query.maxTravelTime) * 60;
     const departureTime = req.query.departureTime;
     const isHoliday = req.query.isHoliday === 'true';
+    const takeMetro = req.query.takeMetro === 'true';
+    const takeBus = req.query.takeBus === 'true';
     const maxWalkDist = Number(req.query.maxWalkDist);
     const maxTransferTimes = Number(req.query.maxTransferTimes);
     console.time('getTravelTime');
     graph.addStarterNode(starterId, lat, lon, maxTravelTime, walkingSpeed, maxWalkDist);
-    const cost = graph.dijkstraAlgorithm(starterId, maxTravelTime, departureTime, isHoliday, maxTransferTimes);
+    const cost = graph.dijkstraAlgorithm(starterId, maxTravelTime, departureTime, isHoliday, takeMetro, takeBus, maxTransferTimes);
     const data = [];
     for (const stationId in cost) {
         const travelTime = cost[stationId];

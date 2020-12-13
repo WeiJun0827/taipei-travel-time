@@ -8,6 +8,8 @@ document.getElementById('my-position-btn').addEventListener('click', goToUsersLo
 document.getElementById('travel-time').addEventListener('change', drawTransitArea);
 document.getElementById('departure-time').addEventListener('change', drawTransitArea);
 document.getElementById('is-holiday').addEventListener('change', drawTransitArea);
+document.getElementById('take-metro').addEventListener('change', drawTransitArea);
+document.getElementById('take-bus').addEventListener('change', drawTransitArea);
 document.getElementById('apply-max-walk-dist').addEventListener('change', drawTransitArea);
 document.getElementById('max-walk-dist').addEventListener('change', () => {
     if (document.getElementById('apply-max-walk-dist').checked)
@@ -18,7 +20,7 @@ document.getElementById('max-transfer-times').addEventListener('change', () => {
     if (document.getElementById('apply-max-transfer-times').checked)
         drawTransitArea();
 });
-document.getElementById('search-btn').addEventListener('click', drawTransitArea);
+// document.getElementById('search-btn').addEventListener('click', drawTransitArea);
 
 function initMap() {
     const styles = [
@@ -153,6 +155,8 @@ function drawTransitArea() {
         maxTravelTime: document.getElementById('travel-time').value,
         departureTime: document.getElementById('departure-time').value,
         isHoliday: document.getElementById('is-holiday').checked,
+        takeMetro: document.getElementById('take-metro').checked,
+        takeBus: document.getElementById('take-bus').checked,
         maxWalkDist: maxWalkDist,
         maxTransferTimes: maxTransferTimes
     });
