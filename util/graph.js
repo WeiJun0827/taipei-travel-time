@@ -189,7 +189,7 @@ class GraphEdge {
             case EdgeType.TRANSFER:
                 return true;
             case EdgeType.METRO:
-                return (this.edgeInfo.line == 'GA' || this.edgeInfo.line == 'RA');
+                return (this.edgeInfo.lineId == 'GA' || this.edgeInfo.lineId == 'RA');
             case EdgeType.BUS:
             case EdgeType.WALKING_FROM_STARTER:
             default:
@@ -334,9 +334,6 @@ class Graph {
             const baseTransferCount = currPqNode.transferCount;
             const currNode = this.nodes[currNodeId];
             if (isVisited[currNodeId]) continue;
-            console.log(cost[currNodeId]);
-            if (cost[currNodeId] == Infinity)
-                console.log('inf');
             const passedTime = cost[currNodeId];
             if (passedTime == Infinity) continue;
             const currTime = moment(departureTime, momentFormat).add(passedTime, 'seconds').format(momentFormat);
