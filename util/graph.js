@@ -8,9 +8,24 @@ const EdgeType = Object.freeze({
 });
 
 class PriorityQueueNode {
-    constructor(element, priority) {
-        this.element = element;
-        this.priority = priority;
+    constructor(id, arriveBy, transferCount, logSequence) {
+        this.id = id;
+        this.arriveBy = arriveBy;
+        this.transferCount = transferCount;
+        this.logSequence = logSequence;
+    }
+
+    isArrivedByWalking() {
+        switch (this.arriveBy) {
+            case 'walking from starter':
+            case 'transfer':
+                return true;
+            case 'metroTransfer':
+            default:
+            case 'bus':
+            case 'metro':
+                return false;
+        }
     }
 }
 
@@ -19,9 +34,8 @@ class PriorityQueue {
         this.nodes = [];
     }
 
-    enqueue(element, priority) {
-        let newNode = new PriorityQueueNode(element, priority);
-        this.nodes.push(newNode);
+    enqueue(pqNode, priority) {
+        this.nodes.push({ pqNode, priority });
         this.bubbleUp();
     }
 
@@ -272,11 +286,12 @@ class Graph {
         const isVisited = {};
         const pq = new PriorityQueue();
         let logSequence = 0;
-        const starter = {
-            id: fromNodeId,
-            arriveBy: null,
-            transferTimes: 0
-        };
+        // const starter = {
+        //     id: fromNodeId,
+        //     arriveBy: null,
+        //     transferTimes: 0
+        // };
+        const starter = new PriorityQueueNode(fromNodeId, null, 0, null);
         pq.enqueue(starter, 0);
         for (const nodeId in this.nodes) {
             cost[nodeId] = nodeId == fromNodeId ? 0 : Infinity;
@@ -285,9 +300,9 @@ class Graph {
 
         // console.log('No.A - No.B(T)\t: \tbasic \t+ \texpect \t+ \tstop \t+ \trun \t= \talter');
         while (!pq.isEmpty()) {
-            const currPqNode = pq.dequeue().element;
+            const currPqNode = pq.dequeue().pqNode;
             const currNodeId = currPqNode.id;
-            const baseTransferTimes = currPqNode.transferTimes;
+            const baseTransferTimes = currPqNode.transferCount;
             const currNode = this.nodes[currNodeId];
             if (!isVisited[currNodeId]) {
                 const currTime = moment(departureTime, momentFormat).add(cost[currNodeId], 'seconds').format(momentFormat);
@@ -308,13 +323,13 @@ class Graph {
                         if (alternative < cost[nextNodeId] && alternative < maxTime) {
                             cost[nextNodeId] = alternative;
 
-                            const nextPqNode = {
-                                id: nextNodeId,
-                                arriveBy: currEdge.edgeType,
-                                transferTimes: currTransferTimes,
-                                logSequence: logSequence,
-                            };
-
+                            // const nextPqNode = {
+                            //     id: nextNodeId,
+                            //     arriveBy: currEdge.edgeType,
+                            //     transferTimes: currTransferTimes,
+                            //     logSequence: logSequence,
+                            // };
+                            const nextPqNode = new PriorityQueueNode(nextNodeId, currEdge.edgeType, currTransferTimes, logSequence);
                             pq.enqueue(nextPqNode, alternative);
                             if (isInvalidStarterNeighborNode) {
                                 switch (currEdge.edgeType) {
@@ -351,7 +366,6 @@ class Graph {
                     cost[currNodeId] = Infinity;
                     prevNodeLog[currPqNode.logSequence] = null;
                 }
-
                 isVisited[currNodeId] = true;
             }
         }

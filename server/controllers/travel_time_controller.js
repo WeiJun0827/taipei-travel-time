@@ -25,17 +25,12 @@ const initMetroGraph = async () => {
         if (data.from_station_id == data.to_station_id) continue; // prevent metro stations O12, R22, and G03 actions
 
         if (data.line_id == 'metroTransfer') graph.addEdge(data.from_station_id, data.to_station_id, data.run_time, 'metroTransfer');
-        else
-            graph.addEdge(
-                data.from_station_id,
-                data.to_station_id,
-                data.run_time,
-                'metro',
-                {
-                    lineId: data.line_id,
-                    freqTable: freqTable
-                }
-            );
+        else graph.addEdge(data.from_station_id, data.to_station_id, data.run_time, 'metro',
+            {
+                lineId: data.line_id,
+                freqTable: freqTable
+            }
+        );
 
     }
 };
