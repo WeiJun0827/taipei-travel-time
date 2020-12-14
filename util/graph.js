@@ -1,28 +1,31 @@
 const moment = require('moment');
 const momentFormat = 'HH:mm:ss';
 const EdgeType = Object.freeze({
-    WALKING: Symbol('walking from starter'),
-    BUS: Symbol('bus'),
-    METRO: Symbol('metro'),
-    TRANSFER: Symbol('transfer')
+    WALKING_FROM_STARTER: 'walking from starter',
+    METRO: 'metro',
+    METRO_TRANSFER: 'metroTransfer',
+    BUS: 'bus',
+    TRANSFER: 'transfer',
 });
 
 class PriorityQueueNode {
-    constructor(id, arriveBy, transferCount, logSequence) {
+    constructor(id, arriveBy, transferCount, logSequence, isArrivedByTransit, originCost) {
         this.id = id;
         this.arriveBy = arriveBy;
         this.transferCount = transferCount;
         this.logSequence = logSequence;
+        this.isArrivedByTransit = isArrivedByTransit;
+        this.originCost = originCost;
     }
 
     isArrivedByWalking() {
         switch (this.arriveBy) {
-            case 'walking from starter':
-            case 'transfer':
-            case 'metroTransfer':
+            case EdgeType.WALKING_FROM_STARTER:
+            case EdgeType.METRO_TRANSFER:
+            case EdgeType.TRANSFER:
                 return true;
-            case 'bus':
-            case 'metro':
+            case EdgeType.METRO:
+            case EdgeType.BUS:
             default:
                 return false;
         }
@@ -113,8 +116,8 @@ class GraphNode {
 
     getStopTime(nextEdgeType) {
         switch (nextEdgeType) {
-            case 'metro':
-            case 'bus':
+            case EdgeType.METRO:
+            case EdgeType.BUS:
                 return this.stopTime;
             default:
                 return 0;
@@ -155,12 +158,12 @@ class GraphEdge {
 
     isByTransit() {
         switch (this.edgeType) {
-            case 'bus':
-            case 'metro':
+            case EdgeType.METRO:
+            case EdgeType.BUS:
                 return true;
-            case 'walking from starter':
-            case 'transfer':
-            case 'metroTransfer':
+            case EdgeType.WALKING_FROM_STARTER:
+            case EdgeType.METRO_TRANSFER:
+            case EdgeType.TRANSFER:
             default:
                 return false;
         }
@@ -168,13 +171,13 @@ class GraphEdge {
 
     needTransfer() {
         switch (this.edgeType) {
-            case 'transfer':
-            case 'metroTransfer':
+            case EdgeType.METRO_TRANSFER:
+            case EdgeType.TRANSFER:
                 return true;
-            case 'metro':
+            case EdgeType.METRO:
                 return (this.edgeInfo.line == 'GA' || this.edgeInfo.line == 'RA');
-            case 'bus':
-            case 'walking from starter':
+            case EdgeType.BUS:
+            case EdgeType.WALKING_FROM_STARTER:
             default:
                 return false;
         }
@@ -182,9 +185,9 @@ class GraphEdge {
 
     getExpectedTime(prevEdgeType, departureTime, isHoliday) {
         switch (this.edgeType) {
-            case 'walking from starter':
-            case 'transfer':
-            case 'metroTransfer':
+            case EdgeType.WALKING_FROM_STARTER:
+            case EdgeType.METRO_TRANSFER:
+            case EdgeType.TRANSFER:
                 return 0;
         }
         if (prevEdgeType == this.edgeType) return 0;
@@ -193,10 +196,10 @@ class GraphEdge {
         const freqTables = this.edgeInfo.freqTable;
 
         let freqTable;
-        if (this.edgeType == 'bus') {
+        if (this.edgeType == EdgeType.BUS) {
             // const freqTableOfDay = freqTableOfWeek[isHoliday];
             freqTable = isHoliday ? freqTables['Sat'] : freqTables['Mon'];
-        } else if (this.edgeType == 'metro') {
+        } else if (this.edgeType == EdgeType.METRO) {
             freqTable = isHoliday ? freqTables.holiday : freqTables.weekday;
         }
         if (!freqTable) return Infinity;
@@ -250,7 +253,7 @@ class Graph {
                 if (distFromStarter <= availableDist) {
                     const toNodeId = node.id;
                     const walkTime = distFromStarter / speed; // second
-                    this.addEdge(starterId, toNodeId, walkTime, 'walking from starter', undefined);
+                    this.addEdge(starterId, toNodeId, walkTime, EdgeType.WALKING_FROM_STARTER, undefined);
                 }
             }
         }
@@ -292,62 +295,61 @@ class Graph {
      * @param {Number} maxTime available maximum time in seconds
      * @param {String} departureTime departure time in 'HH:mm:ss' format
      * @param {Boolean} isHoliday if the day is on the weekend or national holiday
-     * @param {Number} maxTransferTimes maximum transfer time between transits
+     * @param {Boolean} takeMetro if the passenger take metro or not
+     * @param {Boolean} takeBus if the passenger take bus or not
+     * @param {Number} maxTransferCount maximum transfer time between transits
      * @returns {Object} key: node ID, value: travel time in seconds for available nodes, Infinity for unavailable nodes
      */
-    dijkstraAlgorithm(fromNodeId, maxTime, departureTime, isHoliday, takeMetro, takeBus, maxTransferTimes) {
+    dijkstraAlgorithm(fromNodeId, maxTime, departureTime, isHoliday, takeMetro, takeBus, maxTransferCount) {
         const cost = {};
         const prevNodeLog = [];
         const isVisited = {};
         const pq = new PriorityQueue();
         let logSequence = 0;
 
-        const starter = new PriorityQueueNode(fromNodeId, null, 0, null);
+        const starter = new PriorityQueueNode(fromNodeId, null, 0, null, false, 0);
         pq.enqueue(starter, 0);
         for (const nodeId in this.nodes) {
             cost[nodeId] = nodeId == fromNodeId ? 0 : Infinity;
             isVisited[nodeId] = false;
         }
 
-        console.log('==> basic + expected + stop + run = total');
         while (!pq.isEmpty()) {
             const currPqNode = pq.dequeue().pqNode;
             const currNodeId = currPqNode.id;
-            const baseTransferTimes = currPqNode.transferCount;
+            const baseTransferCount = currPqNode.transferCount;
             const currNode = this.nodes[currNodeId];
             if (isVisited[currNodeId]) continue;
-            const currTime = moment(departureTime, momentFormat).add(cost[currNodeId], 'seconds').format(momentFormat);
+            console.log(cost[currNodeId]);
+            if (cost[currNodeId] == Infinity)
+                console.log('inf');
+            const passedTime = cost[currNodeId];
+            if (passedTime == Infinity) continue;
+            const currTime = moment(departureTime, momentFormat).add(passedTime, 'seconds').format(momentFormat);
             const basicTime = cost[currNodeId];
             let isInvalidTransferNode = currPqNode.isArrivedByWalking();
             for (const nextNodeId in currNode.edges) {
                 const currEdge = currNode.edges[nextNodeId];
-                if (currEdge.edgeType == 'metro' && !takeMetro) continue;
-                if (currEdge.edgeType == 'bus' && !takeBus) continue;
+                if (currEdge.edgeType == EdgeType.METRO && !takeMetro) continue;
+                if (currEdge.edgeType == EdgeType.BUS && !takeBus) continue;
                 const needTransfer = currEdge.needTransfer();
                 if (isInvalidTransferNode && needTransfer) continue;
-                const currTransferTimes = needTransfer ? baseTransferTimes + 1 : baseTransferTimes;
-                if (currTransferTimes > maxTransferTimes) continue;
+                const currTransferCount = needTransfer ? baseTransferCount + 1 : baseTransferCount;
+                if (currTransferCount > maxTransferCount) continue;
                 const expectedTime = currEdge.getExpectedTime(currPqNode.arriveBy, currTime, isHoliday);
                 const stopTime = currNode.getStopTime(currEdge.edgeType);
                 const runTime = currEdge.runTime;
                 const alternative = basicTime + expectedTime + stopTime + runTime;
                 if (alternative > cost[nextNodeId] || alternative > maxTime) continue;
-                cost[nextNodeId] = alternative;
-
-                // const nextPqNode = {
-                //     id: nextNodeId,
-                //     arriveBy: currEdge.edgeType,
-                //     transferTimes: currTransferTimes,
-                //     logSequence: logSequence,
-                // };
-                const nextPqNode = new PriorityQueueNode(nextNodeId, currEdge.edgeType, currTransferTimes, logSequence);
+                const nextPqNode = new PriorityQueueNode(nextNodeId, currEdge.edgeType, currTransferCount, logSequence, currEdge.isByTransit(), cost[nextNodeId]);
                 pq.enqueue(nextPqNode, alternative);
+                cost[nextNodeId] = alternative;
                 if (isInvalidTransferNode) isInvalidTransferNode = !currEdge.isByTransit();
 
                 logSequence++;
 
                 let edgeInfo = currEdge.edgeType;
-                if (edgeInfo == 'bus') edgeInfo = currEdge.edgeInfo.subRouteName;
+                if (edgeInfo == EdgeType.BUS) edgeInfo = currEdge.edgeInfo.subRouteName;
 
                 prevNodeLog.push({
                     prevNodeId: currNodeId,
@@ -364,20 +366,21 @@ class Graph {
             }
 
             if (isInvalidTransferNode) {
-                cost[currNodeId] = Infinity;
+                cost[currNodeId] = currPqNode.originCost;
                 prevNodeLog[currPqNode.logSequence] = null;
             } else
                 isVisited[currNodeId] = true;
 
         }
-        console.log('================================================================================================');
-        for (const log of prevNodeLog) {
-            if (log == null) continue;
-            console.log(`${log.prevNodeName}(${log.prevNodeId}) -${log.arriveBy}-> ${log.currNodeName}(${log.currNodeId})`);
-            console.log(`==> ${log.basicTime} + ${log.expectedTime} + ${log.stopTime} + ${log.runTime} = ${log.totalTime}`);
-        }
+        // console.log('    basic + expected + stop + run = total');
+        // for (const log of prevNodeLog) {
+        //     if (log == null) continue;
+        //     console.log(`${log.prevNodeName}(${log.prevNodeId}) -${log.arriveBy}-> ${log.currNodeName}(${log.currNodeId})`);
+        //     console.log(`==> ${log.basicTime} + ${log.expectedTime} + ${log.stopTime} + ${log.runTime} = ${log.totalTime}`);
+        // }
+        // console.log('================================================================================================');
         return cost;
     }
 }
 
-module.exports = Graph;
+module.exports = { Graph, EdgeType };

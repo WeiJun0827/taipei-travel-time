@@ -1,6 +1,6 @@
 const Metro = require('../models/metro_model');
 const Bus = require('../models/bus_model');
-const Graph = require('../../util/graph');
+const { Graph, EdgeType } = require('../../util/graph');
 const graph = new Graph();
 const walkingSpeed = 1; // in m/s
 
@@ -24,8 +24,8 @@ const initMetroGraph = async () => {
         const freqTable = { weekday, holiday };
         if (data.from_station_id == data.to_station_id) continue; // prevent metro stations O12, R22, and G03 actions
 
-        if (data.line_id == 'metroTransfer') graph.addEdge(data.from_station_id, data.to_station_id, data.run_time, 'metroTransfer');
-        else graph.addEdge(data.from_station_id, data.to_station_id, data.run_time, 'metro',
+        if (data.line_id == 'metroTransfer') graph.addEdge(data.from_station_id, data.to_station_id, data.run_time, EdgeType.METRO_TRANSFER);
+        else graph.addEdge(data.from_station_id, data.to_station_id, data.run_time, EdgeType.METRO,
             {
                 lineId: data.line_id,
                 freqTable: freqTable
@@ -69,7 +69,7 @@ const initBusGraph = async () => {
                 data.from_stop_id,
                 data.to_stop_id,
                 runTime,
-                'bus',
+                EdgeType.BUS,
                 {
                     subRouteId: data.sub_route_id,
                     subRouteName: data.sub_route_name_cht,
@@ -92,7 +92,7 @@ const createTransferEdges = (maxTransferDist) => {
                 const nodeB = graph.nodes[nodeIdB];
                 const distance = nodeA.getDistanceToNode(nodeB.lat, nodeB.lon);
                 if (distance <= maxTransferDist)  // ignore edge longer than maxTransferDist
-                    graph.addEdge(nodeIdA, nodeIdB, distance, 'transfer');
+                    graph.addEdge(nodeIdA, nodeIdB, distance, EdgeType.TRANSFER);
             }
         }
     }
