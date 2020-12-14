@@ -143,19 +143,6 @@ class GraphEdge {
         this.edgeInfo = edgeInfo;
     }
 
-    isByTransit() {
-        switch (this.edgeType) {
-            case EdgeType.METRO:
-            case EdgeType.BUS:
-                return true;
-            case EdgeType.WALKING_FROM_STARTER:
-            case EdgeType.METRO_TRANSFER:
-            case EdgeType.TRANSFER:
-            default:
-                return false;
-        }
-    }
-
     isByWalking() {
         switch (this.edgeType) {
             case EdgeType.WALKING_FROM_STARTER:
@@ -164,8 +151,9 @@ class GraphEdge {
                 return true;
             case EdgeType.METRO:
             case EdgeType.BUS:
-            default:
                 return false;
+            default:
+                throw new Error('Edge type non-defined');
         }
     }
 
@@ -178,8 +166,9 @@ class GraphEdge {
                 return (this.edgeInfo.lineId == 'GA' || this.edgeInfo.lineId == 'RA');
             case EdgeType.BUS:
             case EdgeType.WALKING_FROM_STARTER:
-            default:
                 return false;
+            default:
+                throw new Error('Edge type non-defined');
         }
     }
 
@@ -338,10 +327,11 @@ class Graph {
                 const runTime = currEdge.runTime;
                 const alternative = basicTime + expectedTime + stopTime + runTime;
                 if (alternative > cost[nextNodeId] || alternative > maxTime) continue;
-                const nextPqNode = new PriorityQueueNode(nextNodeId, currEdge.edgeType, currTransferCount, logSequence, cost[nextNodeId], currEdge.isByWalking());
+                const isByWalking = currEdge.isByWalking();
+                if (isInvalidTransferNode) isInvalidTransferNode = isByWalking;
+                const nextPqNode = new PriorityQueueNode(nextNodeId, currEdge.edgeType, currTransferCount, logSequence, cost[nextNodeId], isByWalking);
                 pq.enqueue(nextPqNode, alternative);
                 cost[nextNodeId] = alternative;
-                if (isInvalidTransferNode) isInvalidTransferNode = !currEdge.isByTransit();
 
                 logSequence++;
 
