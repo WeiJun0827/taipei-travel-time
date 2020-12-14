@@ -9,27 +9,13 @@ const EdgeType = Object.freeze({
 });
 
 class PriorityQueueNode {
-    constructor(id, arriveBy, transferCount, logSequence, isArrivedByTransit, originCost, isArrivedByWalking) {
+    constructor(id, arriveBy, transferCount, logSequence, originCost, isArrivedByWalking) {
         this.id = id;
         this.arriveBy = arriveBy;
         this.transferCount = transferCount;
         this.logSequence = logSequence;
-        this.isArrivedByTransit = isArrivedByTransit;
         this.originCost = originCost;
         this.isArrivedByWalking = isArrivedByWalking;
-    }
-
-    isArrivedByWalking() {
-        switch (this.arriveBy) {
-            case EdgeType.WALKING_FROM_STARTER:
-            case EdgeType.METRO_TRANSFER:
-            case EdgeType.TRANSFER:
-                return true;
-            case EdgeType.METRO:
-            case EdgeType.BUS:
-            default:
-                return false;
-        }
     }
 }
 
@@ -321,7 +307,7 @@ class Graph {
         const pq = new PriorityQueue();
         let logSequence = 0;
 
-        const starter = new PriorityQueueNode(fromNodeId, null, 0, null, false, 0, false);
+        const starter = new PriorityQueueNode(fromNodeId, null, 0, null, 0, false);
         pq.enqueue(starter, 0);
         for (const nodeId in this.nodes) {
             cost[nodeId] = nodeId == fromNodeId ? 0 : Infinity;
@@ -352,7 +338,7 @@ class Graph {
                 const runTime = currEdge.runTime;
                 const alternative = basicTime + expectedTime + stopTime + runTime;
                 if (alternative > cost[nextNodeId] || alternative > maxTime) continue;
-                const nextPqNode = new PriorityQueueNode(nextNodeId, currEdge.edgeType, currTransferCount, logSequence, currEdge.isByTransit(), cost[nextNodeId], currEdge.isByWalking());
+                const nextPqNode = new PriorityQueueNode(nextNodeId, currEdge.edgeType, currTransferCount, logSequence, cost[nextNodeId], currEdge.isByWalking());
                 pq.enqueue(nextPqNode, alternative);
                 cost[nextNodeId] = alternative;
                 if (isInvalidTransferNode) isInvalidTransferNode = !currEdge.isByTransit();
