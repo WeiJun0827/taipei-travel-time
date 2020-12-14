@@ -9,12 +9,12 @@ const EdgeType = Object.freeze({
 });
 
 class PriorityQueueNode {
-    constructor(id, arriveBy, transferCount, logSequence, originCost, isArrivedByWalking) {
+    constructor(id, arriveBy, transferCount, logSequence, originalCost, isArrivedByWalking) {
         this.id = id;
         this.arriveBy = arriveBy;
         this.transferCount = transferCount;
         this.logSequence = logSequence;
-        this.originCost = originCost;
+        this.originalCost = originalCost;
         this.isArrivedByWalking = isArrivedByWalking;
     }
 }
@@ -168,18 +168,34 @@ class GraphEdge {
             case EdgeType.WALKING_FROM_STARTER:
                 return false;
             default:
-                throw new Error('Edge type non-defined');
+                throw new Error('Edge type undefined');
         }
     }
 
-    getExpectedTime(prevEdgeType, departureTime, isHoliday) {
+    getEdgeDetail() {
+        switch (this.edgeType) {
+            case EdgeType.METRO_TRANSFER:
+            case EdgeType.TRANSFER:
+            case EdgeType.WALKING_FROM_STARTER:
+                return this.edgeType;
+            case EdgeType.METRO:
+                return this.edgeInfo.lineId;
+            case EdgeType.BUS:
+                return this.edgeInfo.subRouteName;
+            default:
+                throw new Error('Edge type undefined');
+        }
+    }
+
+    getExpectedTime(prevEdgeDetail, departureTime, isHoliday) {
         switch (this.edgeType) {
             case EdgeType.WALKING_FROM_STARTER:
             case EdgeType.METRO_TRANSFER:
             case EdgeType.TRANSFER:
                 return 0;
         }
-        if (prevEdgeType == this.edgeType) return 0;
+        const edgeDetail = this.getEdgeDetail();
+        if (prevEdgeDetail == edgeDetail) return 0;
 
         if (!this.edgeInfo || !this.edgeInfo.freqTable) throw new Error(`Frequency table of edge ${this.fromNode} -${this.edgeType}-> ${this.toNode} not found`);
         const freqTables = this.edgeInfo.freqTable;
@@ -329,19 +345,17 @@ class Graph {
                 if (alternative > cost[nextNodeId] || alternative > maxTime) continue;
                 const isByWalking = currEdge.isByWalking();
                 if (isInvalidTransferNode) isInvalidTransferNode = isByWalking;
-                const nextPqNode = new PriorityQueueNode(nextNodeId, currEdge.edgeType, currTransferCount, logSequence, cost[nextNodeId], isByWalking);
+                const edgeDetail = currEdge.getEdgeDetail();
+                const nextPqNode = new PriorityQueueNode(nextNodeId, edgeDetail, currTransferCount, logSequence, cost[nextNodeId], isByWalking);
                 pq.enqueue(nextPqNode, alternative);
                 cost[nextNodeId] = alternative;
 
                 logSequence++;
 
-                let edgeInfo = currEdge.edgeType;
-                if (edgeInfo == EdgeType.BUS) edgeInfo = currEdge.edgeInfo.subRouteName;
-
                 prevNodeLog.push({
                     prevNodeId: currNodeId,
                     prevNodeName: currNode.nameCht,
-                    arriveBy: edgeInfo,
+                    arriveBy: edgeDetail,
                     currNodeId: nextNodeId,
                     currNodeName: this.nodes[nextNodeId].nameCht,
                     basicTime: Math.round(basicTime),
