@@ -367,7 +367,7 @@ class Graph {
             }
 
             if (isInvalidTransferNode) {
-                cost[currNodeId] = currPqNode.originCost;
+                cost[currNodeId] = currPqNode.originalCost;
                 prevNodeLog[currPqNode.logSequence] = null;
             } else
                 isVisited[currNodeId] = true;
