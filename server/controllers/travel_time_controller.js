@@ -36,59 +36,6 @@ const initMetroGraph = async () => {
 };
 
 const initBusGraph = async () => {
-    const stopData = await Bus.getAllStops();
-    for (const data of stopData) {
-        graph.addNode(
-            data.stop_id,
-            data.name_cht,
-            data.name_eng,
-            data.lat,
-            data.lon,
-            15
-        );
-    }
-
-    const pathData = await Bus.getAllTravelTime();
-    const freqData = await Bus.getAllFrequencys();
-    const routeLog = {};
-    let validRoutesCount = 0;
-    for (const data of pathData) {
-        const routeId = data.route_id;
-        let routeFreq = freqData[routeId];
-        if (routeFreq) {
-            const isInbound = data.direction === 1;
-            let directionFreq;
-            if (isInbound && routeFreq.inbound) {
-                directionFreq = routeFreq.inbound;
-            } else {
-                directionFreq = routeFreq.outbound;
-            }
-
-            const runTime = data.run_time == 0 ? 60 : data.run_time;
-            if (graph.nodes[data.from_stop_id].edges[data.to_stop_id] != undefined) continue;
-            graph.addEdge(
-                data.from_stop_id,
-                data.to_stop_id,
-                runTime,
-                EdgeType.BUS,
-                {
-                    subRouteId: data.sub_route_id,
-                    subRouteName: data.sub_route_name_cht,
-                    freqTable: directionFreq
-                }
-            );
-            routeLog[data.sub_route_name_cht] = true;
-        } else
-            routeLog[data.sub_route_name_cht] = false;
-    }
-    console.log(routeLog);
-    for (const routeId in routeLog) {
-        if (routeLog[routeId] == true) validRoutesCount++;
-    }
-    console.log(`${validRoutesCount} valid bus routes`);
-};
-
-const initBusGraph2 = async () => {
 
     async function addBusStop(stopId) {
         if (graph.nodes[stopId] == undefined) {
@@ -184,8 +131,8 @@ const getTravelTimeByTransit = async (req, res) => {
 (async () => {
     try {
         await initMetroGraph();
-        await initBusGraph2();
-        // createTransferEdges(500);
+        await initBusGraph();
+        createTransferEdges(400);
         // graph.addStarterNode('AAA', 25.013646922801897, 121.46401804986573, 420, 1, 200);
         // graph.dijkstraAlgorithm('AAA', 420, '08:00', false, false, true, 10);
     } catch (e) {
