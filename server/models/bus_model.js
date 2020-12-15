@@ -86,8 +86,8 @@ const getDistinctRoutes = async (skipNum, limitNum) => {
     return await query('SELECT DISTINCT route_id, route_name_cht, city FROM bus_route LIMIT ?, ?', [skipNum, limitNum]);
 };
 
-const getStop = async (stopId) => {
-    return await query('SELECT * FROM bus_stop WHERE stop_id = ?', stopId);
+const getStopById = async (stopId) => {
+    return await query('SELECT stop_id, name_cht, lat, lon FROM bus_stop WHERE stop_id = ?', stopId);
 };
 
 const getAllStops = async () => {
@@ -99,7 +99,7 @@ const getTravelTimeByFromStation = async (fromStationID) => {
 };
 
 const getTravelTimeBySubRouteId = async (subRouteId) => {
-    return await query('SELECT * FROM bus_travel_time WHERE sub_route_id = ?', subRouteId);
+    return await query('SELECT direction, from_stop_id, to_stop_id, run_time FROM bus_travel_time WHERE sub_route_id = ?', subRouteId);
 };
 
 const getAllTravelTime = async () => {
@@ -114,7 +114,6 @@ const getAllFrequencys = async () => {
     const frequencyData = await query('SELECT * FROM bus_frequency');
     const frequencys = {};
     for (const f of frequencyData) {
-        const routeId = f.route_id;
         const subRouteId = f.sub_route_id;
         const direction = f.direction;
         const serviceDay = weekdayToSting(f.service_day);
@@ -122,26 +121,26 @@ const getAllFrequencys = async () => {
         const startTime = f.start_time;
         const endTime = f.end_time;
         const expectedTime = f.expected_time_secs;
-        if (!frequencys[routeId]) {
+        if (!frequencys[subRouteId]) {
             // frequencys[routeId] = {
             //     routeId,
             //     subRouteId,
             //     routeName
             // };
-            frequencys[routeId] = {};
+            frequencys[subRouteId] = { routeName };
         }
         if (direction == 0) {
-            if (!frequencys[routeId].outbound)
-                frequencys[routeId].outbound = {};
-            if (!frequencys[routeId].outbound[serviceDay])
-                frequencys[routeId].outbound[serviceDay] = [];
-            frequencys[routeId].outbound[serviceDay].push({ startTime, endTime, expectedTime });
+            if (!frequencys[subRouteId].outbound)
+                frequencys[subRouteId].outbound = {};
+            if (!frequencys[subRouteId].outbound[serviceDay])
+                frequencys[subRouteId].outbound[serviceDay] = [];
+            frequencys[subRouteId].outbound[serviceDay].push({ startTime, endTime, expectedTime });
         } else {
-            if (!frequencys[routeId].inbound)
-                frequencys[routeId].inbound = {};
-            if (!frequencys[routeId].inbound[serviceDay])
-                frequencys[routeId].inbound[serviceDay] = [];
-            frequencys[routeId].inbound[serviceDay].push({ startTime, endTime, expectedTime });
+            if (!frequencys[subRouteId].inbound)
+                frequencys[subRouteId].inbound = {};
+            if (!frequencys[subRouteId].inbound[serviceDay])
+                frequencys[subRouteId].inbound[serviceDay] = [];
+            frequencys[subRouteId].inbound[serviceDay].push({ startTime, endTime, expectedTime });
         }
     }
     return frequencys;
@@ -170,7 +169,7 @@ module.exports = {
     getRouteBySubRouteId,
     getSubRoutesByRouteId,
     getDistinctRoutes,
-    getStop,
+    getStopById,
     getAllStops,
     getTravelTimeByFromStation,
     getTravelTimeBySubRouteId,

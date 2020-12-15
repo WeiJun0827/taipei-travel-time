@@ -5,6 +5,7 @@ const graph = new Graph();
 const walkingSpeed = 1; // in m/s
 
 const initMetroGraph = async () => {
+    console.time('Metro data');
     const stationData = await Metro.getAllStations();
     for (const data of stationData) {
         graph.addNode(
@@ -31,8 +32,8 @@ const initMetroGraph = async () => {
                 freqTable: freqTable
             }
         );
-
     }
+    console.timeEnd('Metro data');
 };
 
 const initBusGraph = async () => {
@@ -51,6 +52,7 @@ const initBusGraph = async () => {
     const pathData = await Bus.getAllTravelTime();
     const freqData = await Bus.getAllFrequencys();
     const routeLog = {};
+    let validRoutesCount = 0;
     for (const data of pathData) {
         const routeId = data.route_id;
         let routeFreq = freqData[routeId];
@@ -81,9 +83,55 @@ const initBusGraph = async () => {
             routeLog[data.sub_route_name_cht] = false;
     }
     console.log(routeLog);
+    for (const routeId in routeLog) {
+        if (routeLog[routeId] == true) validRoutesCount++;
+    }
+    console.log(`${validRoutesCount} valid bus routes`);
+};
+
+const initBusGraph2 = async () => {
+
+    async function addBusStop(stopId) {
+        if (graph.nodes[stopId] == undefined) {
+            const stop = (await Bus.getStopById(stopId))[0];
+            graph.addNode(stop.stop_id, stop.name_cht, stop.lat, stop.lon, 15);
+        }
+    }
+
+    console.time('Bus data');
+    const freqData = await Bus.getAllFrequencys();
+
+    for (const subRouteId in freqData) {
+        const travelTimeData = await Bus.getTravelTimeBySubRouteId(subRouteId);
+        const freq = freqData[subRouteId];
+        for (const tt of travelTimeData) {
+            const isInbound = tt.direction === 1;
+            let directionFreq;
+            if (isInbound && freq.inBound) {
+                directionFreq = freq.inbound;
+            } else {
+                directionFreq = freq.outbound;
+            }
+
+            const runTime = tt.run_time == 0 ? 60 : tt.run_time;
+            await addBusStop(tt.from_stop_id);
+            await addBusStop(tt.to_stop_id);
+
+            if (graph.nodes[tt.from_stop_id].edges[tt.to_stop_id] != undefined) continue;
+            graph.addEdge(tt.from_stop_id, tt.to_stop_id, runTime, EdgeType.BUS,
+                {
+                    subRouteId: subRouteId,
+                    subRouteName: freq.routeName,
+                    freqTable: directionFreq
+                });
+        }
+    }
+
+    console.timeEnd('Bus data');
 };
 
 const createTransferEdges = (maxTransferDist) => {
+    console.time('Transfer');
     for (const nodeIdA in graph.nodes) {
         for (const nodeIdB in graph.nodes) {
             if (nodeIdA != nodeIdB) {
@@ -96,6 +144,7 @@ const createTransferEdges = (maxTransferDist) => {
             }
         }
     }
+    console.timeEnd('Transfer');
 };
 
 const getTravelTimeByTransit = async (req, res) => {
@@ -134,7 +183,7 @@ const getTravelTimeByTransit = async (req, res) => {
 (async () => {
     try {
         await initMetroGraph();
-        await initBusGraph();
+        await initBusGraph2();
         createTransferEdges(500);
         // graph.addStarterNode('AAA', 25.013646922801897, 121.46401804986573, 420, 1, 200);
         // graph.dijkstraAlgorithm('AAA', 420, '08:00', false, false, true, 10);

@@ -314,6 +314,7 @@ const importBusStopsAndTravelTime = async function (city, routeId) {
 
 // follows MySQL WEEKDAY() standard
 const convertNumOfServiceDay = function (serviceDay) {
+    if (!serviceDay) throw new Error('Service day undefined');
     if (serviceDay.Monday === 1) return 0;
     if (serviceDay.Tuesday === 1) return 1;
     if (serviceDay.Wednesday === 1) return 2;
@@ -334,21 +335,24 @@ const importBusTimetableAndFrequency = async function (city, routeId) {
         const frequencys = subRoute.Frequencys;
         if (frequencys) {
             for (const f of frequencys) {
-                const frequencyInfo = {
-                    route_id: routeId,
-                    sub_route_id: subRouteId,
-                    direction: direction,
-                    sub_route_name_cht: subRouteNameCht,
-                    service_day: convertNumOfServiceDay(f.ServiceDay),
-                    start_time: f.StartTime,
-                    end_time: f.EndTime,
-                    min_interval_mins: f.MinHeadwayMins,
-                    max_interval_mins: f.MaxHeadwayMins,
-                    expected_time_secs: (f.MinHeadwayMins + f.MaxHeadwayMins) * 60 / 2
-                };
-                const id = await Bus.createFrequency(frequencyInfo);
+                if (f.ServiceDay) {
+
+                    const frequencyInfo = {
+                        route_id: routeId,
+                        sub_route_id: subRouteId,
+                        direction: direction,
+                        sub_route_name_cht: subRouteNameCht,
+                        service_day: convertNumOfServiceDay(f.ServiceDay),
+                        start_time: f.StartTime,
+                        end_time: f.EndTime,
+                        min_interval_mins: f.MinHeadwayMins,
+                        max_interval_mins: f.MaxHeadwayMins,
+                        expected_time_secs: (f.MinHeadwayMins + f.MaxHeadwayMins) * 60 / 2
+                    };
+                    const id = await Bus.createFrequency(frequencyInfo);
+                }
             }
-            console.log('one');
+            console.log(subRouteNameCht +' freq added');
         }
 
         // Skip buses with timetables for ver.1
@@ -417,10 +421,10 @@ const batchImportBusData = async function (skipNum, limitNum) {
         const routeName = route.route_name_cht;
         const routeId = route.route_id;
         const city = route.city;
-        // await importBusStopsAndTravelTime(city, routeId);
+        await importBusStopsAndTravelTime(city, routeId);
         await importBusTimetableAndFrequency(city, routeId);
         // await logBusRunTime(city, routeId);
-        console.log(i++);
+        console.log(++i, routeName);
     }
 };
 
@@ -435,5 +439,5 @@ const batchImportBusData = async function (skipNum, limitNum) {
 // importBusData('TPE16111');
 // updateBusRunTimeBySubRouteIdV2('TPE157462');
 // importBusRoutes(cities[1]);
-// batchImportBusData(20, 10);
-Bus.getAllFrequencys();
+batchImportBusData(270, 1000);
+// Bus.getAllFrequencys();

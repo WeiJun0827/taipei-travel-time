@@ -91,10 +91,9 @@ class PriorityQueue {
 }
 
 class GraphNode {
-    constructor(id, nameCht, nameEng, lat, lon, stopTime) {
+    constructor(id, nameCht, lat, lon, stopTime) {
         this.id = id;
         this.nameCht = nameCht;
-        this.nameEng = nameEng;
         this.lat = lat;
         this.lon = lon;
         this.stopTime = stopTime;
@@ -226,9 +225,9 @@ class Graph {
         this.nodes = {};
     }
 
-    addNode(id, nameCht, nameEng, lat, lon, stopTime) {
+    addNode(id, nameCht, lat, lon, stopTime) {
         if (this.nodes[id] != undefined) throw new Error(`Node ${id} already existed`);
-        this.nodes[id] = new GraphNode(id, nameCht, nameEng, lat, lon, stopTime);
+        this.nodes[id] = new GraphNode(id, nameCht, lat, lon, stopTime);
     }
 
     addEdge(fromNodeId, toNodeId, runTime, edgeType, edgeInfo) {
