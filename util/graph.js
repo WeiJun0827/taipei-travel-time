@@ -249,7 +249,7 @@ class Graph {
      */
     addStarterNode(starterId, lat, lon, time, speed, maxWalkDist) {
         const availableDist = Math.min(time * speed, maxWalkDist); // metre
-        this.addNode(starterId, starterId, starterId, lat, lon, 0);
+        this.addNode(starterId, starterId, lat, lon, 0);
         for (const nodeId in this.nodes) {
             if (nodeId != starterId) {
                 const node = this.nodes[nodeId];
