@@ -15,18 +15,25 @@ app.use(bodyparser.urlencoded({ extended: true }));
 app.use('/api/' + API_VERSION,
     [
         require('./server/routes/travel_time_route'),
+        require('./server/routes/user_route'),
     ]
 );
 
 // Page not found
-app.use(function (req, res) {
-    res.status(404).sendFile(__dirname + '/public/404.html');
+app.use(function (req, res, next) {
+    const err = new Error('Page Not Found');
+    err.status = 404;
+    next(err);
 });
 
 // Error handling
 app.use(function (err, req, res) {
-    console.log(err);
-    res.status(500).send('Internal Server Error');
+    res.status(err.status || 500);
+    res.json({
+        error: {
+            message: err.message
+        }
+    });
 });
 
 app.listen(port, () => { console.log(`Listening on port: ${port}`); });

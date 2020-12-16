@@ -1,6 +1,7 @@
 require('dotenv').config();
 const validator = require('validator');
 const User = require('../models/user_model');
+const ProviderType = User.ProviderType;
 const expire = process.env.TOKEN_EXPIRE; // 30 days by seconds
 
 const signUp = async (req, res) => {
@@ -82,14 +83,14 @@ const signIn = async (req, res) => {
 
     let result;
     switch (data.provider) {
-        case 'native':
+        case ProviderType.NATIVE:
             result = await nativeSignIn(data.email, data.password);
             break;
-        case 'facebook':
+        case ProviderType.FACEBOOK:
             result = await facebookSignIn(data.access_token);
             break;
         default:
-            result = { error: 'Wrong Request' };
+            result = { error: 'Provider Undefined' };
     }
 
     if (result.error) {
@@ -119,17 +120,6 @@ const signIn = async (req, res) => {
     });
 };
 
-const getUserProfile = async (req, res) => {
-    const accessToken = req.accessToken;
-    const profile = await User.getUserProfile(accessToken);
-    if (profile.error) {
-        res.status(403).send({ error: profile.error });
-        return;
-    } else {
-        res.status(200).send(profile);
-    }
-};
-
 const hasToken = async (req, res, next) => {
     const accessToken = req.get('Authorization');
     if (accessToken) {
@@ -141,24 +131,26 @@ const hasToken = async (req, res, next) => {
     }
 };
 
-const getMyFavoritesList = async (req, res) => {
-
-    let accessToken = req.get('Authorization');
-
-    if (accessToken) {
-        accessToken = accessToken.replace('Bearer ', '');
-    } else {
-        res.status(400).send({ error: 'Wrong Request: authorization is required.' });
+const getUserProfile = async (req, res) => {
+    const accessToken = req.accessToken;
+    const profile = await User.getUserProfile(accessToken);
+    if (profile.error) {
+        res.status(403).send({ error: profile.error });
         return;
+    } else {
+        res.status(200).send(profile);
     }
-    const myList = (await User.getMyFavoritesList(accessToken));
+};
+
+const getMySavedPlacesList = async (req, res) => {
+    const myList = (await User.getMySavedPlacesList(req.accessToken));
     res.status(200).send({ data: myList });
 };
 
 module.exports = {
     signUp,
     signIn,
-    getUserProfile,
     hasToken,
-    getMyFavoritesList
+    getUserProfile,
+    getMySavedPlacesList
 };

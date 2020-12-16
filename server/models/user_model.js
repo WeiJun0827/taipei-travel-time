@@ -2,10 +2,9 @@ require('dotenv').config();
 const axios = require('axios');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
-const got = require('got');
 const { query, transaction, commit, rollback } = require('./mysqlcon');
 const salt = parseInt(process.env.BCRYPT_SALT);
-const providerType = {
+const ProviderType = {
     NATIVE: 'native',
     FACEBOOK: 'facebook',
     GOOGLE: 'google'
@@ -26,7 +25,7 @@ const signUp = async (name, email, password, expire) => {
         sha.update(email + password + loginAt);
         const accessToken = sha.digest('hex');
         const user = {
-            provider: providerType.NATIVE,
+            provider: ProviderType.NATIVE,
             email: email,
             password: bcrypt.hashSync(password, salt),
             name: name,
@@ -82,7 +81,7 @@ const facebookSignIn = async (id, name, email, accessToken, expire) => {
 
         const loginAt = new Date();
         let user = {
-            provider: providerType.FACEBOOK,
+            provider: ProviderType.FACEBOOK,
             email: email,
             name: name,
             access_token: accessToken,
@@ -90,7 +89,7 @@ const facebookSignIn = async (id, name, email, accessToken, expire) => {
             login_at: loginAt
         };
 
-        const users = await query('SELECT id FROM user WHERE email = ? AND provider = ? FOR UPDATE', [providerType.FACEBOOK, email]);
+        const users = await query('SELECT id FROM user WHERE email = ? AND provider = ? FOR UPDATE', [ProviderType.FACEBOOK, email]);
         let userId;
         if (users.length === 0) { // Insert new user
             const queryStr = 'insert into user set ?';
@@ -119,7 +118,6 @@ const getUserProfile = async (accessToken) => {
     } else {
         return {
             data: {
-                id: results[0].id,
                 provider: results[0].provider,
                 name: results[0].name,
                 email: results[0].email
@@ -130,7 +128,7 @@ const getUserProfile = async (accessToken) => {
 
 const getFacebookProfile = async function (accessToken) {
     try {
-        let res = await got('https://graph.facebook.com/me?fields=id,name,email&access_token=' + accessToken, {
+        let res = await axios('https://graph.facebook.com/me?fields=id,name,email&access_token=' + accessToken, {
             responseType: 'json'
         });
         return res.body;
@@ -141,7 +139,7 @@ const getFacebookProfile = async function (accessToken) {
 };
 
 
-const getMyPlacesList = async (accessToken) => {
+const getMySavedPlacesList = async (accessToken) => {
     //extract user id
     const userData = await query('SELECT * FROM user WHERE access_token = ?', accessToken);
     let userId = userData[0].id;
@@ -159,5 +157,6 @@ module.exports = {
     facebookSignIn,
     getUserProfile,
     getFacebookProfile,
-    getMyPlacesList
+    getMySavedPlacesList,
+    ProviderType
 };
