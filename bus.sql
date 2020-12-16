@@ -71,16 +71,16 @@ CREATE TABLE `bus_frequency` (
   `max_interval_mins` int(10) unsigned NOT NULL,
   `expected_time_secs` int(10) unsigned NOT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_index` (`sub_route_id`,`direction`,`service_day`,`start_time`,`end_time`),
   KEY `bus_frequency_ibfk_1` (`sub_route_id`,`direction`),
   CONSTRAINT `bus_frequency_ibfk_1` FOREIGN KEY (`sub_route_id`, `direction`) REFERENCES `bus_route` (`sub_route_id`, `direction`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=11250 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
-
--- SET SQL_SAFE_UPDATES = 0;
--- UPDATE bus_travel_time t2,
--- (SELECT * FROM 
--- (SELECT from_stop_id, to_stop_id, run_time, COUNT(*) AS count FROM bus_travel_time_log GROUP BY to_stop_id, run_time HAVING run_time > 0 ORDER BY from_stop_id, count DESC) t0 
--- GROUP BY from_stop_id) t1
--- SET t2.run_time = t1.run_time
--- WHERE t1.from_stop_id = t2.from_stop_id AND t1.to_stop_id = t2.to_stop_id;
--- SET SQL_SAFE_UPDATES = 1;
+SET SQL_SAFE_UPDATES = 0;
+UPDATE bus_travel_time t2,
+(SELECT * FROM 
+(SELECT from_stop_id, to_stop_id, run_time, COUNT(*) AS count FROM bus_travel_time_log GROUP BY to_stop_id, run_time HAVING run_time > 0 ORDER BY from_stop_id, count DESC) t0 
+GROUP BY from_stop_id) t1
+SET t2.run_time = t1.run_time
+WHERE t1.from_stop_id = t2.from_stop_id AND t1.to_stop_id = t2.to_stop_id;
+SET SQL_SAFE_UPDATES = 1;

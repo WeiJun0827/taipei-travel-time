@@ -78,6 +78,10 @@ const getRouteBySubRouteId = async (subRouteId) => {
     return await query('SELECT * FROM bus_route WHERE sub_route_id = ?', subRouteId);
 };
 
+const getRoutesWithFrequency = async ()=>{
+    return await query('SELECT DISTINCT t1.route_id, t2.city FROM travel_time.bus_frequency AS t1 INNER JOIN travel_time.bus_route AS t2 ON t1.route_id = t2.route_id');
+};
+
 const getSubRoutesByRouteId = async (routeId) => {
     return await query('SELECT * FROM bus_route WHERE route_id = ?', routeId);
 };
@@ -167,6 +171,7 @@ module.exports = {
     createTimetables,
     createFrequency,
     getRouteBySubRouteId,
+    getRoutesWithFrequency,
     getSubRoutesByRouteId,
     getDistinctRoutes,
     getStopById,

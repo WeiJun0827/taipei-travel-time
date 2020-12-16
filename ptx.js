@@ -352,7 +352,7 @@ const importBusTimetableAndFrequency = async function (city, routeId) {
                     const id = await Bus.createFrequency(frequencyInfo);
                 }
             }
-            console.log(subRouteNameCht +' freq added');
+            console.log(subRouteNameCht + ' freq added');
         }
 
         // Skip buses with timetables for ver.1
@@ -387,6 +387,7 @@ const logBusRunTime = async function (city, routeId) {
     for (const subRoute of routes) {
         const subRouteId = subRoute.sub_route_id;
         const routeStopSeq = await Bus.getTravelTimeBySubRouteId(subRouteId);
+        if(routeStopSeq.length == 0) console.error(`Find 0 travel time log of ${routes[0].route_name_cht}`);
 
         for (const stopSeq of routeStopSeq) {
             const direction = stopSeq.direction;
@@ -394,6 +395,7 @@ const logBusRunTime = async function (city, routeId) {
             const toStopId = stopSeq.to_stop_id;
             const fromStopInfo = realTimeStopData.find(x => x.StopUID == fromStopId);
             const toStopInfo = realTimeStopData.find(x => x.StopUID == toStopId);
+            if (fromStopInfo == undefined || toStopInfo == undefined) continue;
             const fromEstiTime = fromStopInfo.EstimateTime;
             const toEstiTime = toStopInfo.EstimateTime;
             if (fromEstiTime == undefined || toEstiTime == undefined) continue;
@@ -410,7 +412,7 @@ const logBusRunTime = async function (city, routeId) {
             Bus.createTravelTimeLog(travelTimeLog);
         }
     }
-    console.log(`================ Update ${updateCount} rows ================`);
+    console.log(`Update ${updateCount} rows for ${routes[0].route_name_cht}`);
 };
 
 
@@ -423,8 +425,14 @@ const batchImportBusData = async function (skipNum, limitNum) {
         const city = route.city;
         await importBusStopsAndTravelTime(city, routeId);
         await importBusTimetableAndFrequency(city, routeId);
-        // await logBusRunTime(city, routeId);
         console.log(++i, routeName);
+    }
+};
+
+const batchImportBusRunTimeLog = async function () {
+    const routeIds = await Bus.getRoutesWithFrequency();
+    for (const { city, route_id } of routeIds) {
+        await logBusRunTime(city, route_id);
     }
 };
 
@@ -434,10 +442,11 @@ const batchImportBusData = async function (skipNum, limitNum) {
 // importMetroSchedule();
 // importBusData();
 // updateBusRunTimeBySubRouteIdV2('TPE16111');
-// setInterval(() => updateBusRunTimeBySubRouteIdV2('TPE16111'), 20000);
 // importBusData('TPE16111');
 // importBusData('TPE16111');
 // updateBusRunTimeBySubRouteIdV2('TPE157462');
 // importBusRoutes(cities[1]);
-batchImportBusData(270, 1000);
+// batchImportBusData(17, 12);
 // Bus.getAllFrequencys();
+batchImportBusRunTimeLog();
+setInterval(() => batchImportBusRunTimeLog(), 300000);
