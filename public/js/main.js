@@ -3,8 +3,10 @@
 let map;
 let marker;
 let polygon;
+const placeMarkers = [];
 
 document.getElementById('my-position-btn').addEventListener('click', goToUsersLocation);
+document.getElementById('search-btn').addEventListener('click', textSearchPlaces);
 document.getElementById('travel-time').addEventListener('change', drawTransitArea);
 document.getElementById('departure-time').addEventListener('change', drawTransitArea);
 document.getElementById('is-holiday').addEventListener('change', drawTransitArea);
@@ -20,7 +22,7 @@ document.getElementById('max-transfer-times').addEventListener('change', () => {
     if (document.getElementById('apply-max-transfer-times').checked)
         drawTransitArea();
 });
-// document.getElementById('search-btn').addEventListener('click', drawTransitArea);
+
 
 function initMap() {
     const styles = [
@@ -70,7 +72,8 @@ function initMarker(position) {
         position: position,
         title: '旅程起點',
         draggable: true,
-        icon: icon
+        // icon: icon,
+        animation: google.maps.Animation.DROP
     });
     google.maps.event.addListener(marker, 'dragend', function () {
         drawTransitArea();
@@ -103,7 +106,7 @@ function searchBoxPlaces(searchBox) {
     if (places.length == 0) {
         window.alert('沒有符合的搜尋結果');
     } else {
-        moveMarkerForPlace(places[0]);
+        // moveMarkerForPlace(places[0]);
     }
 }
 
@@ -127,7 +130,91 @@ function textSearchPlaces() {
         bounds: bounds
     }, function (results, status) {
         if (status === google.maps.places.PlacesServiceStatus.OK) {
-            moveMarkerForPlace(results[0]);
+            // moveMarkerForPlace(results[0]);
+            resetMarkers(placeMarkers);
+            createMarkersForPlaces(results);
+        }
+    });
+}
+
+function resetMarkers(markers) {
+    markers.forEach(m => m.setMap(null));
+}
+
+function createMarkersForPlaces(places) {
+    const bounds = new google.maps.LatLngBounds();
+    for (const place of places) {
+        const icon = {
+            url: place.icon,
+            size: new google.maps.Size(35, 35),
+            origin: new google.maps.Point(0, 0),
+            anchor: new google.maps.Point(15, 34),
+            scaledSize: new google.maps.Size(25, 25)
+        };
+        const marker = new google.maps.Marker({
+            map: map,
+            icon: icon,
+            title: place.name,
+            position: place.geometry.location,
+            id: place.place_id
+        });
+        var placeInfoWindow = new google.maps.InfoWindow({maxWidth: 240});
+        marker.addListener('click', function () {
+            if (placeInfoWindow.marker != this) {
+                getPlacesDetails(this, placeInfoWindow);
+            }
+        });
+        placeMarkers.push(marker);
+        if (place.geometry.viewport) {
+            bounds.union(place.geometry.viewport);
+        } else {
+            bounds.extend(place.geometry.location);
+        }
+    }
+    map.fitBounds(bounds);
+}
+
+function getPlacesDetails(marker, infowindow) {
+    const service = new google.maps.places.PlacesService(map);
+    service.getDetails({
+        placeId: marker.id
+    }, function (place, status) {
+        if (status === google.maps.places.PlacesServiceStatus.OK) {
+            // Set the marker property on this infowindow so it isn't created again.
+            infowindow.marker = marker;
+            let innerHTML = '<div>';
+            if (place.name) {
+                innerHTML += '<strong>' + place.name + '</strong>';
+            }
+            if (place.formatted_address) {
+                innerHTML += '<br>' + place.formatted_address;
+            }
+            if (place.formatted_phone_number) {
+                innerHTML += '<br>' + place.formatted_phone_number;
+            }
+            if (place.website) {
+                innerHTML += '<br><a href="' + place.website + '">' + place.website + '<a>';
+            }
+            if (place.opening_hours) {
+                innerHTML += '<br><br><strong>營業時間</strong><br>' +
+                    place.opening_hours.weekday_text[0] + '<br>' +
+                    place.opening_hours.weekday_text[1] + '<br>' +
+                    place.opening_hours.weekday_text[2] + '<br>' +
+                    place.opening_hours.weekday_text[3] + '<br>' +
+                    place.opening_hours.weekday_text[4] + '<br>' +
+                    place.opening_hours.weekday_text[5] + '<br>' +
+                    place.opening_hours.weekday_text[6];
+            }
+            if (place.photos) {
+                innerHTML += '<br><br><img src="' + place.photos[0].getUrl(
+                    { maxHeight: 100, maxWidth: 200 }) + '">';
+            }
+            innerHTML += '</div>';
+            infowindow.setContent(innerHTML);
+            infowindow.open(map, marker);
+            infowindow.addListener('closeclick', function () {
+                infowindow.marker = null;
+            });
         }
     });
 }
