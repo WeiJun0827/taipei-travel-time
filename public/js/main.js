@@ -149,7 +149,7 @@ function drawTransitArea() {
     const maxWalkDist = document.getElementById('apply-max-walk-dist').checked ? document.getElementById('max-walk-dist').value : Infinity;
     const maxTransferTimes = document.getElementById('apply-max-transfer-times').checked ? document.getElementById('max-transfer-times').value : Infinity;
     const params = new URLSearchParams({
-        starterId: 'ABC',
+        starterId: Math.random().toString(36).substr(2, 3) + Date.now().toString(36).substr(4, 3),
         lat: marker.getPosition().lat(),
         lon: marker.getPosition().lng(),
         maxTravelTime: document.getElementById('travel-time').value,

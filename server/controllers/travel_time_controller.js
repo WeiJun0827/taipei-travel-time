@@ -106,6 +106,8 @@ const getTravelTimeByTransit = async (req, res) => {
     const takeBus = req.query.takeBus === 'true';
     const maxWalkDist = Number(req.query.maxWalkDist);
     const maxTransferTimes = Number(req.query.maxTransferTimes);
+    if (isNaN(lat) || isNaN(lon) || isNaN(maxTravelTime) || isNaN(maxWalkDist) || isNaN(maxTransferTimes) || maxTravelTime > 7200 || maxWalkDist > 3000)
+        return res.status(400).send('Invalid parameters');
     console.time('getTravelTime');
     graph.addStarterNode(starterId, lat, lon, maxTravelTime, walkingSpeed, maxWalkDist);
     const cost = graph.dijkstraAlgorithm(starterId, maxTravelTime, departureTime, isHoliday, takeMetro, takeBus, maxTransferTimes);
@@ -125,13 +127,13 @@ const getTravelTimeByTransit = async (req, res) => {
     }
     graph.deleteStarterNode(starterId);
     console.timeEnd('getTravelTime');
-    res.status(200).json({ data });
+    return res.status(200).json({ data });
 };
 
 (async () => {
     try {
         await initMetroGraph();
-        await initBusGraph();
+        // await initBusGraph();
         createTransferEdges(400);
         // graph.addStarterNode('AAA', 25.013646922801897, 121.46401804986573, 420, 1, 200);
         // graph.dijkstraAlgorithm('AAA', 420, '08:00', false, false, true, 10);
