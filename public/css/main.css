@@ -11,7 +11,7 @@ body {
   position: relative;
 }
 
-input {
+#options-box input {
   font-size: 16px;
 }
 
@@ -22,7 +22,7 @@ input {
   right: 0px;
 }
 
-#options-box {
+#side-box {
   position: absolute;
   background: #fff;
   z-index: 99;
@@ -30,10 +30,12 @@ input {
   border: 1px solid #999;
   border-radius: 5px;
   margin: 30px;
-  /* height: 88px; */
-  line-height: 35px;
   text-align: left;
   width: 340px;
+}
+
+#options-box {
+  line-height: 35px;
 }
 
 #search-place {
@@ -54,4 +56,14 @@ input {
 
 #max-transfer-times {
   width: 30px;
+}
+
+#directions-panel {
+  font-size: 14px;
+  max-height: 400px;
+  overflow: auto;
+}
+
+.adp-warnbox {
+  display: none;
 }

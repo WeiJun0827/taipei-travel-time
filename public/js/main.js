@@ -1,9 +1,11 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
 let map;
-let marker;
+let mainMarker;
 let polygon;
 const placeMarkers = [];
+let placeInfoWindow;
+let directionsRenderer;
 
 document.getElementById('my-position-btn').addEventListener('click', goToUsersLocation);
 document.getElementById('search-btn').addEventListener('click', textSearchPlaces);
@@ -57,6 +59,8 @@ function initMap() {
     initMarker(mapOptions.center);
     initPolygon();
     initSearchBox();
+    initDirectionsRenderer();
+    initInfoWindow();
     drawTransitArea();
 }
 
@@ -67,7 +71,7 @@ function initMarker(position) {
         strokeColor: '#B3672B',
         strokeWeight: 5,
     };
-    marker = new google.maps.Marker({
+    mainMarker = new google.maps.Marker({
         map: map,
         position: position,
         title: '旅程起點',
@@ -75,7 +79,7 @@ function initMarker(position) {
         // icon: icon,
         animation: google.maps.Animation.DROP
     });
-    google.maps.event.addListener(marker, 'dragend', function () {
+    google.maps.event.addListener(mainMarker, 'dragend', function () {
         drawTransitArea();
     });
 }
@@ -83,13 +87,13 @@ function initMarker(position) {
 function initPolygon() {
     // https://coolors.co/c4e5cd-9cc0f9-f1f3f4-fde293-ff8785
     polygon = new google.maps.Polygon({
+        map: map,
         strokeWeight: 0,
         fillColor: '#FAA916', // 柳橙蘇打，目前第一名
         // fillColor: '#FF8C00', // 原色，被雪莉嫌像大便
         // fillColor: '#FFAAA0', // 草莓蘇打
         fillOpacity: 0.35
     });
-    polygon.setMap(map);
 }
 
 function initSearchBox() {
@@ -101,18 +105,34 @@ function initSearchBox() {
     });
 }
 
+function initDirectionsRenderer() {
+    directionsRenderer = new google.maps.DirectionsRenderer({
+        map: map,
+        draggable: true,
+        panel: document.getElementById('directions-panel')
+        // polylineOptions: {
+        //     strokeColor: 'green'
+        // }
+    });
+}
+
+function initInfoWindow() {
+    placeInfoWindow = new google.maps.InfoWindow({ maxWidth: 220 });
+}
+
 function searchBoxPlaces(searchBox) {
     const places = searchBox.getPlaces();
     if (places.length == 0) {
         window.alert('沒有符合的搜尋結果');
     } else {
         // moveMarkerForPlace(places[0]);
+        textSearchPlaces();
     }
 }
 
 function moveMarkerForPlace(place) {
     const bounds = new google.maps.LatLngBounds();
-    marker.setPosition(place.geometry.location);
+    mainMarker.setPosition(place.geometry.location);
     if (place.geometry.viewport) {
         bounds.union(place.geometry.viewport);
     } else {
@@ -158,7 +178,6 @@ function createMarkersForPlaces(places) {
             position: place.geometry.location,
             id: place.place_id
         });
-        var placeInfoWindow = new google.maps.InfoWindow({maxWidth: 240});
         marker.addListener('click', function () {
             if (placeInfoWindow.marker != this) {
                 getPlacesDetails(this, placeInfoWindow);
@@ -174,14 +193,14 @@ function createMarkersForPlaces(places) {
     map.fitBounds(bounds);
 }
 
-function getPlacesDetails(marker, infowindow) {
+function getPlacesDetails(marker, placeInfoWindow) {
     const service = new google.maps.places.PlacesService(map);
     service.getDetails({
         placeId: marker.id
     }, function (place, status) {
         if (status === google.maps.places.PlacesServiceStatus.OK) {
             // Set the marker property on this infowindow so it isn't created again.
-            infowindow.marker = marker;
+            placeInfoWindow.marker = marker;
             let innerHTML = '<div>';
             if (place.name) {
                 innerHTML += '<strong>' + place.name + '</strong>';
@@ -193,30 +212,64 @@ function getPlacesDetails(marker, infowindow) {
                 innerHTML += '<br>' + place.formatted_phone_number;
             }
             if (place.website) {
-                innerHTML += '<br><a href="' + place.website + '">' + place.website + '<a>';
+                innerHTML += '<br><a href="' + place.website + '">' + decodeURI(place.website) + '<a>';
             }
-            if (place.opening_hours) {
-                innerHTML += '<br><br><strong>營業時間</strong><br>' +
-                    place.opening_hours.weekday_text[0] + '<br>' +
-                    place.opening_hours.weekday_text[1] + '<br>' +
-                    place.opening_hours.weekday_text[2] + '<br>' +
-                    place.opening_hours.weekday_text[3] + '<br>' +
-                    place.opening_hours.weekday_text[4] + '<br>' +
-                    place.opening_hours.weekday_text[5] + '<br>' +
-                    place.opening_hours.weekday_text[6];
-            }
+            // if (place.opening_hours) {
+            //     innerHTML += '<br><br><strong>營業時間</strong><br>' +
+            //         place.opening_hours.weekday_text[0] + '<br>' +
+            //         place.opening_hours.weekday_text[1] + '<br>' +
+            //         place.opening_hours.weekday_text[2] + '<br>' +
+            //         place.opening_hours.weekday_text[3] + '<br>' +
+            //         place.opening_hours.weekday_text[4] + '<br>' +
+            //         place.opening_hours.weekday_text[5] + '<br>' +
+            //         place.opening_hours.weekday_text[6];
+            // }
             if (place.photos) {
                 innerHTML += '<br><br><img src="' + place.photos[0].getUrl(
                     { maxHeight: 100, maxWidth: 200 }) + '">';
             }
-            innerHTML += '</div>';
-            infowindow.setContent(innerHTML);
-            infowindow.open(map, marker);
-            infowindow.addListener('closeclick', function () {
-                infowindow.marker = null;
+            innerHTML += '</div><br>';
+            innerHTML += '<input type="button" value="路徑" onclick=displayDirections()>';
+            innerHTML += '<input type="button" value="儲存" onclick=savePlace()>';
+            placeInfoWindow.setContent(innerHTML);
+            placeInfoWindow.open(map, marker);
+            placeInfoWindow.addListener('closeclick', function () {
+                placeInfoWindow.marker = null;
             });
         }
     });
+}
+
+function displayDirections() {
+    resetMarkers(placeMarkers);
+    const modes = [];
+    if (document.getElementById('take-metro').checked) modes.push('SUBWAY');
+    if (document.getElementById('take-bus').checked) modes.push('BUS');
+    const directionsService = new google.maps.DirectionsService;
+    const origin = new google.maps.LatLng(mainMarker.getPosition().lat(), mainMarker.getPosition().lng());
+    const destination = new google.maps.LatLng(placeInfoWindow.marker.getPosition().lat(), placeInfoWindow.marker.getPosition().lng());
+    const departureTime = new Date(document.getElementById('departure-time').value);
+    directionsService.route({
+        origin: origin,
+        destination: destination,
+        travelMode: google.maps.TravelMode.TRANSIT,
+        transitOptions: {
+            departureTime: departureTime,
+            modes: modes,
+            routingPreference: 'FEWER_TRANSFERS'
+        },
+    }, function (response, status) {
+        if (status === google.maps.DirectionsStatus.OK) {
+            directionsRenderer.setDirections(response);
+        } else {
+            window.alert('Directions request failed due to ' + status);
+        }
+    });
+}
+
+function savePlace() {
+    const place = new google.maps.LatLng(placeInfoWindow.marker.getPosition().lat(), placeInfoWindow.marker.getPosition().lng());
+    fetch('/api/1.0/')
 }
 
 function goToUsersLocation() {
@@ -225,7 +278,7 @@ function goToUsersLocation() {
             const currentPosition = new google.maps.LatLng(
                 position.coords.latitude,
                 position.coords.longitude);
-            marker.setPosition(currentPosition);
+            mainMarker.setPosition(currentPosition);
             map.setCenter(currentPosition);
             drawTransitArea();
         });
@@ -237,8 +290,8 @@ function drawTransitArea() {
     const maxTransferTimes = document.getElementById('apply-max-transfer-times').checked ? document.getElementById('max-transfer-times').value : Infinity;
     const params = new URLSearchParams({
         starterId: Math.random().toString(36).substr(2, 3) + Date.now().toString(36).substr(4, 3),
-        lat: marker.getPosition().lat(),
-        lon: marker.getPosition().lng(),
+        lat: mainMarker.getPosition().lat(),
+        lon: mainMarker.getPosition().lng(),
         maxTravelTime: document.getElementById('travel-time').value,
         departureTime: document.getElementById('departure-time').value,
         isHoliday: document.getElementById('is-holiday').checked,

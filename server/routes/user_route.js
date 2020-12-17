@@ -18,7 +18,19 @@ router.route('/user/signin')
 router.route('/user/profile')
     .get(wrapAsync(hasToken), wrapAsync(getUserProfile));
 
-router.route('/user/mySavedPlaces')
-    .get(wrapAsync(hasToken), wrapAsync(getMySavedPlacesList));
+router.route('/user/places')
+    .get(wrapAsync(hasToken), wrapAsync(getAllPlaces));
+
+router.route('/user/places')
+    .post(wrapAsync(hasToken), wrapAsync(createPlace));
+
+router.route('/user/places/:id')
+    .get(wrapAsync(hasToken), wrapAsync(getPlace));
+
+router.route('/user/places/:id')
+    .patch(wrapAsync(hasToken), wrapAsync(updatePlace));
+
+router.route('/user/places/:id')
+    .delete(wrapAsync(hasToken), wrapAsync(deletePlace));
 
 module.exports = router;
