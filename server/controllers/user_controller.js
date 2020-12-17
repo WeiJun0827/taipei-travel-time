@@ -120,10 +120,16 @@ const signIn = async (req, res) => {
     });
 };
 
-const hasToken = async (req, res, next) => {
-    const accessToken = req.get('Authorization');
+const verifyToken = async (req, res, next) => {
+    let accessToken = req.get('Authorization');
     if (accessToken) {
-        req.accessToken = accessToken.replace('Bearer ', '');
+        accessToken = accessToken.replace('Bearer ', '');
+        const result = await User.getUserId(accessToken);
+        if (result.error) {
+            res.status(403).send({ error: result.error });
+            return;
+        }
+        req.userId = result;
         next();
     } else {
         res.status(400).send({ error: 'Wrong Request: authorization is required.' });
@@ -132,25 +138,47 @@ const hasToken = async (req, res, next) => {
 };
 
 const getUserProfile = async (req, res) => {
-    const accessToken = req.accessToken;
-    const profile = await User.getUserProfile(accessToken);
-    if (profile.error) {
-        res.status(403).send({ error: profile.error });
-        return;
-    } else {
-        res.status(200).send(profile);
-    }
+    const profile = await User.getUserProfile(req.userId);
+    res.status(200).send(profile);
 };
 
-const getMySavedPlacesList = async (req, res) => {
-    const myList = (await User.getMySavedPlacesList(req.accessToken));
+const getAllPlaces = async (req, res) => {
+    const myList = await User.getMySavedPlacesList(req.accessToken);
     res.status(200).send({ data: myList });
 };
 
+const createPlace = async (req, res) => {
+    const { lat, lon, title, type, description } = req.body;
+    const placeId = await User.createPlace(req.userId, lat, lon, title, type, description);
+    res.status(200).send({ placeId: placeId });
+};
+
+const getPlace = async (req, res) => {
+    const placeId = Number(req.params.id);
+    const place = await User.getPlace(req.userId, placeId);
+    res.status(200).send({ data: place });
+};
+
+const updatePlace = async (req, res) => {
+    const placeId = Number(req.params.id);
+    const { title, type, description } = req.body;
+    const myList = await User.updatePlace(req.userId, placeId, title, type, description);
+    res.status(200).send({ data: myList });
+};
+
+const deletePlace = async (req, res) => {
+    const placeId = Number(req.params.id);
+    const myList = await User.deletePlace(req.userId, placeId);
+    res.status(200).send({ data: myList });
+};
 module.exports = {
     signUp,
     signIn,
-    hasToken,
+    verifyToken,
     getUserProfile,
-    getMySavedPlacesList
+    getAllPlaces,
+    createPlace,
+    getPlace,
+    updatePlace,
+    deletePlace
 };

@@ -268,8 +268,28 @@ function displayDirections() {
 }
 
 function savePlace() {
-    const place = new google.maps.LatLng(placeInfoWindow.marker.getPosition().lat(), placeInfoWindow.marker.getPosition().lng());
-    fetch('/api/1.0/')
+    const headers = new Headers();
+    headers.append('Authorization', 'Bearer 48b752189d556d065393e53d01bb880012d111e4c57474e15cc277ddbb49d033');
+    headers.append('Content-Type', 'application/json');
+
+    const raw = JSON.stringify({
+        lat: placeInfoWindow.marker.getPosition().lat(),
+        lon: placeInfoWindow.marker.getPosition().lng(),
+        name: 'abc',
+        type: null,
+        description: null
+    });
+
+    const requestOptions = {
+        method: 'POST',
+        headers: headers,
+        body: raw
+    };
+
+    fetch('/api/1.0/user/places', requestOptions)
+        .then(response => response.text())
+        .then(result => console.log(result))
+        .catch(error => console.log('error', error));
 }
 
 function goToUsersLocation() {

@@ -111,19 +111,16 @@ const facebookSignIn = async (id, name, email, accessToken, expire) => {
     }
 };
 
-const getUserProfile = async (accessToken) => {
-    const results = await query('SELECT * FROM user WHERE access_token = ?', [accessToken]);
-    if (results.length === 0) {
-        return { error: 'Invalid Access Token' };
-    } else {
-        return {
-            data: {
-                provider: results[0].provider,
-                name: results[0].name,
-                email: results[0].email
-            }
-        };
-    }
+const getUserProfile = async (userId) => {
+    const results = await query('SELECT * FROM user WHERE id = ?', userId);
+    return {
+        data: {
+            provider: results[0].provider,
+            name: results[0].name,
+            email: results[0].email
+        }
+    };
+
 };
 
 const getFacebookProfile = async function (accessToken) {
@@ -139,16 +136,36 @@ const getFacebookProfile = async function (accessToken) {
 };
 
 
-const getMySavedPlacesList = async (accessToken) => {
-    //extract user id
-    const userData = await query('SELECT * FROM user WHERE access_token = ?', accessToken);
-    let userId = userData[0].id;
-    let myPlacesList = await query(`SELECT * FROM user INNER JOIN saved_place ON user.id = (SELECT product_id WHERE user_id=${userId});`);
-    for (const fav of myPlacesList) {
-        const imgPath = require('../../util/util').getImagePath(fav.id);
-        fav['main_image'] = imgPath + fav['main_image'];
-    }
-    return myPlacesList;
+const getUserId = async (accessToken) => {
+    const results = await query('SELECT * FROM user WHERE access_token = ?', accessToken);
+    if (results.length === 0) return { error: 'Invalid Access Token' };
+    return results[0].id;
+};
+
+const getAllPlaces = async (user_id) => {
+    const places = await query('SELECT * FROM place WHERE user_id = ?', user_id);
+    return places;
+};
+
+const createPlace = async (user_id, lat, lon, title, type, description) => {
+    const place = { user_id, lat, lon, name: title, type, description };
+    const result = await query('INSERT INTO place SET ?', place);
+    return result.insertId;
+};
+
+const getPlace = async (user_id, place_id) => {
+    const place = await query('SELECT * FROM place WHERE user_id = ? AND id = ?', [user_id, place_id]);
+    return place;
+};
+
+const updatePlace = async (user_id, place_id, title, type, description) => {
+    const result = await query('UPDATE place SET title = ?, type = ?, description = ? WHERE user_id = ? AND id = ?', [title, type, description, user_id, place_id]);
+    return result;
+};
+
+const deletePlace = async (user_id, place_id) => {
+    const result = await query('DELETE FROM place WHERE user_id = ? AND id = ?', [user_id, place_id]);
+    return result;
 };
 
 module.exports = {
@@ -157,6 +174,11 @@ module.exports = {
     facebookSignIn,
     getUserProfile,
     getFacebookProfile,
-    getMySavedPlacesList,
+    getUserId,
+    getAllPlaces,
+    createPlace,
+    getPlace,
+    updatePlace,
+    deletePlace,
     ProviderType
 };
