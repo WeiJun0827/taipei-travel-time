@@ -2,7 +2,9 @@ const Metro = require('../models/metro_model');
 const Bus = require('../models/bus_model');
 const { Graph, EdgeType } = require('../../util/graph');
 const graph = new Graph();
-const walkingSpeed = 1; // in m/s
+const WALKING_SPEED = 1; // in meter/sec
+const STOP_TIME_FOR_BUS = 0; // sec
+const DEFAULT_RUN_TIME_FOR_BUS = 60; // sec
 
 const initMetroGraph = async () => {
     console.time('Metro data');
@@ -40,7 +42,7 @@ const initBusGraph = async () => {
     async function addBusStop(stopId) {
         if (graph.nodes[stopId] == undefined) {
             const stop = (await Bus.getStopById(stopId))[0];
-            graph.addNode(stop.stop_id, stop.name_cht, stop.lat, stop.lon, 15);
+            graph.addNode(stop.stop_id, stop.name_cht, stop.lat, stop.lon, STOP_TIME_FOR_BUS);
         }
     }
 
@@ -61,7 +63,7 @@ const initBusGraph = async () => {
                 directionFreq = freq.outbound;
             }
 
-            const runTime = tt.run_time == 0 ? 60 : tt.run_time;
+            const runTime = tt.run_time == 0 ? DEFAULT_RUN_TIME_FOR_BUS : tt.run_time;
             await addBusStop(tt.from_stop_id);
             await addBusStop(tt.to_stop_id);
 
@@ -109,13 +111,13 @@ const getTravelTimeByTransit = async (req, res) => {
     if (isNaN(lat) || isNaN(lon) || isNaN(maxTravelTime) || isNaN(maxWalkDist) || isNaN(maxTransferTimes) || maxTravelTime > 7200 || maxWalkDist > 3000)
         return res.status(400).send('Invalid parameters');
     console.time('getTravelTime');
-    graph.addStarterNode(starterId, lat, lon, maxTravelTime, walkingSpeed, maxWalkDist);
+    graph.addStarterNode(starterId, lat, lon, maxTravelTime, WALKING_SPEED, maxWalkDist);
     const cost = graph.dijkstraAlgorithm(starterId, maxTravelTime, departureTime, isHoliday, takeMetro, takeBus, maxTransferTimes);
     const data = [];
     for (const stationId in cost) {
         const travelTime = cost[stationId];
         if (travelTime != Infinity) {
-            const movingDistance = (maxTravelTime - travelTime) / walkingSpeed;
+            const movingDistance = (maxTravelTime - travelTime) / WALKING_SPEED;
             const radius = movingDistance > maxWalkDist ? maxWalkDist : movingDistance;
             data.push({
                 stationId,

@@ -3,7 +3,7 @@
 let map;
 let mainMarker;
 let polygon;
-const placeMarkers = [];
+let placeMarkers = [];
 let placeInfoWindow;
 let directionsRenderer;
 
@@ -11,7 +11,7 @@ document.getElementById('my-position-btn').addEventListener('click', goToUsersLo
 document.getElementById('search-btn').addEventListener('click', textSearchPlaces);
 document.getElementById('travel-time').addEventListener('change', drawTransitArea);
 document.getElementById('departure-time').addEventListener('change', drawTransitArea);
-document.getElementById('is-holiday').addEventListener('change', drawTransitArea);
+// document.getElementById('is-holiday').addEventListener('change', drawTransitArea);
 document.getElementById('take-metro').addEventListener('change', drawTransitArea);
 document.getElementById('take-bus').addEventListener('change', drawTransitArea);
 document.getElementById('apply-max-walk-dist').addEventListener('change', drawTransitArea);
@@ -24,7 +24,9 @@ document.getElementById('max-transfer-times').addEventListener('change', () => {
     if (document.getElementById('apply-max-transfer-times').checked)
         drawTransitArea();
 });
-
+$(document).ready(function () {
+    $('#departure-time').val(new Date().toDateInputValue());
+});
 
 function initMap() {
     const styles = [
@@ -150,7 +152,6 @@ function textSearchPlaces() {
         bounds: bounds
     }, function (results, status) {
         if (status === google.maps.places.PlacesServiceStatus.OK) {
-            // moveMarkerForPlace(results[0]);
             resetMarkers(placeMarkers);
             createMarkersForPlaces(results);
         }
@@ -159,6 +160,7 @@ function textSearchPlaces() {
 
 function resetMarkers(markers) {
     markers.forEach(m => m.setMap(null));
+    markers = [];
 }
 
 function createMarkersForPlaces(places) {
@@ -201,37 +203,62 @@ function getPlacesDetails(marker, placeInfoWindow) {
         if (status === google.maps.places.PlacesServiceStatus.OK) {
             // Set the marker property on this infowindow so it isn't created again.
             placeInfoWindow.marker = marker;
-            let innerHTML = '<div>';
+            const infoDiv = $('<div></div>');
             if (place.name) {
-                innerHTML += '<strong>' + place.name + '</strong>';
+                infoDiv.append(
+                    $('<div></div>').attr('class', 'place-name').append(
+                        $('<strong></strong>').text(place.name)));
             }
             if (place.formatted_address) {
-                innerHTML += '<br>' + place.formatted_address;
+                infoDiv.append(
+                    $('<div></div>').attr('class', 'place-address').text(place.formatted_address));
             }
             if (place.formatted_phone_number) {
-                innerHTML += '<br>' + place.formatted_phone_number;
+                infoDiv.append(
+                    $('<div></div>').attr('class', 'place-phone').text(place.formatted_phone_number));
             }
             if (place.website) {
-                innerHTML += '<br><a href="' + place.website + '">' + decodeURI(place.website) + '<a>';
+                infoDiv.append(
+                    $('<div></div>').attr('class', 'place-website').append(
+                        $('<a></a>').text(decodeURI(place.website))));
             }
-            // if (place.opening_hours) {
-            //     innerHTML += '<br><br><strong>營業時間</strong><br>' +
-            //         place.opening_hours.weekday_text[0] + '<br>' +
-            //         place.opening_hours.weekday_text[1] + '<br>' +
-            //         place.opening_hours.weekday_text[2] + '<br>' +
-            //         place.opening_hours.weekday_text[3] + '<br>' +
-            //         place.opening_hours.weekday_text[4] + '<br>' +
-            //         place.opening_hours.weekday_text[5] + '<br>' +
-            //         place.opening_hours.weekday_text[6];
-            // }
             if (place.photos) {
-                innerHTML += '<br><br><img src="' + place.photos[0].getUrl(
-                    { maxHeight: 100, maxWidth: 200 }) + '">';
+                infoDiv.append(
+                    $('<div></div>').attr('class', 'place-image').append(
+                        $('<img>').attr('src', `${place.photos[0].getUrl({ maxHeight: 100, maxWidth: 200 })}`)));
             }
-            innerHTML += '</div><br>';
-            innerHTML += '<input type="button" value="路徑" onclick=displayDirections()>';
-            innerHTML += '<input type="button" value="儲存" onclick=savePlace()>';
-            placeInfoWindow.setContent(innerHTML);
+            const form = $('<form></form>').attr({ class: 'my-place-form', action: '/user/places' }).css('display', 'none');
+            form.append($('<strong></strong>').text('我的地點'));
+            form.append($('<input>').attr({
+                type: 'text',
+                id: 'title',
+                placeholder: '標題',
+                style: 'width: 175px;',
+                required: true,
+            }));
+            form.append($('<textarea></textarea>').attr({
+                id: 'description',
+                rows: 4,
+                style: 'width: 176px; resize: none;'
+            }));
+            form.append($('<input>').attr({ type: 'submit', value: '確定' }));
+            form.append($('<input>').attr({ type: 'button', value: '取消' }));
+            infoDiv.append(form);
+            const optionsMenu = $('<div></div>').attr('class', 'options-menu');
+            optionsMenu.append(
+                $('<input onclick=displayDirections(this)>').attr({
+                    type: 'button',
+                    class: 'display-directions',
+                    value: '顯示路徑'
+                }));
+            optionsMenu.append(
+                $('<input onclick=openEditor(this)>').attr({
+                    type: 'button',
+                    class: 'show-editor',
+                    value: '儲存地點'
+                }));
+            infoDiv.append(optionsMenu);
+            placeInfoWindow.setContent(infoDiv.html());
             placeInfoWindow.open(map, marker);
             placeInfoWindow.addListener('closeclick', function () {
                 placeInfoWindow.marker = null;
@@ -240,7 +267,7 @@ function getPlacesDetails(marker, placeInfoWindow) {
     });
 }
 
-function displayDirections() {
+function displayDirections(e) {
     resetMarkers(placeMarkers);
     const modes = [];
     if (document.getElementById('take-metro').checked) modes.push('SUBWAY');
@@ -265,6 +292,11 @@ function displayDirections() {
             window.alert('Directions request failed due to ' + status);
         }
     });
+}
+
+function openEditor(e) {
+    $('.my-place-form').css('display', 'inherit');
+    $('.options-menu').css('display', 'none');
 }
 
 function savePlace() {
@@ -314,7 +346,7 @@ function drawTransitArea() {
         lon: mainMarker.getPosition().lng(),
         maxTravelTime: document.getElementById('travel-time').value,
         departureTime: document.getElementById('departure-time').value,
-        isHoliday: document.getElementById('is-holiday').checked,
+        // isHoliday: document.getElementById('is-holiday').checked,
         takeMetro: document.getElementById('take-metro').checked,
         takeBus: document.getElementById('take-bus').checked,
         maxWalkDist: maxWalkDist,
@@ -365,3 +397,9 @@ function drawCircle(lat, lon, radius, dir) {
 
     return extp;
 }
+
+Date.prototype.toDateInputValue = (function () {
+    var local = new Date(this);
+    local.setMinutes(this.getMinutes() - this.getTimezoneOffset());
+    return local.toJSON().slice(0, 16);
+});
