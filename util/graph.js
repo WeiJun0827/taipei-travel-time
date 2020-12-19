@@ -186,7 +186,7 @@ class GraphEdge {
         }
     }
 
-    getExpectedTime(prevEdgeDetail, departureTime, isHoliday) {
+    getExpectedTime(prevEdgeDetail, departureTime, weekday) {
         switch (this.edgeType) {
             case EdgeType.WALKING_FROM_STARTER:
             case EdgeType.METRO_TRANSFER:
@@ -201,10 +201,9 @@ class GraphEdge {
 
         let freqTable;
         if (this.edgeType == EdgeType.BUS) {
-            // const freqTableOfDay = freqTableOfWeek[isHoliday];
-            freqTable = isHoliday ? freqTables['Sat'] : freqTables['Mon'];
+            freqTable = freqTables[weekday];
         } else if (this.edgeType == EdgeType.METRO) {
-            freqTable = isHoliday ? freqTables.holiday : freqTables.weekday;
+            freqTable = (weekday == 'Sat' || weekday == 'Sun') ? freqTables.holiday : freqTables.weekday;
         }
         if (!freqTable) return Infinity;
 
@@ -297,14 +296,14 @@ class Graph {
      * Get travel time of single source shortest path for all nodes via Dijkstra's algorithm
      * @param {String} fromNodeId node ID
      * @param {Number} maxTime available maximum time in seconds
-     * @param {String} departureTime departure time in 'HH:mm:ss' format
-     * @param {Boolean} isHoliday if the day is on the weekend or national holiday
+     * @param {String} departureDatetime departure datetime in 'YYYY-MM-DD HH:mm:ss' format
      * @param {Boolean} takeMetro if the passenger take metro or not
      * @param {Boolean} takeBus if the passenger take bus or not
      * @param {Number} maxTransferCount maximum transfer time between transits
      * @returns {Object} key: node ID, value: travel time in seconds for available nodes, Infinity for unavailable nodes
      */
-    dijkstraAlgorithm(fromNodeId, maxTime, departureTime, isHoliday, takeMetro, takeBus, maxTransferCount) {
+    dijkstraAlgorithm(fromNodeId, maxTime, departureDatetime, takeMetro, takeBus, maxTransferCount) {
+        const weekday = getWeekday(departureDatetime);
         const cost = {};
         const prevNodeLog = [];
         const isVisited = {};
@@ -326,7 +325,7 @@ class Graph {
             if (isVisited[currNodeId]) continue;
             const passedTime = cost[currNodeId];
             if (passedTime == Infinity) continue;
-            const currTime = moment(departureTime, momentFormat).add(passedTime, 'seconds').format(momentFormat);
+            const currTime = moment(departureDatetime, 'YYYY-MM-DD HH:mm:ss').add(passedTime, 'seconds').format(momentFormat);
             const basicTime = cost[currNodeId];
             let isInvalidTransferNode = currPqNode.isArrivedByWalking;
             for (const nextNodeId in currNode.edges) {
@@ -337,7 +336,7 @@ class Graph {
                 if (isInvalidTransferNode && needTransfer) continue;
                 const currTransferCount = needTransfer ? baseTransferCount + 1 : baseTransferCount;
                 if (currTransferCount > maxTransferCount) continue;
-                const expectedTime = currEdge.getExpectedTime(currPqNode.arriveBy, currTime, isHoliday);
+                const expectedTime = currEdge.getExpectedTime(currPqNode.arriveBy, currTime, weekday);
                 const stopTime = currNode.getStopTime(currEdge.edgeType);
                 const runTime = currEdge.runTime;
                 const alternative = basicTime + expectedTime + stopTime + runTime;
@@ -381,6 +380,13 @@ class Graph {
         // console.log('================================================================================================');
         return cost;
     }
+}
+
+
+function getWeekday(datetimeStr) {
+    const day = new Date(datetimeStr).getDay();
+    const weekday = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    return weekday[day];
 }
 
 module.exports = { Graph, EdgeType };

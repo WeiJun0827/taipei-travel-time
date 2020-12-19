@@ -103,16 +103,13 @@ const getTravelTimeByTransit = async (req, res) => {
     const lon = Number(req.query.lon);
     const maxTravelTime = Number(req.query.maxTravelTime) * 60;
     const departureTime = req.query.departureTime;
-    const isHoliday = req.query.isHoliday === 'true';
     const takeMetro = req.query.takeMetro === 'true';
     const takeBus = req.query.takeBus === 'true';
     const maxWalkDist = Number(req.query.maxWalkDist);
     const maxTransferTimes = Number(req.query.maxTransferTimes);
-    if (isNaN(lat) || isNaN(lon) || isNaN(maxTravelTime) || isNaN(maxWalkDist) || isNaN(maxTransferTimes) || maxTravelTime > 7200 || maxWalkDist > 3000)
-        return res.status(400).send('Invalid parameters');
     console.time('getTravelTime');
     graph.addStarterNode(starterId, lat, lon, maxTravelTime, WALKING_SPEED, maxWalkDist);
-    const cost = graph.dijkstraAlgorithm(starterId, maxTravelTime, departureTime, isHoliday, takeMetro, takeBus, maxTransferTimes);
+    const cost = graph.dijkstraAlgorithm(starterId, maxTravelTime, departureTime, takeMetro, takeBus, maxTransferTimes);
     const data = [];
     for (const stationId in cost) {
         const travelTime = cost[stationId];
