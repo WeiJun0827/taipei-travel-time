@@ -148,7 +148,7 @@ const getAllPlaces = async (user_id) => {
 };
 
 const createPlace = async (user_id, lat, lon, title, type, description) => {
-    const place = { user_id, lat, lon, name: title, type, description };
+    const place = { user_id, lat, lon, title, type, description };
     const result = await query('INSERT INTO place SET ?', place);
     return result.insertId;
 };

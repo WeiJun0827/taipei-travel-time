@@ -11,7 +11,6 @@ document.getElementById('my-position-btn').addEventListener('click', goToUsersLo
 document.getElementById('search-btn').addEventListener('click', textSearchPlaces);
 document.getElementById('travel-time').addEventListener('change', drawTransitArea);
 document.getElementById('departure-time').addEventListener('change', drawTransitArea);
-// document.getElementById('is-holiday').addEventListener('change', drawTransitArea);
 document.getElementById('take-metro').addEventListener('change', drawTransitArea);
 document.getElementById('take-bus').addEventListener('change', drawTransitArea);
 document.getElementById('apply-max-walk-dist').addEventListener('change', drawTransitArea);
@@ -227,39 +226,43 @@ function getPlacesDetails(marker, placeInfoWindow) {
                     $('<div></div>').attr('class', 'place-image').append(
                         $('<img>').attr('src', `${place.photos[0].getUrl({ maxHeight: 100, maxWidth: 200 })}`)));
             }
-            const form = $('<form></form>').attr({ class: 'my-place-form', action: '/user/places' }).css('display', 'none');
+            const form = $('<form></form>').attr({ class: 'my-place-form' }).css('display', 'none');
+            form.append($('<br>'));
             form.append($('<strong></strong>').text('我的地點'));
             form.append($('<input>').attr({
                 type: 'text',
-                id: 'title',
+                class: 'place-title',
                 placeholder: '標題',
                 style: 'width: 175px;',
                 required: true,
-            }));
+            }).css({ width: '175px' }));
             form.append($('<textarea></textarea>').attr({
-                id: 'description',
+                class: 'place-description',
                 rows: 4,
-                style: 'width: 176px; resize: none;'
-            }));
-            form.append($('<input>').attr({ type: 'submit', value: '確定' }));
-            form.append($('<input>').attr({ type: 'button', value: '取消' }));
+            }).css({ width: '176px', resize: 'none' }));
+            form.append(
+                $('<input>').attr({ type: 'button', class: 'submit-place', value: '完成' }));
+            form.append(
+                $('<input>').attr({ type: 'button', class: 'hide-editor', value: '取消' }));
             infoDiv.append(form);
             const optionsMenu = $('<div></div>').attr('class', 'options-menu');
-            optionsMenu.append(
-                $('<input onclick=displayDirections(this)>').attr({
-                    type: 'button',
-                    class: 'display-directions',
-                    value: '顯示路徑'
-                }));
-            optionsMenu.append(
-                $('<input onclick=openEditor(this)>').attr({
-                    type: 'button',
-                    class: 'show-editor',
-                    value: '儲存地點'
-                }));
             infoDiv.append(optionsMenu);
+            optionsMenu.append(
+                $('<input>').attr({ type: 'button', class: 'display-directions', value: '顯示路徑' }));
+            optionsMenu.append(
+                $('<input>').attr({ type: 'button', class: 'create-label', value: '標記地點' }));
+            optionsMenu.append(
+                $('<input>').attr({ type: 'button', class: 'edit-label', value: '編輯' }).css('display', 'none'));
+            optionsMenu.append(
+                $('<input>').attr({ type: 'button', class: 'delete-label', value: '刪除' }).css('display', 'none'));
             placeInfoWindow.setContent(infoDiv.html());
             placeInfoWindow.open(map, marker);
+            placeInfoWindow.addListener('domready', function () {
+                $('.display-directions').click(displayDirections);
+                $('.create-label').click(openEditor);
+                $('.submit-place').click(createLabel);
+                $('.hide-editor').click(hideEditor);
+            });
             placeInfoWindow.addListener('closeclick', function () {
                 placeInfoWindow.marker = null;
             });
@@ -267,7 +270,7 @@ function getPlacesDetails(marker, placeInfoWindow) {
     });
 }
 
-function displayDirections(e) {
+function displayDirections() {
     resetMarkers(placeMarkers);
     const modes = [];
     if (document.getElementById('take-metro').checked) modes.push('SUBWAY');
@@ -294,34 +297,74 @@ function displayDirections(e) {
     });
 }
 
-function openEditor(e) {
+function openEditor() {
     $('.my-place-form').css('display', 'inherit');
     $('.options-menu').css('display', 'none');
 }
 
-function savePlace() {
-    const headers = new Headers();
-    headers.append('Authorization', 'Bearer 48b752189d556d065393e53d01bb880012d111e4c57474e15cc277ddbb49d033');
-    headers.append('Content-Type', 'application/json');
-
-    const raw = JSON.stringify({
-        lat: placeInfoWindow.marker.getPosition().lat(),
-        lon: placeInfoWindow.marker.getPosition().lng(),
-        name: 'abc',
-        type: null,
-        description: null
-    });
-
-    const requestOptions = {
-        method: 'POST',
-        headers: headers,
-        body: raw
+function createLabel() {
+    var settings = {
+        'url': '/api/1.0/user/places',
+        'method': 'POST',
+        'headers': {
+            'Authorization': 'Bearer 48b752189d556d065393e53d01bb880012d111e4c57474e15cc277ddbb49d033',
+            'Content-Type': 'application/json'
+        },
+        'data': JSON.stringify({
+            lat: placeInfoWindow.marker.getPosition().lat(),
+            lon: placeInfoWindow.marker.getPosition().lng(),
+            title: $('.place-title').val(),
+            type: null,
+            description: $('.place-description').val()
+        })
     };
 
-    fetch('/api/1.0/user/places', requestOptions)
-        .then(response => response.text())
-        .then(result => console.log(result))
-        .catch(error => console.log('error', error));
+    $.ajax(settings).done(function (response) {
+        const { placeId } = response;
+        console.log(placeId);
+        const info = $('<div><br></div>');
+        info.append(
+            $('<strong></strong>').text($('.place-title').val()).attr({
+                class: '.place-title'
+            }));
+        info.append(
+            $('<div></div>').text($('.place-description').val()).attr({
+                class: '.place-description'
+            }));
+        $('.my-place-form').replaceWith(info);
+        $('.create-label').css('display', 'none');
+        $('.edit-label').css('display', 'inline-block');
+        $('.delete-label').css('display', 'inline-block');
+        $('.options-menu').css('display', 'inherit');
+    });
+
+    // const headers = new Headers();
+    // headers.append('Authorization', 'Bearer 48b752189d556d065393e53d01bb880012d111e4c57474e15cc277ddbb49d033');
+    // headers.append('Content-Type', 'application/json');
+
+    // const raw = JSON.stringify({
+    //     lat: placeInfoWindow.marker.getPosition().lat(),
+    //     lon: placeInfoWindow.marker.getPosition().lng(),
+    //     title: $('.place-title').val(),
+    //     type: null,
+    //     description: $('.place-description').val()
+    // });
+
+    // const requestOptions = {
+    //     method: 'POST',
+    //     headers: headers,
+    //     body: raw
+    // };
+
+    // fetch('/api/1.0/user/places', requestOptions)
+    //     .then(response => response.text())
+    //     .then(result => console.log(result))
+    //     .catch(error => console.log('error', error));
+}
+
+function hideEditor() {
+    $('.my-place-form').css('display', 'none');
+    $('.options-menu').css('display', 'inherit');
 }
 
 function goToUsersLocation() {
@@ -346,7 +389,6 @@ function drawTransitArea() {
         lon: mainMarker.getPosition().lng(),
         maxTravelTime: document.getElementById('travel-time').value,
         departureTime: document.getElementById('departure-time').value,
-        // isHoliday: document.getElementById('is-holiday').checked,
         takeMetro: document.getElementById('take-metro').checked,
         takeBus: document.getElementById('take-bus').checked,
         maxWalkDist: maxWalkDist,
