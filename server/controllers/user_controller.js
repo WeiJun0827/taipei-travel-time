@@ -143,20 +143,20 @@ const getUserProfile = async (req, res) => {
 };
 
 const getAllPlaces = async (req, res) => {
-    const myList = await User.getMySavedPlacesList(req.accessToken);
-    res.status(200).send({ data: myList });
+    const places = await User.getAllPlaces(req.userId);
+    res.status(200).send({ places: places });
 };
 
 const createPlace = async (req, res) => {
-    const { lat, lon, title, type, description } = req.body;
-    const placeId = await User.createPlace(req.userId, lat, lon, title, type, description);
+    const { lat, lon, icon, googleMapsId, title, description } = req.body;
+    const placeId = await User.createPlace(req.userId, lat, lon, icon, googleMapsId, title, description);
     res.status(200).send({ placeId: placeId });
 };
 
 const getPlace = async (req, res) => {
     const placeId = Number(req.params.id);
     const place = await User.getPlace(req.userId, placeId);
-    res.status(200).send({ data: place });
+    res.status(200).send({ place: place });
 };
 
 const updatePlace = async (req, res) => {

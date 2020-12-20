@@ -143,12 +143,12 @@ const getUserId = async (accessToken) => {
 };
 
 const getAllPlaces = async (user_id) => {
-    const places = await query('SELECT * FROM place WHERE user_id = ?', user_id);
+    const places = await query('SELECT lat, lon, icon, google_maps_id AS googleMapsId, title, description FROM place WHERE user_id = ?', user_id);
     return places;
 };
 
-const createPlace = async (user_id, lat, lon, title, type, description) => {
-    const place = { user_id, lat, lon, title, type, description };
+const createPlace = async (user_id, lat, lon, icon, google_maps_id, title, description) => {
+    const place = { user_id, lat, lon, icon, google_maps_id, title, description };
     const result = await query('INSERT INTO place SET ?', place);
     return result.insertId;
 };

@@ -62,6 +62,7 @@ function initMap() {
     initSearchBox();
     initDirectionsRenderer();
     initInfoWindow();
+    loadMyPlaces();
     drawTransitArea();
 }
 
@@ -109,7 +110,6 @@ function initSearchBox() {
 function initDirectionsRenderer() {
     directionsRenderer = new google.maps.DirectionsRenderer({
         map: map,
-        draggable: true,
         panel: document.getElementById('directions-panel')
         // polylineOptions: {
         //     strokeColor: 'green'
@@ -119,6 +119,74 @@ function initDirectionsRenderer() {
 
 function initInfoWindow() {
     placeInfoWindow = new google.maps.InfoWindow({ maxWidth: 220 });
+    placeInfoWindow.addListener('domready', function () {
+        console.log('call DOM ready');
+        $('.display-directions').click(displayDirections);
+        $('.create-label').click(openEditor);
+        $('.submit-place').click(createLabel);
+        $('.hide-editor').click(hideEditor);
+    });
+    placeInfoWindow.addListener('closeclick', function () {
+        console.log('call close');
+        placeInfoWindow.marker = null;
+    });
+}
+
+function loadMyPlaces() {
+    const settings = {
+        'url': '/api/1.0/user/places',
+        'method': 'GET',
+        'headers': {
+            'Authorization': 'Bearer 48b752189d556d065393e53d01bb880012d111e4c57474e15cc277ddbb49d033',
+            'Content-Type': 'application/json'
+        }
+    };
+
+    $.ajax(settings).done(function (response) {
+        const { places } = response;
+        for (const place of places) {
+            const icon = {
+                url: place.icon,
+                size: new google.maps.Size(35, 35),
+                origin: new google.maps.Point(0, 0),
+                anchor: new google.maps.Point(15, 34),
+                scaledSize: new google.maps.Size(25, 25)
+            };
+            const marker = new google.maps.Marker({
+                map: map,
+                position: new google.maps.LatLng(place.lat, place.lon),
+                icon: icon,
+                id: place.googleMapsId,
+                name: place.title,
+                description: place.description
+            });
+            marker.addListener('click', function () {
+                if (placeInfoWindow.marker != this) {
+                    getPlacesDetails(this, placeInfoWindow);
+                }
+            });
+            placeMarkers.push(marker);
+            // if (place.geometry.viewport) {
+            //     bounds.union(place.geometry.viewport);
+            // } else {
+            //     bounds.extend(place.geometry.location);
+            // }
+        }
+    });
+}
+
+function latLonSearchPlaces() {
+    const bounds = map.getBounds();
+    const placesService = new google.maps.places.PlacesService(map);
+    placesService.textSearch({
+        query: document.getElementById('search-place').value,
+        bounds: bounds
+    }, function (results, status) {
+        if (status === google.maps.places.PlacesServiceStatus.OK) {
+            resetMarkers(placeMarkers);
+            createMarkersForPlaces(results);
+        }
+    });
 }
 
 function searchBoxPlaces(searchBox) {
@@ -200,7 +268,7 @@ function getPlacesDetails(marker, placeInfoWindow) {
         placeId: marker.id
     }, function (place, status) {
         if (status === google.maps.places.PlacesServiceStatus.OK) {
-            // Set the marker property on this infowindow so it isn't created again.
+            console.log('status is ok');
             placeInfoWindow.marker = marker;
             const infoDiv = $('<div></div>');
             if (place.name) {
@@ -219,7 +287,7 @@ function getPlacesDetails(marker, placeInfoWindow) {
             if (place.website) {
                 infoDiv.append(
                     $('<div></div>').attr('class', 'place-website').append(
-                        $('<a></a>').text(decodeURI(place.website))));
+                        $('<a></a>').text(decodeURI(place.website)).attr('href', place.website)));
             }
             if (place.photos) {
                 infoDiv.append(
@@ -257,20 +325,12 @@ function getPlacesDetails(marker, placeInfoWindow) {
                 $('<input>').attr({ type: 'button', class: 'delete-label', value: '刪除' }).css('display', 'none'));
             placeInfoWindow.setContent(infoDiv.html());
             placeInfoWindow.open(map, marker);
-            placeInfoWindow.addListener('domready', function () {
-                $('.display-directions').click(displayDirections);
-                $('.create-label').click(openEditor);
-                $('.submit-place').click(createLabel);
-                $('.hide-editor').click(hideEditor);
-            });
-            placeInfoWindow.addListener('closeclick', function () {
-                placeInfoWindow.marker = null;
-            });
         }
     });
 }
 
 function displayDirections() {
+    console.log('call display directions');
     resetMarkers(placeMarkers);
     const modes = [];
     if (document.getElementById('take-metro').checked) modes.push('SUBWAY');
@@ -286,24 +346,33 @@ function displayDirections() {
         transitOptions: {
             departureTime: departureTime,
             modes: modes,
-            routingPreference: 'FEWER_TRANSFERS'
+            // routingPreference: 'FEWER_TRANSFERS'
         },
     }, function (response, status) {
         if (status === google.maps.DirectionsStatus.OK) {
             directionsRenderer.setDirections(response);
+            $('#directions-panel').css('display', 'block');
         } else {
             window.alert('Directions request failed due to ' + status);
         }
     });
 }
 
+function closeDirections() {
+    directionsRenderer.setMap(null);
+    initDirectionsRenderer();
+    $('#directions-panel').css('display', 'none');
+}
+
 function openEditor() {
+    console.log('call open editor');
     $('.my-place-form').css('display', 'inherit');
     $('.options-menu').css('display', 'none');
 }
 
 function createLabel() {
-    var settings = {
+    console.log('call create label');
+    const settings = {
         'url': '/api/1.0/user/places',
         'method': 'POST',
         'headers': {
@@ -313,8 +382,9 @@ function createLabel() {
         'data': JSON.stringify({
             lat: placeInfoWindow.marker.getPosition().lat(),
             lon: placeInfoWindow.marker.getPosition().lng(),
+            icon: placeInfoWindow.marker.icon.url,
+            googleMapsId: placeInfoWindow.marker.id,
             title: $('.place-title').val(),
-            type: null,
             description: $('.place-description').val()
         })
     };
@@ -337,32 +407,10 @@ function createLabel() {
         $('.delete-label').css('display', 'inline-block');
         $('.options-menu').css('display', 'inherit');
     });
-
-    // const headers = new Headers();
-    // headers.append('Authorization', 'Bearer 48b752189d556d065393e53d01bb880012d111e4c57474e15cc277ddbb49d033');
-    // headers.append('Content-Type', 'application/json');
-
-    // const raw = JSON.stringify({
-    //     lat: placeInfoWindow.marker.getPosition().lat(),
-    //     lon: placeInfoWindow.marker.getPosition().lng(),
-    //     title: $('.place-title').val(),
-    //     type: null,
-    //     description: $('.place-description').val()
-    // });
-
-    // const requestOptions = {
-    //     method: 'POST',
-    //     headers: headers,
-    //     body: raw
-    // };
-
-    // fetch('/api/1.0/user/places', requestOptions)
-    //     .then(response => response.text())
-    //     .then(result => console.log(result))
-    //     .catch(error => console.log('error', error));
 }
 
 function hideEditor() {
+    console.log('call hide editor');
     $('.my-place-form').css('display', 'none');
     $('.options-menu').css('display', 'inherit');
 }

@@ -24,9 +24,6 @@
                 <div>
                     <label>出發時刻</label>
                     <input id="departure-time" type="datetime-local" step="1800">
-                    <!-- <input id="departure-time" type="time" value="08:00" min="06:00" max="23:00" step="1800"> 
-                    <input id="is-holiday" type="checkbox" name="is-holiday">
-                    <label for="is-holiday">周末或例假日</label> -->
                 </div>
                 <div>
                     <label>交通工具 </label>
@@ -48,8 +45,10 @@
                     <label>次</label>
                 </div>
             </div>
-            <hr>
-            <div id="directions-panel"></div>
+            <div id="directions-panel">
+                <hr>
+                <button type="button" class="close-directions" onclick="closeDirections()">關閉</button>
+            </div>
         </div>
         <div id="map"></div>
     </div>
