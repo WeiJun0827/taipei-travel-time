@@ -143,7 +143,7 @@ const getUserId = async (accessToken) => {
 };
 
 const getAllPlaces = async (user_id) => {
-    const places = await query('SELECT lat, lon, icon, google_maps_id AS googleMapsId, title, description FROM place WHERE user_id = ?', user_id);
+    const places = await query('SELECT id, lat, lon, icon, google_maps_id AS googleMapsId, title, description FROM place WHERE user_id = ?', user_id);
     return places;
 };
 
@@ -158,8 +158,8 @@ const getPlace = async (user_id, place_id) => {
     return place;
 };
 
-const updatePlace = async (user_id, place_id, title, type, description) => {
-    const result = await query('UPDATE place SET title = ?, type = ?, description = ? WHERE user_id = ? AND id = ?', [title, type, description, user_id, place_id]);
+const updatePlace = async (user_id, place_id, title, description) => {
+    const result = await query('UPDATE place SET title = ?, description = ? WHERE user_id = ? AND id = ?', [title, description, user_id, place_id]);
     return result;
 };
 

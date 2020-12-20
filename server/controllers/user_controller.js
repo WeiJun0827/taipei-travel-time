@@ -161,8 +161,8 @@ const getPlace = async (req, res) => {
 
 const updatePlace = async (req, res) => {
     const placeId = Number(req.params.id);
-    const { title, type, description } = req.body;
-    const myList = await User.updatePlace(req.userId, placeId, title, type, description);
+    const { title, description } = req.body;
+    const myList = await User.updatePlace(req.userId, placeId, title, description);
     res.status(200).send({ data: myList });
 };
 
