@@ -6,6 +6,7 @@ let polygon;
 let placeMarkers = [];
 let placeInfoWindow;
 let directionsRenderer;
+const token = window.localStorage.getItem('access_token');
 
 document.getElementById('my-position-btn').addEventListener('click', goToUsersLocation);
 document.getElementById('search-btn').addEventListener('click', textSearchPlaces);
@@ -76,9 +77,8 @@ function initMarker(position) {
     mainMarker = new google.maps.Marker({
         map: map,
         position: position,
-        title: '旅程起點',
+        title: 'Starter',
         draggable: true,
-        // icon: icon,
         animation: google.maps.Animation.DROP
     });
     google.maps.event.addListener(mainMarker, 'dragend', function () {
@@ -120,8 +120,12 @@ function initInfoWindow() {
             labeledMode();
         else
             defaultMode();
+        $('.set-as-marker').click(moveMarkerForPlace);
         $('.display-directions').click(displayDirections);
-        $('.create-label').click(editingMode);
+        $('.create-label').click(() => {
+            if (!token) window.location.href = './member.html';
+            editingMode();
+        });
         $('.hide-editor').click(() => {
             if (placeInfoWindow.marker.isMyPlace)
                 labeledMode();
@@ -153,7 +157,7 @@ function latLonSearchPlaces() {
     }, function (results, status) {
         if (status === google.maps.places.PlacesServiceStatus.OK) {
             resetMarkers(placeMarkers);
-            createMarkersForPlaces(results);
+            createMarkersForPlaces(results, true);
         }
     });
 }
@@ -167,15 +171,8 @@ function searchBoxPlaces(searchBox) {
     }
 }
 
-function moveMarkerForPlace(place) {
-    const bounds = new google.maps.LatLngBounds();
-    mainMarker.setPosition(place.geometry.location);
-    if (place.geometry.viewport) {
-        bounds.union(place.geometry.viewport);
-    } else {
-        bounds.extend(place.geometry.location);
-    }
-    map.fitBounds(bounds);
+function moveMarkerForPlace() {
+    mainMarker.setPosition(placeInfoWindow.marker.position);
     drawTransitArea();
 }
 
@@ -188,7 +185,8 @@ function textSearchPlaces() {
     }, function (results, status) {
         if (status === google.maps.places.PlacesServiceStatus.OK) {
             resetMarkers(placeMarkers);
-            createMarkersForPlaces(results);
+            createMarkersForPlaces(results, false);
+            addPlaceInList(results);
         }
     });
 }
@@ -198,10 +196,12 @@ function resetMarkers(markers) {
     markers = [];
 }
 
-function createMarkersForPlaces(places) {
+function createMarkersForPlaces(places, withIconUrl) {
     const bounds = new google.maps.LatLngBounds();
+    let count = 0;
     for (const place of places) {
-        const marker = createMarker(place.place_id, place.geometry.location, place.name, place.icon);
+        count++;
+        const marker = createMarker(place.place_id, place.geometry.location, place.name, { label: count.toString(), icon: place.icon });
         placeMarkers.push(marker);
         if (place.geometry.viewport) {
             bounds.union(place.geometry.viewport);
@@ -213,21 +213,33 @@ function createMarkersForPlaces(places) {
 }
 
 
-function createMarker(placeId, position, title, iconUrl) {
-    const icon = {
-        url: iconUrl,
-        size: new google.maps.Size(35, 35),
-        origin: new google.maps.Point(0, 0),
-        anchor: new google.maps.Point(15, 34),
-        scaledSize: new google.maps.Size(25, 25)
-    };
-    const marker = new google.maps.Marker({
-        map: map,
-        icon: icon,
-        title: title,
-        position: position,
-        placeId: placeId
-    });
+function createMarker(placeId, position, title, markerOptions) {
+    // const icon = {
+    //     url: iconUrl,
+    //     size: new google.maps.Size(35, 35),
+    //     origin: new google.maps.Point(0, 0),
+    //     anchor: new google.maps.Point(15, 34),
+    //     scaledSize: new google.maps.Size(25, 25)
+    // };
+    const { icon, label } = markerOptions;
+    let marker;
+    if (label)
+        marker = new google.maps.Marker({
+            map: map,
+            label: label,
+            iconUrl: icon,
+            title: title,
+            position: position,
+            placeId: placeId
+        });
+    else
+        marker = new google.maps.Marker({
+            map: map,
+            icon: icon,
+            title: title,
+            position: position,
+            placeId: placeId
+        });
     marker.addListener('click', function () {
         if (placeInfoWindow.marker != this) {
             getPlacesDetails(this, placeInfoWindow);
@@ -278,7 +290,7 @@ function initMyPlaceUi(container) {
     const title = placeInfoWindow.marker.title || '';
     const description = placeInfoWindow.marker.description || '';
     const form = $('<form><br></form>').attr({ class: 'my-place-form' }).css('display', 'none');
-    form.append($('<strong></strong>').text('我的地點'));
+    form.append($('<strong></strong>').text('My Place'));
     form.append($('<input>').attr({
         type: 'text',
         class: 'place-title-input',
@@ -292,9 +304,9 @@ function initMyPlaceUi(container) {
         rows: 4,
     }).css({ width: '176px', resize: 'none' }).text(description));
     form.append(
-        $('<input>').attr({ type: 'button', class: 'submit-place', value: '完成' }));
+        $('<input>').attr({ type: 'button', class: 'submit-place', value: 'Submit' }));
     form.append(
-        $('<input>').attr({ type: 'button', class: 'hide-editor', value: '取消' }));
+        $('<input>').attr({ type: 'button', class: 'hide-editor', value: 'Cancel' }));
     container.append(form);
 
     const label = $('<div><br></div>').attr({ class: 'my-place-label' }).css('display', 'none');
@@ -305,22 +317,33 @@ function initMyPlaceUi(container) {
 
     const optionsMenu = $('<div></div>').attr('class', 'options-menu');
     optionsMenu.append(
-        $('<input>').attr({ type: 'button', class: 'display-directions', value: '顯示路徑' }));
+        $('<input>').attr({ type: 'button', class: 'set-as-marker', value: 'Here' }));
     optionsMenu.append(
-        $('<input>').attr({ type: 'button', class: 'create-label', value: '標記地點' }));
+        $('<input>').attr({ type: 'button', class: 'display-directions', value: 'Navi.' }));
     optionsMenu.append(
-        $('<input>').attr({ type: 'button', class: 'edit-label', value: '編輯' }));
+        $('<input>').attr({ type: 'button', class: 'create-label', value: 'Label' }));
     optionsMenu.append(
-        $('<input>').attr({ type: 'button', class: 'delete-label', value: '刪除' }));
+        $('<input>').attr({ type: 'button', class: 'edit-label', value: 'Edit' }));
+    optionsMenu.append(
+        $('<input>').attr({ type: 'button', class: 'delete-label', value: 'Delete' }));
     container.append(optionsMenu);
 }
 
+function addPlaceInList(places) {
+
+    $('search-places-panel').append(
+        $('<div></div>').attr('class', 'search-place-info').text(places.name));
+
+}
+
 function getLabels() {
+    if (!token) return;
+
     const settings = {
         'url': '/api/1.0/user/places',
         'method': 'GET',
         'headers': {
-            'Authorization': 'Bearer 48b752189d556d065393e53d01bb880012d111e4c57474e15cc277ddbb49d033',
+            'Authorization': 'Bearer ' + token,
             'Content-Type': 'application/json'
         }
     };
@@ -329,7 +352,14 @@ function getLabels() {
         const { places } = response;
         for (const place of places) {
             const position = new google.maps.LatLng(place.lat, place.lon);
-            const marker = createMarker(place.googleMapsId, position, place.title, place.icon);
+            const icon = {
+                url: place.icon,
+                size: new google.maps.Size(35, 35),
+                origin: new google.maps.Point(0, 0),
+                anchor: new google.maps.Point(15, 34),
+                scaledSize: new google.maps.Size(25, 25)
+            };
+            const marker = createMarker(place.googleMapsId, position, place.title, { icon });
             marker.isMyPlace = true;
             marker.id = place.id;
             marker.description = place.description;
@@ -338,31 +368,31 @@ function getLabels() {
 }
 
 function createLabel() {
+    const position = placeInfoWindow.marker.getPosition();
+    const iconUrl = placeInfoWindow.marker.iconUrl;
+    const title = $('.place-title-input').val();
+    const description = $('.place-description-input').val();
     const settings = {
         'url': '/api/1.0/user/places',
         'method': 'POST',
         'headers': {
-            'Authorization': 'Bearer 48b752189d556d065393e53d01bb880012d111e4c57474e15cc277ddbb49d033',
+            'Authorization': 'Bearer ' + window.localStorage.getItem('access_token'),
             'Content-Type': 'application/json'
         },
         'data': JSON.stringify({
-            lat: placeInfoWindow.marker.getPosition().lat(),
-            lon: placeInfoWindow.marker.getPosition().lng(),
-            icon: placeInfoWindow.marker.icon.url,
+            lat: position.lat(),
+            lon: position.lng(),
+            icon: iconUrl,
             googleMapsId: placeInfoWindow.marker.placeId,
-            title: $('.place-title-input').val(),
-            description: $('.place-description-input').val()
+            title: title,
+            description: description
         })
     };
 
     $.ajax(settings).done(function (response) {
         const { placeId } = response;
-        placeInfoWindow.marker.id = placeId;
-        placeInfoWindow.marker.isMyPlace = true;
-        placeInfoWindow.marker.title = $('.place-title-input').val();
-        placeInfoWindow.marker.description = $('.place-description-input').val();
-        $('.place-title-label').text($('.place-title-input').val());
-        $('.place-description-label').text($('.place-description-input').val());
+        placeInfoWindow.marker.setMap(null);
+        getLabels();
         labeledMode();
     });
 }
@@ -372,7 +402,7 @@ function updateLabel() {
         'url': '/api/1.0/user/places/' + placeInfoWindow.marker.id,
         'method': 'PATCH',
         'headers': {
-            'Authorization': 'Bearer 48b752189d556d065393e53d01bb880012d111e4c57474e15cc277ddbb49d033',
+            'Authorization': 'Bearer ' + window.localStorage.getItem('access_token'),
             'Content-Type': 'application/json'
         },
         'data': JSON.stringify({
@@ -396,7 +426,7 @@ function deleteLabel() {
         'url': '/api/1.0/user/places/' + placeInfoWindow.marker.id,
         'method': 'DELETE',
         'headers': {
-            'Authorization': 'Bearer 48b752189d556d065393e53d01bb880012d111e4c57474e15cc277ddbb49d033',
+            'Authorization': 'Bearer ' + window.localStorage.getItem('access_token'),
             'Content-Type': 'application/json'
         }
     };
@@ -468,6 +498,11 @@ function closeDirections() {
     directionsRenderer.setMap(null);
     initDirectionsRenderer();
     $('#directions-panel').css('display', 'none');
+}
+
+function closeSearchPlaces() {
+    resetMarkers(placeMarkers);
+    $('#search-places-panel').css('display', 'none');
 }
 
 function goToUsersLocation() {

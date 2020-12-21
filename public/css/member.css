@@ -4,6 +4,8 @@
 	--gray: #333;
 	--blue: #0367a6;
 	--lightblue: #008997;
+	--orange: #f4623a;
+	--lightorange: #f4843a;
 
 	/* RADII */
 	--button-radius: 0.7rem;
@@ -238,25 +240,22 @@ body {
 }
 
 .btn {
-	/* background-color: var(--blue); */
-	/* background-image: linear-gradient(90deg, var(--blue) 0%, var(--lightblue) 74%); */
-	border: 1px solid var(--blue);
-	background-color: #f24516;
-	background-image: #f24516;
+	background-color: var(--orange);
+	background-image: linear-gradient(90deg, var(--orange) 0%, var(--lightorange) 74%);
 	border-radius: 20px;
-	border: 1px solid #f24516;
+	border: 1px solid var(--orange);
 	color: var(--white);
 	cursor: pointer;
 	font-size: 0.8rem;
 	font-weight: bold;
 	letter-spacing: 0.1rem;
-	padding: 0.4rem 2rem;
+	padding: 0.9rem 4rem;
 	text-transform: uppercase;
 	transition: transform 80ms ease-in;
 }
 
 .form > .btn {
-	margin-top: 1rem;
+	margin-top: 1.5rem;
 }
 
 .btn:active {
@@ -298,4 +297,8 @@ body {
 		opacity: 1;
 		z-index: 5;
 	}
+}
+
+.fb_reset{
+	display: none;
 }

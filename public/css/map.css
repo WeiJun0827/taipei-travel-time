@@ -51,6 +51,10 @@ body {
   width: 80px;
 }
 
+#departure-time{
+  /* width: 250px; */
+}
+
 #max-walk-dist {
   width: 60px;
 }
@@ -59,7 +63,7 @@ body {
   width: 30px;
 }
 
-#directions-panel {
+#directions-panel, #search-places-panel {
   font-size: 14px;
   max-height: 400px;
   overflow: auto;
