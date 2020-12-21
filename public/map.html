@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./css/map.css" />
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"
+        integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div id="side-box">
+            <div id="options-box">
+                <input id="my-position-btn" type="button" value="⊕">
+                <input id="search-place" type="text" placeholder="搜尋地點">
+                <input id="search-btn" type="button" value="搜尋">
+                <div>
+                    <label>旅行時間</label>
+                    <input id="travel-time" type="number" value="30" min="5" max="120" step="5">
+                    <label>分鐘</label>
+                </div>
+                <div>
+                    <label>出發時刻</label>
+                    <input id="departure-time" type="datetime-local" step="1800">
+                </div>
+                <div>
+                    <label>交通工具 </label>
+                    <input id="take-metro" type="checkbox" checked>
+                    <label for="take-metro">捷運</label>
+                    <input id="take-bus" type="checkbox" checked>
+                    <label for="take-bus">公車</label>
+                </div>
+                <div>
+                    <input id="apply-max-walk-dist" type="checkbox" checked>
+                    <label for="apply-max-walk-dist">最遠步行距離</label>
+                    <input id="max-walk-dist" type="number" value="400" min="100" max="3000" step="100">
+                    <label>公尺</label>
+                </div>
+                <div>
+                    <input id="apply-max-transfer-times" type="checkbox" checked>
+                    <label for="apply-max-transfer-times">最大轉乘次數</label>
+                    <input id="max-transfer-times" type="number" value="1" min="0" max="3" step="1">
+                    <label>次</label>
+                </div>
+            </div>
+            <div id="directions-panel">
+                <hr>
+                <button type="button" class="close-directions" onclick="closeDirections()">關閉</button>
+            </div>
+        </div>
+        <div id="map"></div>
+    </div>
+    <script src="./js/map.js"></script>
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?libraries=places,geometry,drawing&key=AIzaSyBFFH-k40TGQI-ktrgnvGTlcNbCHm6JOkY&v=weekly&callback=initMap"></script>
+</body>
+
+</html>
