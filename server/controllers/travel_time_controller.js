@@ -132,8 +132,8 @@ const getTravelTimeByTransit = async (req, res) => {
 (async () => {
     try {
         await initMetroGraph();
-        await initBusGraph();
-        createTransferEdges(400);
+        // await initBusGraph();
+        // createTransferEdges(400);
         // graph.addStarterNode('AAA', 25.013646922801897, 121.46401804986573, 420, 1, 200);
         // graph.dijkstraAlgorithm('AAA', 420, '08:00', false, false, true, 10);
     } catch (e) {
