@@ -400,7 +400,7 @@ const logBusRunTime = async function (city, routeId) {
             const toEstiTime = toStopInfo.EstimateTime;
             if (fromEstiTime == undefined || toEstiTime == undefined) continue;
             const runTime = toEstiTime - fromEstiTime;
-            if (runTime < 0) continue;
+            if (runTime <= 0) continue;
             const travelTimeLog = {
                 sub_route_id: subRouteId,
                 direction: direction,
@@ -449,4 +449,4 @@ const batchImportBusRunTimeLog = async function () {
 // batchImportBusData(17, 12);
 // Bus.getAllFrequencys();
 batchImportBusRunTimeLog();
-setInterval(() => batchImportBusRunTimeLog(), 300000);
+setInterval(() => batchImportBusRunTimeLog(), 600000);

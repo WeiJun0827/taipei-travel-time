@@ -84,3 +84,13 @@ GROUP BY from_stop_id) t1
 SET t2.run_time = t1.run_time
 WHERE t1.from_stop_id = t2.from_stop_id AND t1.to_stop_id = t2.to_stop_id;
 SET SQL_SAFE_UPDATES = 1;
+
+SET SQL_SAFE_UPDATES = 0;
+DELETE from bus_travel_time 
+WHERE (from_stop_id, to_stop_id, run_time) IN (
+SELECT from_stop_id, to_stop_id, run_time 
+from (
+SELECT from_stop_id, to_stop_id, run_time, COUNT(*) AS count FROM bus_travel_time_log GROUP BY to_stop_id, run_time HAVING count < 10
+)t 
+);
+SET SQL_SAFE_UPDATES = 1;
