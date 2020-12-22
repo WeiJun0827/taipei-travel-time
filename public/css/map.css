@@ -18,7 +18,7 @@ body {
 
 #map {
   height: 100%;
-  left: 362px;
+  left: 320px;
   right: 0px;
   position: absolute;
 }
@@ -32,7 +32,8 @@ body {
   border-radius: 5px;
   /* margin: 30px; */
   text-align: left;
-  width: 340px;
+  width: 320px;
+  box-sizing: border-box;
 }
 
 #options-box {
@@ -72,4 +73,9 @@ body {
 
 .adp-warnbox {
   display: none;
+}
+
+.info-window-btn {
+  margin: 5px;
+  color: #f4623a;
 }

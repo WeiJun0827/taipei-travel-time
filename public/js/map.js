@@ -144,7 +144,7 @@ function initInfoWindow() {
         });
     });
     placeInfoWindow.addListener('closeclick', function () {
-        console.log('call close');
+        placeInfoWindow.marker = null;
     });
 }
 
@@ -304,9 +304,9 @@ function initMyPlaceUi(container) {
         rows: 4,
     }).css({ width: '176px', resize: 'none' }).text(description));
     form.append(
-        $('<input>').attr({ type: 'button', class: 'submit-place', value: 'Submit' }));
+        $('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/></svg>').attr({ class: 'info-window-btn submit-place' }));
     form.append(
-        $('<input>').attr({ type: 'button', class: 'hide-editor', value: 'Cancel' }));
+        $('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>').attr({ class: 'info-window-btn hide-editor' }));
     container.append(form);
 
     const label = $('<div><br></div>').attr({ class: 'my-place-label' }).css('display', 'none');
@@ -317,22 +317,23 @@ function initMyPlaceUi(container) {
 
     const optionsMenu = $('<div></div>').attr('class', 'options-menu');
     optionsMenu.append(
-        $('<input>').attr({ type: 'button', class: 'set-as-marker', value: 'Here' }));
+        $('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-geo-alt-fill" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>').attr({ class: 'info-window-btn set-as-marker' }));
     optionsMenu.append(
-        $('<input>').attr({ type: 'button', class: 'display-directions', value: 'Navi.' }));
+        $('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-cursor-fill" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M14.082 2.182a.5.5 0 0 1 .103.557L8.528 15.467a.5.5 0 0 1-.917-.007L5.57 10.694.803 8.652a.5.5 0 0 1-.006-.916l12.728-5.657a.5.5 0 0 1 .556.103z"/></svg>').attr({ class: 'info-window-btn display-directions' }));
     optionsMenu.append(
-        $('<input>').attr({ type: 'button', class: 'create-label', value: 'Label' }));
+        $('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-star-fill" viewBox="0 0 16 16"><path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.283.95l-3.523 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/></svg>').attr({ class: 'info-window-btn create-label' }));
     optionsMenu.append(
-        $('<input>').attr({ type: 'button', class: 'edit-label', value: 'Edit' }));
+        $('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-pencil-fill" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708l-3-3zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207l6.5-6.5zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.499.499 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11l.178-.178z"/></svg>').attr({ class: 'info-window-btn edit-label' }));
     optionsMenu.append(
-        $('<input>').attr({ type: 'button', class: 'delete-label', value: 'Delete' }));
+        $('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5a.5.5 0 0 0-1 0v7a.5.5 0 0 0 1 0v-7z"/></svg>').attr({ class: 'info-window-btn delete-label' }));
     container.append(optionsMenu);
 }
 
 function addPlaceInList(places) {
+    $('#search-places-panel').css('display', 'block');
 
-    $('search-places-panel').append(
-        $('<div></div>').attr('class', 'search-place-info').text(places.name));
+    // $('search-places-panel').append(
+    //     $('<div></div>').attr('class', 'search-place-info').text(places.name));
 
 }
 
@@ -466,7 +467,6 @@ function defaultMode() {
 }
 
 function displayDirections() {
-    console.log('call display directions');
     resetMarkers(placeMarkers);
     const modes = [];
     if (document.getElementById('take-metro').checked) modes.push('SUBWAY');
