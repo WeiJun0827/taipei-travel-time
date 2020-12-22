@@ -107,7 +107,7 @@ function initSearchBox() {
 }
 
 function initDirectionsRenderer() {
-    $('#directions-info').replaceWith($('<div></div>').attr('id','directions-info'));
+    $('#directions-info').replaceWith($('<div></div>').attr('id', 'directions-info'));
     directionsRenderer = new google.maps.DirectionsRenderer({
         map: map,
         panel: document.getElementById('directions-info')
@@ -305,9 +305,9 @@ function initMyPlaceUi(container) {
         rows: 4,
     }).css({ width: '176px', resize: 'none' }).text(description));
     form.append(
-        $('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/></svg>').attr({ class: 'info-window-btn submit-place' }));
-    form.append(
         $('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>').attr({ class: 'info-window-btn hide-editor' }));
+    form.append(
+        $('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/></svg>').attr({ class: 'info-window-btn submit-place' }));
     container.append(form);
 
     const label = $('<div><br></div>').attr({ class: 'my-place-label' }).css('display', 'none');
@@ -378,7 +378,7 @@ function createLabel() {
         'url': '/api/1.0/user/places',
         'method': 'POST',
         'headers': {
-            'Authorization': 'Bearer ' + window.localStorage.getItem('access_token'),
+            'Authorization': 'Bearer ' + token,
             'Content-Type': 'application/json'
         },
         'data': JSON.stringify({
@@ -396,6 +396,8 @@ function createLabel() {
         placeInfoWindow.marker.setMap(null);
         getLabels();
         labeledMode();
+    }).fail(function (error) {
+        alert(error);
     });
 }
 
@@ -404,7 +406,7 @@ function updateLabel() {
         'url': '/api/1.0/user/places/' + placeInfoWindow.marker.id,
         'method': 'PATCH',
         'headers': {
-            'Authorization': 'Bearer ' + window.localStorage.getItem('access_token'),
+            'Authorization': 'Bearer ' + token,
             'Content-Type': 'application/json'
         },
         'data': JSON.stringify({
@@ -428,7 +430,7 @@ function deleteLabel() {
         'url': '/api/1.0/user/places/' + placeInfoWindow.marker.id,
         'method': 'DELETE',
         'headers': {
-            'Authorization': 'Bearer ' + window.localStorage.getItem('access_token'),
+            'Authorization': 'Bearer ' + token,
             'Content-Type': 'application/json'
         }
     };

@@ -47,7 +47,8 @@ function signIn() {
 		},
 		body: JSON.stringify(userData)
 	}).then(response => {
-		if (!response.ok) throw new Error(response.statusText);
+		if (!response.ok) alert(response);
+		// throw new Error(response.statusText);
 		return response.json();
 	}).then(json => {
 		const token = json.data.access_token;
@@ -73,7 +74,8 @@ function signUp() {
 		},
 		body: JSON.stringify(userData)
 	}).then(response => {
-		if (!response.ok) throw new Error(response.statusText);
+		if (!response.ok) alert(response);
+		// throw new Error(response.statusText);
 		return response.json();
 	}).then(json => {
 		const token = json.data.access_token;
