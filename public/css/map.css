@@ -79,3 +79,12 @@ body {
   margin: 5px;
   color: #f4623a;
 }
+
+.option-row {
+  position: relative;
+}
+
+.option-icon {
+  /* position: absolute; */
+  top: 5px
+}
