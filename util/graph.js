@@ -325,7 +325,7 @@ class Graph {
             if (isVisited[currNodeId]) continue;
             const passedTime = cost[currNodeId];
             if (passedTime == Infinity) continue;
-            const currTime = moment(departureDatetime, 'YYYY-MM-DD HH:mm:ss').add(passedTime, 'seconds').format(momentFormat);
+            const currTime = moment(departureDatetime, 'YYYY-MM-DD HH:mm').add(passedTime, 'seconds').format(momentFormat);
             const basicTime = cost[currNodeId];
             let isInvalidTransferNode = currPqNode.isArrivedByWalking;
             for (const nextNodeId in currNode.edges) {

@@ -107,9 +107,10 @@ function initSearchBox() {
 }
 
 function initDirectionsRenderer() {
+    $('#directions-info').replaceWith($('<div></div>').attr('id','directions-info'));
     directionsRenderer = new google.maps.DirectionsRenderer({
         map: map,
-        panel: document.getElementById('directions-panel')
+        panel: document.getElementById('directions-info')
     });
 }
 
@@ -468,6 +469,7 @@ function defaultMode() {
 
 function displayDirections() {
     resetMarkers(placeMarkers);
+    $('#search-places-panel').css('display', 'none');
     const modes = [];
     if (document.getElementById('take-metro').checked) modes.push('SUBWAY');
     if (document.getElementById('take-bus').checked) modes.push('BUS');
