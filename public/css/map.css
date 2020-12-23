@@ -80,11 +80,13 @@ body {
   color: #f4623a;
 }
 
-.option-row {
+.options-row {
   position: relative;
+  /* display: flex;
+  justify-items: center; */
 }
 
 .option-icon {
   /* position: absolute; */
-  top: 5px
+  /* top: 5px */
 }
