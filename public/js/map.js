@@ -24,6 +24,13 @@ document.getElementById('max-transfer-times').addEventListener('change', () => {
     if (document.getElementById('apply-max-transfer-times').checked)
         drawTransitArea();
 });
+
+// Menu Toggle Script
+$('#menu-toggle').click((e) => {
+    e.preventDefault();
+    $('#wrapper').toggleClass('toggled');
+});
+
 $(document).ready(function () {
     $('#departure-time').val(new Date().toDateInputValue());
 });
