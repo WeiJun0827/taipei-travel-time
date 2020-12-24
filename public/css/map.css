@@ -6,7 +6,8 @@
   /* RADII */
   --button-radius: 0.7rem;  
   /* SIZES */
-  --navbr-height: 4rem;
+  --navbar-height: 4rem;
+  --sidebar-width: 20rem;
   --max-width: 600px;
   --max-height: 370px;  
   font-size: 16px;
@@ -23,14 +24,14 @@ body {
 }
 
 #header {
-  height: var(--navbr-height)
+  height: var(--navbar-height)
 }
 
 #wrapper {
   overflow-x: hidden;
   padding-left: 0;
   padding-right: 0;
-  min-height: calc(100vh - var(--navbr-height));
+  min-height: calc(100vh - var(--navbar-height));
 }
 
 #sidebar-wrapper {
@@ -46,7 +47,7 @@ body {
 }
 
 #sidebar-wrapper .list-group {
-  width: 15rem;
+  width: var(--sidebar-width);
 }
 
 #menu-toggle {
@@ -152,6 +153,6 @@ body {
   }
 
   #wrapper.toggled #sidebar-wrapper {
-    margin-left: -15rem;
+    margin-left: calc(var(--sidebar-width) * -1);
   }
 }

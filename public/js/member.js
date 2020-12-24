@@ -29,62 +29,110 @@ window.fbAsyncInit = function () {
 	});
 
 	FB.AppEvents.logPageView();
-
 };
 
 
-function signIn() {
+async function signIn() {
 	const userData = {
 		provider: 'native',
 		email: document.getElementById('sign-in-email').value,
 		password: document.getElementById('sign-in-password').value,
 	};
 
-	fetch('/api/1.0/user/signin', {
+
+	const response = await fetch('/api/1.0/user/signin', {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
 		},
 		body: JSON.stringify(userData)
-	}).then(response => {
-		if (!response.ok) alert(response);
-		// throw new Error(response.statusText);
-		return response.json();
-	}).then(json => {
-		const token = json.data.access_token;
-		localStorage.setItem('access_token', token);
-		window.location.href = './';
-	}).catch(error => {
-		console.log('Fetch Error: ', error);
 	});
+
+	if (!response.ok) {
+		switch (response.status) {
+			case 400:
+				alert('Email and password are required');
+				// Swal.fire({
+				// 	icon: 'error',
+				// 	title: 'Invalid email or password',
+				// 	// text: 'You can consider using your Google or Facebook account.',
+				// });
+				break;
+			case 403:
+				alert('Email or password incorrect');
+				// Swal.fire({
+				// 	icon: 'error',
+				// 	title: 'Email has already been taken',
+				// 	text: 'No worry! Let\'s try another one.',
+				// });
+				break;
+			case 500:
+			default:
+				Swal.fire({
+					icon: 'error',
+					title: 'Our member service is temporarily unavailable',
+					text: 'Be right back! Just another second please...',
+				});
+				break;
+		}
+		return;
+	}
+
+	const token = json.data.access_token;
+	localStorage.setItem('access_token', token);
+	window.location.href = './map.html';
+
 }
 
 
-function signUp() {
+async function signUp() {
 	const userData = {
 		name: document.getElementById('sign-up-name').value,
 		email: document.getElementById('sign-up-email').value,
 		password: document.getElementById('sign-up-password').value,
 	};
 
-	fetch('/api/1.0/user/signup', {
+	const response = await fetch('/api/1.0/user/signup', {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
 		},
 		body: JSON.stringify(userData)
-	}).then(response => {
-		if (!response.ok) alert(response);
-		// throw new Error(response.statusText);
-		return response.json();
-	}).then(json => {
-		const token = json.data.access_token;
-		localStorage.setItem('access_token', token);
-		window.location.href = './';
-	}).catch(error => {
-		console.log('Fetch Error: ', error);
 	});
+
+	if (!response.ok) {
+		switch (response.status) {
+			case 400:
+				Swal.fire({
+					icon: 'error',
+					title: 'Invalid name, email or password',
+					text: 'You can consider using your Google or Facebook account.',
+				});
+				break;
+			case 403:
+				Swal.fire({
+					icon: 'warning',
+					title: 'Email has already been taken',
+					text: 'No worry! Let\'s try another one.',
+				});
+				break;
+			case 500:
+			default:
+				Swal.fire({
+					icon: 'error',
+					title: 'Our member service is temporarily unavailable',
+					text: 'Be right back! Just another second please...',
+				});
+				break;
+		}
+		return;
+	}
+	const json = await response.json();
+	const token = json.data.access_token;
+	localStorage.setItem('access_token', token);
+	window.location.href = './map.html';
 }
+
 
 (function (d, s, id) {
 	var js, fjs = d.getElementsByTagName(s)[0];
