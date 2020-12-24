@@ -145,50 +145,56 @@
     <div id="map-wrapper">
       <button class="btn btn-primary" id="menu-toggle">Toggle</button>
       <!-- <div class="d-flex justify-content-around align-items-center mx-auto rounded-3 border border-3 border-primary" id="options-bar"> -->
-      <div class="container-fluid p-2 mx-auto rounded-3 border border-3 border-primary" id="options-bar">
+      <div class="container-fluid p-2 mx-auto rounded-bottom" id="options-bar">
         <div class="row g-2">
-          <div class="col-6">
+          <div class="col-4">
             <div class="input-group flex-fill">
               <div class="btn btn-primary input-group-text" id="btnGroupAddon">⊕</div>
               <input type="text" class="form-control" placeholder="Enter Location or Address"
                 aria-label="Input group example" aria-describedby="btnGroupAddon">
             </div>
           </div>
-          <div class="col-3">
-            <select class="form-select flex-fill" aria-label="Default select example">
-              <option value="10">10 min</option>
-              <option value="20">20 min</option>
-              <option selected value="30">30 min</option>
-              <option value="40">40 min</option>
-              <option value="50">50 min</option>
-              <option value="60">1 hr</option>
-              <option value="70">1 hr 10 min</option>
-              <option value="80">1 hr 20 min</option>
-              <option value="90">1 hr 30 min</option>
-              <option value="100">1 hr 40 min</option>
-              <option value="110">1 hr 50 min</option>
-              <option value="120">2 hr</option>
-            </select>
+          <div class="col-2">
+            <div class="form-floating">
+              <select class="form-select flex-fill" id="travel-time2" aria-label="Default select example">
+                <option value="10">10 min</option>
+                <option value="20">20 min</option>
+                <option selected value="30">30 min</option>
+                <option value="40">40 min</option>
+                <option value="50">50 min</option>
+                <option value="60">1 hr</option>
+                <option value="70">1 hr 10 min</option>
+                <option value="80">1 hr 20 min</option>
+                <option value="90">1 hr 30 min</option>
+                <option value="100">1 hr 40 min</option>
+                <option value="110">1 hr 50 min</option>
+                <option value="120">2 hr</option>
+              </select>
+              <label for="travel-time2">Travel Time</label>
+            </div>
           </div>
-          <div class="col-3">
-            <select class="form-select flex-fill" aria-label="Default select example">
-              <option value="1">Metro & Bus</option>
-              <option value="2">Metro Only</option>
-              <option value="3">Bus Only</option>
-            </select>
+          <div class="col-2">
+            <div class="form-floating">
+              <select class="form-select flex-fill" id="public-transport" aria-label="Default select example">
+                <option value="1">Metro & Bus</option>
+                <option value="2">Metro Only</option>
+                <option value="3">Bus Only</option>
+              </select>
+              <label for="public-transport">Public Transport</label>
+            </div>
           </div>
-          <div class="col-4">
+          <div class="col-1">
             <div class="form-floating">
               <select class="form-select flex-fill" id="max-transfer-times2" aria-label="Default select example">
                 <option value="0">No Transfer</option>
-                <option value="1">Not More Than 1</option>
-                <option selected value="2">Not More Than 2</option>
-                <option value="3">Not More Than 3</option>
+                <option value="1">1</option>
+                <option selected value="2">2</option>
+                <option value="3">3</option>
               </select>
-              <label for="max-transfer-times2">Max Transfer Time</label>
+              <label for="max-transfer-times2">Transfer</label>
             </div>
           </div>
-          <div class="col-4">
+          <div class="col-1">
             <div class="form-floating">
               <select class="form-select flex-fill" id="max-walk-dist2" aria-label="Default select example">
                 <option value="100">100 m</option>
@@ -212,12 +218,12 @@
                 <option value="1900">1900 m</option>
                 <option value="2000">2000 m</option>
               </select>
-              <label for="max-walk-dist2">Walking Distance</label>
+              <label for="max-walk-dist2">Walking</label>
             </div>
           </div>
-          <div class="col-4">
-            <!-- <input id="departure-time2" type="datetime-local" step="1800"> -->
-          </div>
+          <!-- <div class="col-4">
+            <input id="departure-time2" type="datetime-local" step="1800">
+          </div> -->
         </div>
       </div>
       <div id="map"></div>
@@ -237,6 +243,9 @@
   <!-- Google Maps -->
   <script async defer
     src="https://maps.googleapis.com/maps/api/js?libraries=places,geometry,drawing&key=AIzaSyBFFH-k40TGQI-ktrgnvGTlcNbCHm6JOkY&v=weekly&callback=initMap"></script>
+  <!-- bootstrap-datepicker -->
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
   <script src="./js/map.js"></script>
 </body>
 
