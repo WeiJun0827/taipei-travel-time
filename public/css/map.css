@@ -73,17 +73,6 @@ body {
   font-size: 16px;
 }
 
-#options-bar {
-  position: absolute;
-  /* top: 3rem; */
-  left: 0;
-  right: 0;
-  background-color: #FAA916;
-  opacity: 70%;
-  width: 60rem;
-  z-index: 3;
-}
-
 #location-bar {
   /* background-color: red; */
 }
@@ -113,8 +102,32 @@ body {
   width: 200px;
 }
 
+#search-place-wrapper{
+  width: 16rem;
+}
+
 #travel-time {
   width: 45px;
+}
+
+#options-bar {
+  position: absolute;
+  /* top: 3rem; */
+  left: 0;
+  right: 0;
+  background-color: #fae316;
+  opacity: 90%;
+  width: 820px;
+  z-index: 3;
+}
+
+#travel-time2, #public-transport{
+  border-radius: ;
+  width: 140px 
+}
+
+#max-transfer-times2, #max-walk-dist2 {
+  width: 120px
 }
 
 #weekday {

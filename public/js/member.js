@@ -104,6 +104,7 @@ async function signUp() {
 		switch (response.status) {
 			case 400:
 				Swal.fire({
+					position: 'top',
 					icon: 'error',
 					title: 'Invalid name, email or password',
 					text: 'You can consider using your Google or Facebook account.',
@@ -111,6 +112,7 @@ async function signUp() {
 				break;
 			case 403:
 				Swal.fire({
+					position: 'top',
 					icon: 'warning',
 					title: 'Email has already been taken',
 					text: 'No worry! Let\'s try another one.',
@@ -119,6 +121,7 @@ async function signUp() {
 			case 500:
 			default:
 				Swal.fire({
+					position: 'top',
 					icon: 'error',
 					title: 'Our member service is temporarily unavailable',
 					text: 'Be right back! Just another second please...',
