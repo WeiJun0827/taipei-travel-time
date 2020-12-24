@@ -23,6 +23,10 @@ body {
   padding: 0;
 }
 
+.form-floating label{
+  /* font-size: rem; */
+}
+
 #header {
   height: var(--navbar-height)
 }
@@ -74,14 +78,13 @@ body {
   top: 3rem;
   left: 0;
   right: 0;
-  background-color: blue;
-  /* height: 3rem; */
+  background-color: oldlace;
   width: 40rem;
   z-index: 3;
 }
 
 #location-bar {
-  background-color: red;
+  /* background-color: red; */
 }
 
 #map {
