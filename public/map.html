@@ -40,7 +40,7 @@
 
   <!-- Wrapper -->
   <div class="d-flex container-fluid" id="wrapper">
-    <div class="d-none" id="side-box">
+    <div class="" id="side-box">
       <div id="options-box">
         <div class='options-row'>
           <input id="my-position-btn" type="button" value="⊕">
@@ -144,10 +144,19 @@
     <!-- Map -->
     <div id="map-wrapper">
       <button class="btn btn-primary" id="menu-toggle">Toggle</button>
-      <div class="mx-auto rounded-pill border border-primary text-center" id="options-bar">
-
-          <div class="d-inline align-bottom h3">Centered element</div>
-          <div class="d-inline align-bottom h6">Centered element2</div>
+      <!-- <div class="d-flex justify-content-around align-items-center mx-auto rounded-3 border border-3 border-primary" id="options-bar"> -->
+      <div class="d-flex justify-content-around align-items-center mx-auto rounded-3 border border-3 border-primary"
+        id="options-bar">
+        <div class="border border-5" id="location-bar">AAA</div>
+        <div class="d-none btn-toolbar rounded-pill" role="toolbar" aria-label="Toolbar with button groups">
+          <div class="input-group">
+            <div class="input-group-text" id="btnGroupAddon">@</div>
+            <input type="text" class="form-control" placeholder="Input group" aria-label="Input group example"
+              aria-describedby="btnGroupAddon">
+          </div>
+        </div>
+        <div class="d-inline align-bottom h3">element</div>
+        <div class="d-inline align-bottom h6">element2</div>
       </div>
       <div id="map"></div>
     </div>
