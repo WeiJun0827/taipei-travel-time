@@ -39,26 +39,23 @@ body {
 }
 
 #sidebar-wrapper {
+  width: var(--sidebar-width);
   -webkit-transition: margin .25s ease-out;
   -moz-transition: margin .25s ease-out;
   -o-transition: margin .25s ease-out;
   transition: margin .25s ease-out;
 }
 
-#sidebar-heading {
-  padding: 0.875rem 1.25rem;
-  font-size: 1.2rem;
+#menu-header, #menu-toggle{
+  font-size: 1.5rem;
+  font-weight: 500;
 }
 
-#sidebar-wrapper .list-group {
-  width: var(--sidebar-width);
-}
-
-#menu-toggle {
-  height: 40px;
-  width: 50px;
-  position: absolute;
-  z-index: 2;
+#menu-toggle{
+  /* background: rgba(0, 0, 0, 0.45); */
+  padding: 0 8px;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 #map-wrapper {
@@ -119,15 +116,21 @@ body {
   opacity: 90%;
   width: 820px;
   z-index: 3;
+  border-radius: 37px;
+}
+
+#search-place-wrapper {
+  border-radius: 29px;
 }
 
 #travel-time2, #public-transport{
-  border-radius: ;
-  width: 140px 
+  border-radius: 29px;
+  width: 140px;
 }
 
 #max-transfer-times2, #max-walk-dist2 {
-  width: 120px
+  border-radius: 29px;
+  width: 120px;
 }
 
 #weekday {

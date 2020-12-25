@@ -129,26 +129,22 @@
     </div>
 
     <!-- Sidebar -->
-    <div class="bg-light border-right" id="sidebar-wrapper">
-      <div id="sidebar-heading">Start Bootstrap</div>
-      <div class="list-group list-group-flush">
-        <a href="#" class="list-group-item list-group-item-action bg-light">Dashboard</a>
-        <a href="#" class="list-group-item list-group-item-action bg-light">Shortcuts</a>
-        <a href="#" class="list-group-item list-group-item-action bg-light">Overview</a>
-        <a href="#" class="list-group-item list-group-item-action bg-light">Events</a>
-        <a href="#" class="list-group-item list-group-item-action bg-light">Profile</a>
-        <a href="#" class="list-group-item list-group-item-action bg-light">Status</a>
+    <div class="list-group bg-light border-right" id="sidebar-wrapper">
+      <div id="menu-header">
+        <span href="#" class="list-group-item">
+          Route
+          <span class="float-end btn" id="menu-toggle">×</span>
+        </span>
       </div>
     </div>
 
     <!-- Map -->
     <div id="map-wrapper">
-      <button class="btn btn-primary" id="menu-toggle">Toggle</button>
-      <div class="d-flex align-items-stretch justify-content-between p-2 mx-auto rounded-bottom" id="options-bar">
+      <div class="d-flex align-items-stretch justify-content-between p-2 mx-auto" id="options-bar">
         <!-- <div class="container-fluid p-2 mx-auto rounded-bottom" id="options-bar"> -->
 
-        <div class="input-group align-items-stretch" id="search-place-wrapper">
-          <div class="btn btn-warning input-group-text" id="btnGroupAddon">
+        <div class="d-flex align-items-stretch" id="search-place-wrapper">
+          <div class="d-flex btn btn-warning input-group-text" id="btnGroupAddon">
             <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
               <path d="M0 0h24v24H0z" fill="none" />
               <path
