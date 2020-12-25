@@ -10,7 +10,7 @@
     background-color: #f6fa16;
     opacity: 90%;
     width: 926px;
-    z-index: 3;
+    z-index: 1;
     border-radius: 37px;
 }
 
@@ -69,4 +69,8 @@
     font-weight: 600;
     text-align-last: center;
     background-color: white;
+}
+
+.modal-backdrop {
+    z-index: 0;
 }

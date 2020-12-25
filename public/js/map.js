@@ -23,7 +23,7 @@ document.getElementById('max-transfer-times').addEventListener('change', drawTra
 // Menu Toggle Script
 $('#menu-toggle').click((e) => {
     e.preventDefault();
-    $('#wrapper').toggleClass('toggled');
+    resetDirections();
 });
 
 $(document).ready(function() {
@@ -157,7 +157,7 @@ function latLonSearchPlaces() {
         bounds: bounds
     }, function(results, status) {
         if (status === google.maps.places.PlacesServiceStatus.OK) {
-            resetMarkers(placeMarkers);
+            resetMarkers();
             createMarkersForPlaces(results, true);
         }
     });
@@ -185,16 +185,22 @@ function textSearchPlaces() {
         bounds: bounds
     }, function(results, status) {
         if (status === google.maps.places.PlacesServiceStatus.OK) {
-            resetMarkers(placeMarkers);
+            resetMarkers();
+            resetDirections();
             createMarkersForPlaces(results, false);
             addPlaceInList(results);
         }
     });
 }
 
-function resetMarkers(markers) {
-    markers.forEach(m => m.setMap(null));
-    markers = [];
+function resetMarkers() {
+    placeMarkers.forEach(m => m.setMap(null));
+    placeMarkers = [];
+}
+
+function resetDirections() {
+    $('#sidebar-wrapper').toggleClass('toggled');
+    closeDirections();
 }
 
 function createMarkersForPlaces(places, withIconUrl) {
@@ -470,8 +476,9 @@ function defaultMode() {
 }
 
 function displayDirections() {
-    resetMarkers(placeMarkers);
-    $('#search-places-panel').css('display', 'none');
+    $('#sidebar-wrapper').toggleClass('toggled');
+    placeMarkers.forEach(m => m.setMap(null));
+    // $('#search-places-panel').css('display', 'none');
     const modes = [];
     switch (document.getElementById('transit-mode').value) {
         case '1':
@@ -502,7 +509,7 @@ function displayDirections() {
     }, function(response, status) {
         if (status === google.maps.DirectionsStatus.OK) {
             directionsRenderer.setDirections(response);
-            $('#directions-panel').css('display', 'block');
+            // $('#directions-panel').css('display', 'block');
         } else {
             window.alert('Directions request failed due to ' + status);
         }
@@ -511,12 +518,13 @@ function displayDirections() {
 
 function closeDirections() {
     directionsRenderer.setMap(null);
+    placeMarkers.forEach(m => m.setMap(map));
     initDirectionsRenderer();
-    $('#directions-panel').css('display', 'none');
+    // $('#directions-panel').css('display', 'none');
 }
 
 function closeSearchPlaces() {
-    resetMarkers(placeMarkers);
+    resetMarkers();
     $('#search-places-panel').css('display', 'none');
 }
 

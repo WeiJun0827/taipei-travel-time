@@ -23,16 +23,16 @@
     cursor: pointer;
 }
 
-#wrapper.toggled #sidebar-wrapper {
-    margin-left: 0;
+#sidebar-wrapper.toggled {
+    margin-left: calc(var(--sidebar-width) * -1);
 }
 
 #directions-panel,
 #search-places-panel {
     font-size: 14px;
-    max-height: 400px;
+    /* max-height: 400px; */
     overflow: auto;
-    display: none;
+    /* display: none; */
 }
 
 
@@ -40,6 +40,11 @@
 
 .adp-warnbox {
     display: none;
+}
+
+.adp-summary {
+    font-size: 18px;
+    font-weight: 600;
 }
 
 @media (min-width: 768px) {
@@ -50,7 +55,7 @@
         min-width: 0;
         width: 100%;
     }
-    #wrapper.toggled #sidebar-wrapper {
+    #sidebar-wrapper.toggled {
         margin-left: calc(var(--sidebar-width) * -1);
     }
 }

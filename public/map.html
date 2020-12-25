@@ -107,7 +107,7 @@
       </div>
 
 
-      <div id="directions-panel-1">
+      <!-- <div id="directions-panel-1">
         <hr>
         <button type="button" class="close-directions" onclick="closeDirections()">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-x"
@@ -127,14 +127,14 @@
               d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
           </svg>
         </button>
-      </div>
+      </div> -->
     </div>
 
     <!-- Sidebar -->
-    <div class="list-group bg-light border-right" id="sidebar-wrapper">
+    <div class="list-group bg-light border-right toggled" id="sidebar-wrapper">
+      <!-- title -->
       <div id="menu-header">
         <span href="#" class="list-group-item">
-
           <svg class="align-text-top" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
             <path d="M0 0h24v24H0z" fill="none" />
             <path
@@ -150,19 +150,12 @@
           </span>
         </span>
       </div>
-      <input id="departure-time" type="datetime-local" step="1800">
-      <div id="directions-panel">
-        <hr>
-        <button type="button" class="close-directions" onclick="closeDirections()">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-x"
-            viewBox="0 0 16 16">
-            <path fill-rule="evenodd"
-              d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
-          </svg>
-        </button>
+
+      <!-- Directions -->
+      <div class="p-2" id="directions-panel">
         <div id="directions-info"></div>
       </div>
-      <div id="search-places-panel">
+      <!-- <div id="search-places-panel">
         <hr>
         <button type="button" class="close-search-places" onclick="closeSearchPlaces()">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-x"
@@ -171,7 +164,7 @@
               d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
           </svg>
         </button>
-      </div>
+      </div> -->
     </div>
 
     <!-- Map -->
@@ -323,7 +316,7 @@
 
         <!-- Departure Time -->
         <div class="form-floating">
-          <input type="text" class="form-control" id="departure-time-text" value="Now" readonly>
+          <input type="text" class="form-control" id="departure-time-text" value="Now" readonly data-bs-toggle="modal" data-bs-target="#exampleModal">
           <label for="departure-time-text">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock"
               viewBox="0 0 16 16">
@@ -332,6 +325,25 @@
             </svg>
             Depart
           </label>
+        </div>
+
+        <!-- Departure Time Modal -->
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Departure Time</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <input id="departure-time" type="datetime-local" step="1800">
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Set Time</button>
+              </div>
+            </div>
+          </div>
         </div>
 
       </div>
