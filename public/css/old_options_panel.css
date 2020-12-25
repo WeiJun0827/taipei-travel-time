@@ -1,0 +1,43 @@
+#options-box {
+    line-height: 35px;
+}
+
+#travel-time {
+    width: 45px;
+}
+
+#weekday {
+    width: 80px;
+}
+
+#departure-time {
+    width: 250px;
+}
+
+#max-walk-dist {
+    width: 60px;
+}
+
+#max-transfer-times {
+    width: 30px;
+}
+
+.info-window-btn {
+    margin: 5px;
+    color: #f4623a;
+}
+
+.options-row {
+    position: relative;
+    /* display: flex;
+  justify-items: center; */
+}
+
+.option-icon {
+    /* position: absolute; */
+    /* top: 5px */
+}
+
+#options-box input {
+    font-size: 16px;
+}

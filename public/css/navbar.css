@@ -1,0 +1,7 @@
+:root {
+    --navbar-height: 4rem;
+}
+
+#header {
+    height: var(--navbar-height)
+}

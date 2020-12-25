@@ -11,19 +11,14 @@ const token = window.localStorage.getItem('access_token');
 document.getElementById('my-position-btn').addEventListener('click', goToUsersLocation);
 document.getElementById('search-btn').addEventListener('click', textSearchPlaces);
 document.getElementById('travel-time').addEventListener('change', drawTransitArea);
+document.getElementById('transit-mode').addEventListener('change', drawTransitArea);
 document.getElementById('departure-time').addEventListener('change', drawTransitArea);
-document.getElementById('take-metro').addEventListener('change', drawTransitArea);
-document.getElementById('take-bus').addEventListener('change', drawTransitArea);
-document.getElementById('apply-max-walk-dist').addEventListener('change', drawTransitArea);
-document.getElementById('max-walk-dist').addEventListener('change', () => {
-    if (document.getElementById('apply-max-walk-dist').checked)
-        drawTransitArea();
-});
-document.getElementById('apply-max-transfer-times').addEventListener('change', drawTransitArea);
-document.getElementById('max-transfer-times').addEventListener('change', () => {
-    if (document.getElementById('apply-max-transfer-times').checked)
-        drawTransitArea();
-});
+// document.getElementById('take-metro').addEventListener('change', drawTransitArea);
+// document.getElementById('take-bus').addEventListener('change', drawTransitArea);
+// document.getElementById('apply-max-walk-dist').addEventListener('change', drawTransitArea);
+document.getElementById('max-walk-dist').addEventListener('change', drawTransitArea);
+// document.getElementById('apply-max-transfer-times').addEventListener('change', drawTransitArea);
+document.getElementById('max-transfer-times').addEventListener('change', drawTransitArea);
 
 // Menu Toggle Script
 $('#menu-toggle').click((e) => {
@@ -31,32 +26,30 @@ $('#menu-toggle').click((e) => {
     $('#wrapper').toggleClass('toggled');
 });
 
-$(document).ready(function () {
+$(document).ready(function() {
     $('#departure-time').val(new Date().toDateInputValue());
 });
 
 function initMap() {
-    const styles = [
-        {
-            featureType: 'road.highway',
-            elementType: 'geometry.stroke',
-            stylers: [
-                { lightness: +60 }
-            ]
-        }, {
-            featureType: 'road.highway',
-            elementType: 'geometry.fill',
-            stylers: [
-                { lightness: +75 }
-            ]
-        }, {
-            featureType: 'road.highway',
-            elementType: 'labels.icon',
-            stylers: [
-                { visibility: 'off' }
-            ]
-        }
-    ];
+    const styles = [{
+        featureType: 'road.highway',
+        elementType: 'geometry.stroke',
+        stylers: [
+            { lightness: +60 }
+        ]
+    }, {
+        featureType: 'road.highway',
+        elementType: 'geometry.fill',
+        stylers: [
+            { lightness: +75 }
+        ]
+    }, {
+        featureType: 'road.highway',
+        elementType: 'labels.icon',
+        stylers: [
+            { visibility: 'off' }
+        ]
+    }];
 
     const mapOptions = {
         center: new google.maps.LatLng(25.0478072, 121.5170185),
@@ -88,7 +81,7 @@ function initMarker(position) {
         draggable: true,
         animation: google.maps.Animation.DROP
     });
-    google.maps.event.addListener(mainMarker, 'dragend', function () {
+    google.maps.event.addListener(mainMarker, 'dragend', function() {
         drawTransitArea();
     });
 }
@@ -108,7 +101,7 @@ function initSearchBox() {
     const searchBox = new google.maps.places.SearchBox(
         document.getElementById('search-place'));
     searchBox.setBounds(map.getBounds());
-    searchBox.addListener('places_changed', function () {
+    searchBox.addListener('places_changed', function() {
         searchBoxPlaces(this);
     });
 }
@@ -123,7 +116,7 @@ function initDirectionsRenderer() {
 
 function initInfoWindow() {
     placeInfoWindow = new google.maps.InfoWindow({ maxWidth: 220 });
-    placeInfoWindow.addListener('domready', function () {
+    placeInfoWindow.addListener('domready', function() {
         if (placeInfoWindow.marker.isMyPlace)
             labeledMode();
         else
@@ -151,7 +144,7 @@ function initInfoWindow() {
             deleteLabel();
         });
     });
-    placeInfoWindow.addListener('closeclick', function () {
+    placeInfoWindow.addListener('closeclick', function() {
         placeInfoWindow.marker = null;
     });
 }
@@ -162,7 +155,7 @@ function latLonSearchPlaces() {
     placesService.textSearch({
         query: document.getElementById('search-place').value,
         bounds: bounds
-    }, function (results, status) {
+    }, function(results, status) {
         if (status === google.maps.places.PlacesServiceStatus.OK) {
             resetMarkers(placeMarkers);
             createMarkersForPlaces(results, true);
@@ -190,7 +183,7 @@ function textSearchPlaces() {
     placesService.textSearch({
         query: document.getElementById('search-place').value,
         bounds: bounds
-    }, function (results, status) {
+    }, function(results, status) {
         if (status === google.maps.places.PlacesServiceStatus.OK) {
             resetMarkers(placeMarkers);
             createMarkersForPlaces(results, false);
@@ -248,7 +241,7 @@ function createMarker(placeId, position, title, markerOptions) {
             position: position,
             placeId: placeId
         });
-    marker.addListener('click', function () {
+    marker.addListener('click', function() {
         if (placeInfoWindow.marker != this) {
             getPlacesDetails(this, placeInfoWindow);
         }
@@ -260,7 +253,7 @@ function getPlacesDetails(marker, placeInfoWindow) {
     const service = new google.maps.places.PlacesService(map);
     service.getDetails({
         placeId: marker.placeId
-    }, function (place, status) {
+    }, function(place, status) {
         if (status === google.maps.places.PlacesServiceStatus.OK) {
             placeInfoWindow.marker = marker;
             const infoDiv = $('<div></div>');
@@ -357,7 +350,7 @@ function getLabels() {
         }
     };
 
-    $.ajax(settings).done(function (response) {
+    $.ajax(settings).done(function(response) {
         const { places } = response;
         for (const place of places) {
             const position = new google.maps.LatLng(place.lat, place.lon);
@@ -398,12 +391,12 @@ function createLabel() {
         })
     };
 
-    $.ajax(settings).done(function (response) {
+    $.ajax(settings).done(function(response) {
         const { placeId } = response;
         placeInfoWindow.marker.setMap(null);
         getLabels();
         labeledMode();
-    }).fail(function (error) {
+    }).fail(function(error) {
         alert(error);
     });
 }
@@ -422,7 +415,7 @@ function updateLabel() {
         })
     };
 
-    $.ajax(settings).done(function (response) {
+    $.ajax(settings).done(function(response) {
         placeInfoWindow.marker.isMyPlace = true;
         placeInfoWindow.marker.title = $('.place-title-input').val();
         placeInfoWindow.marker.description = $('.place-description-input').val();
@@ -442,7 +435,7 @@ function deleteLabel() {
         }
     };
 
-    $.ajax(settings).done(function (response) {
+    $.ajax(settings).done(function(response) {
         delete placeInfoWindow.marker.isMyPlace;
         delete placeInfoWindow.marker.title;
         delete placeInfoWindow.marker.description;
@@ -480,8 +473,19 @@ function displayDirections() {
     resetMarkers(placeMarkers);
     $('#search-places-panel').css('display', 'none');
     const modes = [];
-    if (document.getElementById('take-metro').checked) modes.push('SUBWAY');
-    if (document.getElementById('take-bus').checked) modes.push('BUS');
+    switch (document.getElementById('transit-mode').value) {
+        case '1':
+            modes.push('BUS');
+            break;
+        case '2':
+            modes.push('SUBWAY');
+            break;
+        case '3':
+        default:
+            modes.push('SUBWAY');
+            modes.push('BUS');
+            break;
+    }
     const directionsService = new google.maps.DirectionsService;
     const origin = new google.maps.LatLng(mainMarker.getPosition().lat(), mainMarker.getPosition().lng());
     const destination = new google.maps.LatLng(placeInfoWindow.marker.getPosition().lat(), placeInfoWindow.marker.getPosition().lng());
@@ -495,7 +499,7 @@ function displayDirections() {
             modes: modes,
             // routingPreference: 'FEWER_TRANSFERS'
         },
-    }, function (response, status) {
+    }, function(response, status) {
         if (status === google.maps.DirectionsStatus.OK) {
             directionsRenderer.setDirections(response);
             $('#directions-panel').css('display', 'block');
@@ -518,7 +522,7 @@ function closeSearchPlaces() {
 
 function goToUsersLocation() {
     if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function (position) {
+        navigator.geolocation.getCurrentPosition(function(position) {
             const currentPosition = new google.maps.LatLng(
                 position.coords.latitude,
                 position.coords.longitude);
@@ -530,16 +534,17 @@ function goToUsersLocation() {
 }
 
 function drawTransitArea() {
-    const maxWalkDist = document.getElementById('apply-max-walk-dist').checked ? document.getElementById('max-walk-dist').value : Infinity;
-    const maxTransferTimes = document.getElementById('apply-max-transfer-times').checked ? document.getElementById('max-transfer-times').value : Infinity;
+    const maxWalkDist = document.getElementById('max-walk-dist').value;
+    const maxTransferTimes = document.getElementById('max-transfer-times').value;
+    const transitMode = document.getElementById('transit-mode').value;
     const params = new URLSearchParams({
         starterId: Math.random().toString(36).substr(2, 3) + Date.now().toString(36).substr(4, 3),
         lat: mainMarker.getPosition().lat(),
         lon: mainMarker.getPosition().lng(),
         maxTravelTime: document.getElementById('travel-time').value,
         departureTime: document.getElementById('departure-time').value,
-        takeMetro: document.getElementById('take-metro').checked,
-        takeBus: document.getElementById('take-bus').checked,
+        takeMetro: transitMode == '2' || transitMode == '3',
+        takeBus: transitMode == '1' || transitMode == '3',
         maxWalkDist: maxWalkDist,
         maxTransferTimes: maxTransferTimes
     });
@@ -579,7 +584,8 @@ function drawCircle(lat, lon, radius, dir) {
         end = 0;
     } else return;
 
-    for (let i = start; (dir == 1 ? i < end : i > end); i = i + dir) {
+    for (let i = start;
+        (dir == 1 ? i < end : i > end); i = i + dir) {
         const theta = Math.PI * (i / (points / 2));
         ey = lon + (rlng * Math.cos(theta)); // center a + radius x * cos(theta)
         ex = lat + (rlat * Math.sin(theta)); // center b + radius y * sin(theta)
@@ -589,7 +595,7 @@ function drawCircle(lat, lon, radius, dir) {
     return extp;
 }
 
-Date.prototype.toDateInputValue = (function () {
+Date.prototype.toDateInputValue = (function() {
     var local = new Date(this);
     local.setMinutes(this.getMinutes() - this.getTimezoneOffset());
     return local.toJSON().slice(0, 16);
