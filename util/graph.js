@@ -162,7 +162,6 @@ class GraphEdge {
             case EdgeType.TRANSFER:
                 return true;
             case EdgeType.METRO:
-                return (this.edgeInfo.lineId == 'GA' || this.edgeInfo.lineId == 'RA');
             case EdgeType.BUS:
             case EdgeType.WALKING_FROM_STARTER:
                 return false;
