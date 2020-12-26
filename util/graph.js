@@ -156,12 +156,14 @@ class GraphEdge {
         }
     }
 
-    needTransfer() {
+    needTransfer(arriveBy) {
         switch (this.edgeType) {
             case EdgeType.METRO_TRANSFER:
             case EdgeType.TRANSFER:
                 return true;
             case EdgeType.METRO:
+                // temporary dirty fix for line O transfer issue
+                return arriveBy == 'O*' && this.edgeInfo.lineId == 'O*';
             case EdgeType.BUS:
             case EdgeType.WALKING_FROM_STARTER:
                 return false;
@@ -331,7 +333,7 @@ class Graph {
                 const currEdge = currNode.edges[nextNodeId];
                 if (currEdge.edgeType == EdgeType.METRO && !takeMetro) continue;
                 if (currEdge.edgeType == EdgeType.BUS && !takeBus) continue;
-                const needTransfer = currEdge.needTransfer();
+                const needTransfer = currEdge.needTransfer(currPqNode.arriveBy);
                 if (isInvalidTransferNode && needTransfer) continue;
                 const currTransferCount = needTransfer ? baseTransferCount + 1 : baseTransferCount;
                 if (currTransferCount > maxTransferCount) continue;
