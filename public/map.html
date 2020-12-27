@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="./css/map.css" />
   <link rel="stylesheet" href="./css/sidebar.css" />
   <link rel="stylesheet" href="./css/options_bar.css" />
+  <link rel="stylesheet" href="./css/info_window.css" />
 </head>
 
 <body>
@@ -185,7 +186,7 @@
             </svg>
           </div>
           <input type="text" class="form-control" id="search-place" placeholder="Search Place" aria-label="Input group example" aria-describedby="btnGroupAddon">
-          <div class="d-flex btn p-1 align-items-center" id="clear-search-btn">
+          <div class="btn p-1 align-items-center" id="clear-search-btn">
             <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 0 24 24" width="20">
               <path d="M0 0h24v24H0z" fill="none" />
               <path
@@ -340,10 +341,11 @@
               </div>
               <div class="modal-body">
                 <input id="departure-time" type="datetime-local" step="1800">
+                <button type="button" class="btn btn-secondary" id="cancel-set-time-btn" onclick="setDepartureTimeToNow()">Set Now</button>
               </div>
               <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary">Set Time</button>
+                <button type="button" class="btn btn-secondary" id="cancel-set-time-btn" onclick="cancelSetDepartureTime()" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="set-time-btn" onclick="updateDepartureTime()" data-bs-dismiss="modal">OK</button>
               </div>
             </div>
           </div>

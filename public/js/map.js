@@ -6,14 +6,16 @@ let polygon;
 let placeMarkers = [];
 let placeInfoWindow;
 let directionsRenderer;
+let datetime;
 // let myPicker = new SimplePicker(el, { zIndex: 10 });
 const token = window.localStorage.getItem('access_token');
 
 document.getElementById('my-position-btn').addEventListener('click', goToUsersLocation);
 document.getElementById('search-btn').addEventListener('click', textSearchPlaces);
+document.getElementById('clear-search-btn').addEventListener('click', closeSearchPlaces);
 document.getElementById('travel-time').addEventListener('change', drawTransitArea);
 document.getElementById('transit-mode').addEventListener('change', drawTransitArea);
-document.getElementById('departure-time').addEventListener('change', drawTransitArea);
+// document.getElementById('departure-time').addEventListener('change', drawTransitArea);
 // document.getElementById('take-metro').addEventListener('change', drawTransitArea);
 // document.getElementById('take-bus').addEventListener('change', drawTransitArea);
 // document.getElementById('apply-max-walk-dist').addEventListener('change', drawTransitArea);
@@ -29,6 +31,7 @@ $('#menu-toggle').click((e) => {
 
 $(document).ready(function() {
     $('#departure-time').val(new Date().toDateInputValue());
+    datetime = $('#departure-time').val();
 });
 
 function initMap() {
@@ -131,8 +134,19 @@ function initInfoWindow() {
         $('.set-as-marker').click(moveMarkerForPlace);
         $('.display-directions').click(displayDirections);
         $('.create-label').click(() => {
-            if (!token) window.location.href = './member.html';
-            editingMode();
+            if (!token) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Sign in to mark your favorite places',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sign In',
+                    reverseButtons: true,
+                }).then((result) => {
+                    if (result.isConfirmed)
+                        window.location.href = './member.html';
+                });
+            } else
+                editingMode();
         });
         $('.hide-editor').click(() => {
             if (placeInfoWindow.marker.isMyPlace)
@@ -189,6 +203,7 @@ function moveMarkerForPlace() {
 }
 
 function textSearchPlaces() {
+    $('#clear-search-btn').css('display', 'flex');
     const bounds = map.getBounds();
     const placesService = new google.maps.places.PlacesService(map);
     placesService.textSearch({
@@ -310,23 +325,24 @@ function getPlacesDetails(marker, placeInfoWindow) {
 function initMyPlaceUi(container) {
     const title = placeInfoWindow.marker.title || '';
     const description = placeInfoWindow.marker.description || '';
-    const form = $('<form><br></form>').attr({ class: 'my-place-form' }).css('display', 'none');
-    form.append($('<strong></strong>').text('My Place'));
+    const form = $('<form><br></form>').attr({ class: 'my-place-form' });
+    // form.append($('<strong></strong>').text('My Place'));
     form.append($('<input>').attr({
         type: 'text',
         class: 'place-title-input',
         placeholder: '標題',
-        style: 'width: 175px;',
         required: true,
         value: title,
-    }).css({ width: '175px' }));
+    }));
     form.append($('<textarea></textarea>').attr({
         class: 'place-description-input',
         rows: 4,
-    }).css({ width: '176px', resize: 'none' }).text(description));
-    form.append(
+    }).text(description));
+    const formBtns = $('<div></div>').attr({ class: 'form-btns' });
+    form.append(formBtns);
+    formBtns.append(
         $('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>').attr({ class: 'info-window-btn hide-editor' }));
-    form.append(
+    formBtns.append(
         $('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/></svg>').attr({ class: 'info-window-btn submit-place' }));
     container.append(form);
 
@@ -336,7 +352,7 @@ function initMyPlaceUi(container) {
     label.append($('<br>'));
     container.append(label);
 
-    const optionsMenu = $('<div></div>').attr('class', 'options-menu');
+    const optionsMenu = $('<div></div>').attr('class', 'info-window-menu');
     optionsMenu.append(
         $('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-geo-alt-fill" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>').attr({ class: 'info-window-btn set-as-marker' }));
     optionsMenu.append(
@@ -467,23 +483,23 @@ function deleteLabel() {
 
 function labeledMode() {
     $('.my-place-form').css('display', 'none');
-    $('.my-place-label').css('display', 'inherit');
-    $('.options-menu').css('display', 'inherit');
+    $('.my-place-label').css('display', 'block');
+    $('.info-window-menu').css('display', 'flex');
     $('.create-label').css('display', 'none');
     $('.edit-label').css('display', 'inline-block');
     $('.delete-label').css('display', 'inline-block');
 }
 
 function editingMode() {
-    $('.my-place-form').css('display', 'inherit');
+    $('.my-place-form').css('display', 'flex');
     $('.my-place-label').css('display', 'none');
-    $('.options-menu').css('display', 'none');
+    $('.info-window-menu').css('display', 'none');
 }
 
 function defaultMode() {
     $('.my-place-form').css('display', 'none');
     $('.my-place-label').css('display', 'none');
-    $('.options-menu').css('display', 'inherit');
+    $('.info-window-menu').css('display', 'flex');
     $('.create-label').css('display', 'inline-block');
     $('.edit-label').css('display', 'none');
     $('.delete-label').css('display', 'none');
@@ -539,7 +555,9 @@ function closeDirections() {
 
 function closeSearchPlaces() {
     resetMarkers();
-    $('#search-places-panel').css('display', 'none');
+    $('#search-place').val('');
+    $('#clear-search-btn').css('display', 'none');
+    // $('#search-places-panel').css('display', 'none');
 }
 
 function goToUsersLocation() {
@@ -574,7 +592,7 @@ function drawTransitArea() {
         lat: lat,
         lon: lon,
         maxTravelTime: document.getElementById('travel-time').value,
-        departureTime: document.getElementById('departure-time').value,
+        departureTime: datetime,
         takeMetro: transitMode == '2' || transitMode == '3',
         takeBus: transitMode == '1' || transitMode == '3',
         maxWalkDist: maxWalkDist,
@@ -625,6 +643,20 @@ function drawCircle(lat, lon, radius, dir) {
     }
 
     return extp;
+}
+
+function updateDepartureTime() {
+    datetime = $('#departure-time').val();
+    $('#departure-time-text').val(datetime.slice(11, 16));
+    drawTransitArea();
+}
+
+function cancelSetDepartureTime() {
+    $('#departure-time').val(datetime);
+}
+
+function setDepartureTimeToNow() {
+    $('#departure-time').val(new Date().toDateInputValue());
 }
 
 Date.prototype.toDateInputValue = (function() {
