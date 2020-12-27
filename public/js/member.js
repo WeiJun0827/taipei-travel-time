@@ -48,7 +48,9 @@ async function signIn() {
         body: JSON.stringify(userData)
     });
 
+    const json = await response.json();
     if (!response.ok) {
+        console.error(json.error);
         switch (response.status) {
             case 400:
                 alert('Email and password are required');
@@ -77,7 +79,6 @@ async function signIn() {
         }
         return;
     }
-    const json = await response.json();
     const token = json.data.access_token;
     localStorage.setItem('access_token', token);
     window.location.href = './map.html';
@@ -100,7 +101,9 @@ async function signUp() {
         body: JSON.stringify(userData)
     });
 
+    const json = await response.json();
     if (!response.ok) {
+        console.error(json.error);
         switch (response.status) {
             case 400:
                 Swal.fire({
@@ -130,7 +133,6 @@ async function signUp() {
         }
         return;
     }
-    const json = await response.json();
     const token = json.data.access_token;
     localStorage.setItem('access_token', token);
     window.location.href = './map.html';
