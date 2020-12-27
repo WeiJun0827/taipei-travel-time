@@ -423,6 +423,8 @@ function getLabels() {
             marker.id = place.id;
             marker.description = place.description;
         }
+    }).fail(function(error) {
+        console.error(error);
     });
 }
 
@@ -454,7 +456,7 @@ function createLabel() {
         getLabels();
         labeledMode();
     }).fail(function(error) {
-        alert(error);
+        console.error(error);
     });
 }
 
@@ -479,6 +481,8 @@ function updateLabel() {
         $('.place-title-label').text($('.place-title-input').val());
         $('.place-description-label').text($('.place-description-input').val());
         labeledMode();
+    }).fail(function(error) {
+        console.error(error);
     });
 }
 
@@ -508,6 +512,8 @@ function deleteLabel() {
                 delete placeInfoWindow.marker.description;
                 placeInfoWindow.marker.setMap(null);
                 defaultMode();
+            }).fail(function(error) {
+                console.error(error);
             });
         }
     });

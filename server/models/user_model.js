@@ -10,7 +10,7 @@ const ProviderType = {
     GOOGLE: 'google'
 };
 
-const signUp = async (name, email, password, expire) => {
+const signUp = async(name, email, password, expire) => {
     try {
         await transaction();
 
@@ -46,7 +46,7 @@ const signUp = async (name, email, password, expire) => {
     }
 };
 
-const nativeSignIn = async (email, password, expire) => {
+const nativeSignIn = async(email, password, expire) => {
     try {
         await transaction();
 
@@ -75,7 +75,7 @@ const nativeSignIn = async (email, password, expire) => {
     }
 };
 
-const facebookSignIn = async (id, name, email, accessToken, expire) => {
+const facebookSignIn = async(id, name, email, accessToken, expire) => {
     try {
         await transaction();
 
@@ -111,7 +111,7 @@ const facebookSignIn = async (id, name, email, accessToken, expire) => {
     }
 };
 
-const getUserProfile = async (userId) => {
+const getUserProfile = async(userId) => {
     const results = await query('SELECT * FROM user WHERE id = ?', userId);
     return {
         data: {
@@ -123,49 +123,73 @@ const getUserProfile = async (userId) => {
 
 };
 
-const getFacebookProfile = async function (accessToken) {
+const getFacebookProfile = async function(accessToken) {
     try {
         let res = await axios('https://graph.facebook.com/me?fields=id,name,email&access_token=' + accessToken, {
             responseType: 'json'
         });
         return res.body;
     } catch (e) {
+        await rollback();
         console.log(e);
-        throw ('Permissions Error: facebook access token is wrong');
+        return { error: 'Fail to get user\'s profile.' };
     }
 };
 
 
-const getUserId = async (accessToken) => {
+const getUserId = async(accessToken) => {
     const results = await query('SELECT * FROM user WHERE access_token = ?', accessToken);
     if (results.length === 0) return { error: 'Invalid Access Token' };
     return results[0].id;
 };
 
-const getAllPlaces = async (user_id) => {
+const getAllPlaces = async(user_id) => {
     const places = await query('SELECT id, lat, lon, icon, google_maps_id AS googleMapsId, title, description FROM place WHERE user_id = ?', user_id);
     return places;
 };
 
-const createPlace = async (user_id, lat, lon, icon, google_maps_id, title, description) => {
-    const place = { user_id, lat, lon, icon, google_maps_id, title, description };
-    const result = await query('INSERT INTO place SET ?', place);
-    return result.insertId;
+const createPlace = async(user_id, lat, lon, icon, google_maps_id, title, description) => {
+    try {
+        await transaction();
+        const place = { user_id, lat, lon, icon, google_maps_id, title, description };
+        const result = await query('INSERT INTO place SET ?', place);
+        await commit();
+        return result.insertId;
+    } catch (e) {
+        await rollback();
+        console.log(e);
+        return { error: 'Fail to create user\'s favorite place.' };
+    }
 };
 
-const getPlace = async (user_id, place_id) => {
+const getPlace = async(user_id, place_id) => {
     const place = await query('SELECT * FROM place WHERE user_id = ? AND id = ?', [user_id, place_id]);
     return place;
 };
 
-const updatePlace = async (user_id, place_id, title, description) => {
-    const result = await query('UPDATE place SET title = ?, description = ? WHERE user_id = ? AND id = ?', [title, description, user_id, place_id]);
-    return result;
+const updatePlace = async(user_id, place_id, title, description) => {
+    try {
+        await transaction();
+        const result = await query('UPDATE place SET title = ?, description = ? WHERE user_id = ? AND id = ?', [title, description, user_id, place_id]);
+        await commit();
+        return result;
+    } catch (e) {
+        await rollback();
+        console.log(e);
+        return { error: 'Fail to update user\'s favorite place.' };
+    }
 };
 
-const deletePlace = async (user_id, place_id) => {
-    const result = await query('DELETE FROM place WHERE user_id = ? AND id = ?', [user_id, place_id]);
-    return result;
+const deletePlace = async(user_id, place_id) => {
+    try {
+        await transaction();
+        const result = await query('DELETE FROM place WHERE user_id = ? AND id = ?', [user_id, place_id]);
+        await commit();
+        return result;
+    } catch (e) {
+        console.log(e);
+        return { error: 'Fail to delete user\'s favorite place.' };
+    }
 };
 
 module.exports = {
