@@ -50,7 +50,7 @@ async function signIn() {
 
     const json = await response.json();
     if (!response.ok) {
-        console.error(json.error);
+        console.log(json.error);
         switch (response.status) {
             case 400:
                 alert('Email and password are required');
@@ -103,7 +103,7 @@ async function signUp() {
 
     const json = await response.json();
     if (!response.ok) {
-        console.error(json.error);
+        console.log(json.error);
         switch (response.status) {
             case 400:
                 Swal.fire({
