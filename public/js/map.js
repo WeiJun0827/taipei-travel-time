@@ -32,7 +32,31 @@ $('#menu-toggle').click((e) => {
 $(document).ready(function() {
     $('#departure-time').val(new Date().toDateInputValue());
     datetime = $('#departure-time').val();
+    initNavbar();
 });
+
+function initNavbar() {
+    if (token) {
+        const settings = {
+            'url': '/api/1.0/user/profile',
+            'method': 'GET',
+            'headers': {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': 'application/json'
+            }
+        };
+
+        $.ajax(settings).done(function(response) {
+            const { data: { name } } = response;
+            $('#sign-in-sign-up').css('display', 'none');
+            $('#user-name a').text('Hi, ' + name);
+            return;
+        });
+    } else {
+        $('#user-name').css('display', 'none');
+        $('#sign-out').css('display', 'none');
+    }
+}
 
 function initMap() {
     const styles = [{
@@ -354,24 +378,20 @@ function initMyPlaceUi(container) {
 
     const optionsMenu = $('<div></div>').attr('class', 'info-window-menu');
     optionsMenu.append(
-        $('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-geo-alt-fill" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg>').attr({ class: 'info-window-btn set-as-marker' }));
+        $('<button type="button"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-geo-alt-fill" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg></button>').attr({ class: 'info-window-btn set-as-marker btn', 'data-bs-placement': 'bottom', 'data-bs-toggle': 'tooltip', title: 'Set as starter' }));
     optionsMenu.append(
-        $('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-cursor-fill" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M14.082 2.182a.5.5 0 0 1 .103.557L8.528 15.467a.5.5 0 0 1-.917-.007L5.57 10.694.803 8.652a.5.5 0 0 1-.006-.916l12.728-5.657a.5.5 0 0 1 .556.103z"/></svg>').attr({ class: 'info-window-btn display-directions' }));
+        $('<button type="button"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-cursor-fill" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M14.082 2.182a.5.5 0 0 1 .103.557L8.528 15.467a.5.5 0 0 1-.917-.007L5.57 10.694.803 8.652a.5.5 0 0 1-.006-.916l12.728-5.657a.5.5 0 0 1 .556.103z"/></svg></button>').attr({ class: 'info-window-btn display-directions btn', 'data-bs-placement': 'bottom', 'data-bs-toggle': 'tooltip', title: 'Directions to here' }));
     optionsMenu.append(
-        $('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-star-fill" viewBox="0 0 16 16"><path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.283.95l-3.523 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/></svg>').attr({ class: 'info-window-btn create-label' }));
+        $('<button type="button"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-star-fill" viewBox="0 0 16 16"><path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.283.95l-3.523 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/></svg></button>').attr({ class: 'info-window-btn create-label btn', 'data-bs-placement': 'bottom', 'data-bs-toggle': 'tooltip', title: 'Add to favorite' }));
     optionsMenu.append(
-        $('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-pencil-fill" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708l-3-3zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207l6.5-6.5zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.499.499 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11l.178-.178z"/></svg>').attr({ class: 'info-window-btn edit-label' }));
+        $('<button type="button"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-pencil-fill" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M12.854.146a.5.5 0 0 0-.707 0L10.5 1.793 14.207 5.5l1.647-1.646a.5.5 0 0 0 0-.708l-3-3zm.646 6.061L9.793 2.5 3.293 9H3.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.207l6.5-6.5zm-7.468 7.468A.5.5 0 0 1 6 13.5V13h-.5a.5.5 0 0 1-.5-.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.5-.5V10h-.5a.499.499 0 0 1-.175-.032l-.179.178a.5.5 0 0 0-.11.168l-2 5a.5.5 0 0 0 .65.65l5-2a.5.5 0 0 0 .168-.11l.178-.178z"/></svg></button>').attr({ class: 'info-window-btn edit-label btn', 'data-bs-placement': 'bottom', 'data-bs-toggle': 'tooltip', title: 'Edit favorite' }));
     optionsMenu.append(
-        $('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5a.5.5 0 0 0-1 0v7a.5.5 0 0 0 1 0v-7z"/></svg>').attr({ class: 'info-window-btn delete-label' }));
+        $('<button type="button"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5a.5.5 0 0 0-1 0v7a.5.5 0 0 0 1 0v-7z"/></svg></button>').attr({ class: 'info-window-btn delete-label btn', 'data-bs-placement': 'bottom', 'data-bs-toggle': 'tooltip', title: 'Delete favorite' }));
     container.append(optionsMenu);
 }
 
 function addPlaceInList(places) {
     $('#search-places-panel').css('display', 'block');
-
-    // $('search-places-panel').append(
-    //     $('<div></div>').attr('class', 'search-place-info').text(places.name));
-
 }
 
 function getLabels() {
@@ -534,13 +554,11 @@ function displayDirections() {
         travelMode: google.maps.TravelMode.TRANSIT,
         transitOptions: {
             departureTime: departureTime,
-            modes: modes,
-            // routingPreference: 'FEWER_TRANSFERS'
+            modes: modes
         },
     }, function(response, status) {
         if (status === google.maps.DirectionsStatus.OK) {
             directionsRenderer.setDirections(response);
-            // $('#directions-panel').css('display', 'block');
         } else {
             window.alert('Directions request failed due to ' + status);
         }
@@ -557,7 +575,6 @@ function closeSearchPlaces() {
     resetMarkers();
     $('#search-place').val('');
     $('#clear-search-btn').css('display', 'none');
-    // $('#search-places-panel').css('display', 'none');
 }
 
 function goToUsersLocation() {

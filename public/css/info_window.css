@@ -14,19 +14,13 @@
 }
 
 .info-window-btn {
-    margin: 8px 2px;
+    /* margin: 8px 2px; */
 }
 
 .set-as-marker,
 .display-directions,
-.edit-label {
-    color: #4B88FA;
-}
-
-.create-label {
-    color: #ecec0f;
-}
-
+.create-label,
+.edit-label,
 .delete-label {
-    color: #666666;
+    color: #4B88FA;
 }
