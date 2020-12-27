@@ -5,3 +5,13 @@
 #header {
     height: var(--navbar-height)
 }
+
+.navbar-brand {
+    font-weight: 600;
+}
+
+.nav-item {
+    display: none;
+    margin: 0 5px;
+    cursor: pointer;
+}

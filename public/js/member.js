@@ -173,7 +173,7 @@ function checkAccessToken() {
             if (!response.ok) throw new Error(response.statusText);
             return response.json();
         }).then(json => {
-            window.location.href = './';
+            window.location.href = './map.html';
         }).catch(error => {
             console.log('Fetch Error: ', error);
         });

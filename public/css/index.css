@@ -52,7 +52,7 @@ body {
     margin-top: 16px;
     margin-left: 52px;
     text-shadow: 5px 5px 10px #212529;
-    font-family: 'Rubik', sans-serif;
+    font-family: var(--font-family2);
     line-height: 2.5rem;
     color: rgba(255, 255, 255, 0.7);
     margin-bottom: 2rem;

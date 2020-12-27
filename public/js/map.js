@@ -48,13 +48,14 @@ function initNavbar() {
 
         $.ajax(settings).done(function(response) {
             const { data: { name } } = response;
-            $('#sign-in-sign-up').css('display', 'none');
-            $('#user-name a').text('Hi, ' + name);
+            $('#user-name').css('display', 'block');
+            $('#sign-out').css('display', 'block');
+            $('#user-name-field').text(name);
             return;
         });
     } else {
-        $('#user-name').css('display', 'none');
-        $('#sign-out').css('display', 'none');
+        $('#sign-in-sign-up').css('display', 'block');
+
     }
 }
 
@@ -365,9 +366,9 @@ function initMyPlaceUi(container) {
     const formBtns = $('<div></div>').attr({ class: 'form-btns' });
     form.append(formBtns);
     formBtns.append(
-        $('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>').attr({ class: 'info-window-btn hide-editor' }));
+        $('<button type="button"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-x" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg></button>').attr({ class: 'info-window-btn hide-editor btn' }));
     formBtns.append(
-        $('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/></svg>').attr({ class: 'info-window-btn submit-place' }));
+        $('<button type="button"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-check" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.236.236 0 0 1 .02-.022z"/></svg></button>').attr({ class: 'info-window-btn submit-place btn' }));
     container.append(form);
 
     const label = $('<div><br></div>').attr({ class: 'my-place-label' }).css('display', 'none');
@@ -482,21 +483,33 @@ function updateLabel() {
 }
 
 function deleteLabel() {
-    const settings = {
-        'url': '/api/1.0/user/places/' + placeInfoWindow.marker.id,
-        'method': 'DELETE',
-        'headers': {
-            'Authorization': 'Bearer ' + token,
-            'Content-Type': 'application/json'
-        }
-    };
+    Swal.fire({
+        icon: 'question',
+        title: 'Delete place',
+        text: 'You are about to delete a place, are you sure?',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete it',
+        cancelButtonText: 'No, cancel',
+        reverseButtons: true
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const settings = {
+                'url': '/api/1.0/user/places/' + placeInfoWindow.marker.id,
+                'method': 'DELETE',
+                'headers': {
+                    'Authorization': 'Bearer ' + token,
+                    'Content-Type': 'application/json'
+                }
+            };
 
-    $.ajax(settings).done(function(response) {
-        delete placeInfoWindow.marker.isMyPlace;
-        delete placeInfoWindow.marker.title;
-        delete placeInfoWindow.marker.description;
-        placeInfoWindow.marker.setMap(null);
-        defaultMode();
+            $.ajax(settings).done(function(response) {
+                delete placeInfoWindow.marker.isMyPlace;
+                delete placeInfoWindow.marker.title;
+                delete placeInfoWindow.marker.description;
+                placeInfoWindow.marker.setMap(null);
+                defaultMode();
+            });
+        }
     });
 }
 
@@ -674,6 +687,21 @@ function cancelSetDepartureTime() {
 
 function setDepartureTimeToNow() {
     $('#departure-time').val(new Date().toDateInputValue());
+}
+
+function signOut() {
+    if (window.localStorage.getItem('access_token')) {
+        window.localStorage.removeItem('access_token');
+        Swal.fire({
+            icon: 'info',
+            title: 'Sign you out',
+            text: 'See you next time.'
+        }).then(() => {
+            $('#sign-in-sign-up').css('display', 'block');
+            $('#user-name').css('display', 'none');
+            $('#sign-out').css('display', 'none');
+        });
+    }
 }
 
 Date.prototype.toDateInputValue = (function() {

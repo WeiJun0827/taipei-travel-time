@@ -24,7 +24,7 @@
 }
 
 #search-place-wrapper {
-    width: 16rem;
+    width: 14rem;
     border-radius: var(--inner-radius);
 }
 
@@ -58,18 +58,18 @@
 #travel-time,
 #transit-mode {
     border-radius: var(--inner-radius);
-    width: 140px;
+    width: 152px;
 }
 
 #max-transfer-times,
 #max-walk-dist {
     border-radius: var(--inner-radius);
-    width: 120px;
+    width: 124px;
 }
 
 #departure-time-text {
     border-radius: var(--inner-radius);
-    width: 100px;
+    width: 108px;
     font-weight: 600;
     text-align-last: center;
     background-color: white;

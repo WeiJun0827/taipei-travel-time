@@ -1,8 +1,17 @@
 :root {
     --font-family: 'Comfortaa', cursive;
+    --font-family2: 'Rubik', sans-serif;
 }
 
 html,
 body {
     font-family: var(--font-family);
+}
+
+input {
+    font-family: var(--font-family2);
+}
+
+strong {
+    font-weight: 800;
 }
