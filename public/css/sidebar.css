@@ -23,7 +23,7 @@
     cursor: pointer;
 }
 
-#sidebar-wrapper.toggled {
+#sidebar-wrapper.hiden {
     margin-left: calc(var(--sidebar-width) * -1);
 }
 
@@ -55,7 +55,7 @@
         min-width: 0;
         width: 100%;
     }
-    #sidebar-wrapper.toggled {
+    #sidebar-wrapper.hiden {
         margin-left: calc(var(--sidebar-width) * -1);
     }
 }

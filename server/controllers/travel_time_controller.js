@@ -8,7 +8,7 @@ const WALKING_SPEED = 1; // in meter/sec
 const STOP_TIME_FOR_BUS = 0; // sec
 const DEFAULT_RUN_TIME_FOR_BUS = 60; // sec
 
-const initMetroGraph = async () => {
+const initMetroGraph = async() => {
     console.time('Metro data');
     const stationData = await Metro.getAllStations();
     for (const data of stationData) {
@@ -29,17 +29,15 @@ const initMetroGraph = async () => {
         if (data.from_station_id == data.to_station_id) continue; // prevent metro stations O12, R22, and G03 actions
 
         if (data.line_id == 'metroTransfer') graph.addEdge(data.from_station_id, data.to_station_id, data.run_time, EdgeType.METRO_TRANSFER);
-        else graph.addEdge(data.from_station_id, data.to_station_id, data.run_time, EdgeType.METRO,
-            {
-                lineId: data.line_id,
-                freqTable: freqTable
-            }
-        );
+        else graph.addEdge(data.from_station_id, data.to_station_id, data.run_time, EdgeType.METRO, {
+            lineId: data.line_id,
+            freqTable: freqTable
+        });
     }
     console.timeEnd('Metro data');
 };
 
-const initBusGraph = async () => {
+const initBusGraph = async() => {
 
     async function addBusStop(stopId) {
         if (graph.nodes[stopId] == undefined) {
@@ -70,12 +68,11 @@ const initBusGraph = async () => {
             await addBusStop(tt.to_stop_id);
 
             if (graph.nodes[tt.from_stop_id].edges[tt.to_stop_id] != undefined) continue;
-            graph.addEdge(tt.from_stop_id, tt.to_stop_id, runTime, EdgeType.BUS,
-                {
-                    subRouteId: subRouteId,
-                    subRouteName: freq.routeName,
-                    freqTable: directionFreq
-                });
+            graph.addEdge(tt.from_stop_id, tt.to_stop_id, runTime, EdgeType.BUS, {
+                subRouteId: subRouteId,
+                subRouteName: freq.routeName,
+                freqTable: directionFreq
+            });
         }
     }
 
@@ -91,7 +88,7 @@ const createTransferEdges = (maxTransferDist) => {
                 if (nodeA.edges[nodeIdB] != undefined) continue;
                 const nodeB = graph.nodes[nodeIdB];
                 const distance = nodeA.getDistanceToNode(nodeB.lat, nodeB.lon);
-                if (distance <= maxTransferDist)  // ignore edge longer than maxTransferDist
+                if (distance <= maxTransferDist) // ignore edge longer than maxTransferDist
                     graph.addEdge(nodeIdA, nodeIdB, distance, EdgeType.TRANSFER);
             }
         }
@@ -99,7 +96,7 @@ const createTransferEdges = (maxTransferDist) => {
     console.timeEnd('Transfer');
 };
 
-const getTravelTimeByTransit = async (req, res) => {
+const getTravelTimeByTransit = async(req, res) => {
     const starterId = req.query.starterId;
     const lat = Number(req.query.lat);
     const lon = Number(req.query.lon);
@@ -109,6 +106,14 @@ const getTravelTimeByTransit = async (req, res) => {
     const takeBus = req.query.takeBus === 'true';
     const maxWalkDist = Number(req.query.maxWalkDist);
     const maxTransferTimes = Number(req.query.maxTransferTimes);
+    if (lat < 24.83 || lat > 25.3 || lon < 121.285 || lon > 122)
+        return res.status(400).send({ error: 'Request Error: Invalid latitude or longitude range.' });
+    if (maxTravelTime > 7200)
+        return res.status(400).send({ error: 'Request Error: Travel time exceeds 2hr.' });
+    if (maxWalkDist > 2000)
+        return res.status(400).send({ error: 'Request Error: Walking distance exceeds 2km.' });
+    if (maxTransferTimes > 3)
+        return res.status(400).send({ error: 'Request Error: Transfer limitation exceeds 3 times.' });
     console.time('getTravelTime');
     graph.addStarterNode(starterId, lat, lon, maxTravelTime, WALKING_SPEED, maxWalkDist);
     const cost = graph.dijkstraAlgorithm(starterId, maxTravelTime, departureTime, takeMetro, takeBus, maxTransferTimes);
@@ -131,7 +136,7 @@ const getTravelTimeByTransit = async (req, res) => {
     return res.status(200).json({ data });
 };
 
-(async () => {
+(async() => {
     try {
         await initMetroGraph();
         if (isProduction) {

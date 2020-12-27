@@ -1,5 +1,6 @@
 :root {
     --inner-radius: 29px;
+    --btn-background-color: #ffb004;
 }
 
 #options-bar {
@@ -7,7 +8,7 @@
     top: 1.5rem;
     left: 0;
     right: 0;
-    background-color: #f6fa16;
+    background-color: #ffde4b;
     opacity: 90%;
     width: 926px;
     z-index: 1;
@@ -28,6 +29,7 @@
 }
 
 #my-position-btn {
+    background-color: var(--btn-background-color);
     border-radius: var(--inner-radius) 0px 0px var(--inner-radius);
     padding-right: 0.3rem;
 }
@@ -47,6 +49,7 @@
 }
 
 #search-btn {
+    background-color: var(--btn-background-color);
     border-radius: 0px var(--inner-radius) var(--inner-radius) 0px;
     padding-left: 0.3rem;
 }

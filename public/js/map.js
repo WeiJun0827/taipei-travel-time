@@ -6,6 +6,7 @@ let polygon;
 let placeMarkers = [];
 let placeInfoWindow;
 let directionsRenderer;
+// let myPicker = new SimplePicker(el, { zIndex: 10 });
 const token = window.localStorage.getItem('access_token');
 
 document.getElementById('my-position-btn').addEventListener('click', goToUsersLocation);
@@ -69,12 +70,18 @@ function initMap() {
 
 function initMarker(position) {
     const icon = {
-        path: google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
-        scale: 7,
-        strokeColor: '#B3672B',
-        strokeWeight: 5,
+        url: '../assets/svg/metro-marker.svg',
+        strokeWeight: 0,
+        // fillColor: '#09c',
+        fillOpacity: 1,
+        scale: 10,
+        // size: new google.maps.Size(35, 35),
+        origin: new google.maps.Point(0, 0),
+        anchor: new google.maps.Point(35, 70),
+        scaledSize: new google.maps.Size(70, 70)
     };
     mainMarker = new google.maps.Marker({
+        icon: icon,
         map: map,
         position: position,
         title: 'Starter',
@@ -166,7 +173,11 @@ function latLonSearchPlaces() {
 function searchBoxPlaces(searchBox) {
     const places = searchBox.getPlaces();
     if (places.length == 0) {
-        window.alert('沒有符合的搜尋結果');
+        Swal.fire({
+            icon: 'warning',
+            title: 'No search results',
+            text: 'Try to search a specific location or address.',
+        });
     } else {
         textSearchPlaces();
     }
@@ -199,8 +210,11 @@ function resetMarkers() {
 }
 
 function resetDirections() {
-    $('#sidebar-wrapper').toggleClass('toggled');
-    closeDirections();
+    if (!$('#sidebar-wrapper').hasClass('hiden'))
+        $('#sidebar-wrapper').addClass('hiden');
+    directionsRenderer.setMap(null);
+    placeMarkers.forEach(m => m.setMap(map));
+    initDirectionsRenderer();
 }
 
 function createMarkersForPlaces(places, withIconUrl) {
@@ -476,7 +490,8 @@ function defaultMode() {
 }
 
 function displayDirections() {
-    $('#sidebar-wrapper').toggleClass('toggled');
+    if ($('#sidebar-wrapper').hasClass('hiden'))
+        $('#sidebar-wrapper').removeClass('hiden');
     placeMarkers.forEach(m => m.setMap(null));
     // $('#search-places-panel').css('display', 'none');
     const modes = [];
@@ -520,7 +535,6 @@ function closeDirections() {
     directionsRenderer.setMap(null);
     placeMarkers.forEach(m => m.setMap(map));
     initDirectionsRenderer();
-    // $('#directions-panel').css('display', 'none');
 }
 
 function closeSearchPlaces() {
@@ -545,10 +559,20 @@ function drawTransitArea() {
     const maxWalkDist = document.getElementById('max-walk-dist').value;
     const maxTransferTimes = document.getElementById('max-transfer-times').value;
     const transitMode = document.getElementById('transit-mode').value;
+    const lat = mainMarker.getPosition().lat();
+    const lon = mainMarker.getPosition().lng();
+    if (lat < 24.83 || lat > 25.3 || lon < 121.285 || lon > 122) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'The location is not supported',
+            text: 'Try somewhere else in Taipei or New Taipei City.',
+        });
+        return;
+    }
     const params = new URLSearchParams({
         starterId: Math.random().toString(36).substr(2, 3) + Date.now().toString(36).substr(4, 3),
-        lat: mainMarker.getPosition().lat(),
-        lon: mainMarker.getPosition().lng(),
+        lat: lat,
+        lon: lon,
         maxTravelTime: document.getElementById('travel-time').value,
         departureTime: document.getElementById('departure-time').value,
         takeMetro: transitMode == '2' || transitMode == '3',
