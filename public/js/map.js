@@ -52,9 +52,14 @@ function initNavbar() {
             $('#sign-out').css('display', 'block');
             $('#user-name-field').text(name);
             return;
+        }).fail(function(error) {
+            $('#sign-in-sign-up').css('display', 'block');
+            console.error(error);
+            return;
         });
+    } else {
+        $('#sign-in-sign-up').css('display', 'block');
     }
-    $('#sign-in-sign-up').css('display', 'block');
 }
 
 function initMap() {
