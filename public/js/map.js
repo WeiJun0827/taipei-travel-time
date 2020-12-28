@@ -53,10 +53,8 @@ function initNavbar() {
             $('#user-name-field').text(name);
             return;
         });
-    } else {
-        $('#sign-in-sign-up').css('display', 'block');
-
     }
+    $('#sign-in-sign-up').css('display', 'block');
 }
 
 function initMap() {
