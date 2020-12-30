@@ -53,8 +53,8 @@
   <div class="d-flex container-fluid" id="wrapper">
     <!-- Sidebar -->
     <div class="list-group bg-light border-right hiden" id="sidebar-wrapper">
-      <!-- title -->
-      <div id="menu-header">
+      <!-- header -->
+      <div id="sidebar-header">
         <span href="#" class="list-group-item">
           <svg class="align-text-top" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
             <path d="M0 0h24v24H0z" fill="none" />
@@ -62,7 +62,7 @@
               d="M21.71 11.29l-9-9c-.39-.39-1.02-.39-1.41 0l-9 9c-.39.39-.39 1.02 0 1.41l9 9c.39.39 1.02.39 1.41 0l9-9c.39-.38.39-1.01 0-1.41zM14 14.5V12h-4v3H8v-4c0-.55.45-1 1-1h5V7.5l3.5 3.5-3.5 3.5z" />
           </svg>
           Directions
-          <span class="float-end" id="menu-toggle">
+          <span class="float-end" id="close-sidebar-btn">
             <svg class="align-text-top" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
               <path d="M0 0h24v24H0z" fill="none" />
               <path
@@ -268,9 +268,9 @@
   <!-- Bootstrap core JavaScript-->
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js" integrity="sha384-q2kxQ16AaE6UbzuKqyBE9/u/KzioAlnx2maXQHiDX9d4/zp8Ok3f+M7DPm+Ib6IU" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.min.js" integrity="sha384-pQQkAEnwaBkjpqZ8RU1fF1AKtTcHJwFl3pblpTlHXybJjHpMYo79HY3hIi4NKxyj" crossorigin="anonymous"></script>
-  <!-- Scrip must be ahead of Google Maps -->
+  <!-- Customized Scrip -->
   <script src="./js/map.js"></script>
-  <!-- Google Maps -->
+  <!-- Google Maps must be after Customized Scrip -->
   <script async defer src="https://maps.googleapis.com/maps/api/js?libraries=places,geometry,drawing&key=AIzaSyBFFH-k40TGQI-ktrgnvGTlcNbCHm6JOkY&v=weekly&callback=initMap"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 </body>

@@ -18,7 +18,7 @@ document.getElementById('max-walk-dist').addEventListener('change', displayReach
 document.getElementById('max-transfer-times').addEventListener('change', displayReachableArea);
 
 // Menu Toggle Script
-$('#menu-toggle').click((e) => {
+$('#close-sidebar-btn').click((e) => {
     e.preventDefault();
     resetDirections();
 });
@@ -189,20 +189,6 @@ function initInfoWindow() {
     });
 }
 
-function latLonSearchPlaces() {
-    const bounds = map.getBounds();
-    const placesService = new google.maps.places.PlacesService(map);
-    placesService.textSearch({
-        query: document.getElementById('search-place').value,
-        bounds: bounds
-    }, function(results, status) {
-        if (status === google.maps.places.PlacesServiceStatus.OK) {
-            resetMarkers();
-            createMarkersForPlaces(results, true);
-        }
-    });
-}
-
 function searchBoxPlaces(searchBox) {
     const places = searchBox.getPlaces();
     if (places.length == 0) {
@@ -232,8 +218,7 @@ function textSearchPlaces() {
         if (status === google.maps.places.PlacesServiceStatus.OK) {
             resetMarkers();
             resetDirections();
-            createMarkersForPlaces(results, false);
-            addPlaceInList(results);
+            createMarkersForSearchResults(results);
         }
     });
 }
@@ -251,12 +236,12 @@ function resetDirections() {
     initDirectionsRenderer();
 }
 
-function createMarkersForPlaces(places, withIconUrl) {
+function createMarkersForSearchResults(places) {
     const bounds = new google.maps.LatLngBounds();
     let count = 0;
     for (const place of places) {
         count++;
-        const marker = createMarker(place.place_id, place.geometry.location, place.name, { label: count.toString(), icon: place.icon });
+        const marker = createMarker(place.place_id, place.geometry.location, place.name, place.icon, count.toString());
         searchPlaceMarkers.push(marker);
         if (place.geometry.viewport) {
             bounds.union(place.geometry.viewport);
@@ -268,8 +253,7 @@ function createMarkersForPlaces(places, withIconUrl) {
 }
 
 
-function createMarker(placeId, position, title, markerOptions) {
-    const { icon, label } = markerOptions;
+function createMarker(placeId, position, title, icon, label, additioalParamsObj) {
     let marker;
     if (label)
         marker = new google.maps.Marker({
@@ -288,6 +272,7 @@ function createMarker(placeId, position, title, markerOptions) {
             position: position,
             placeId: placeId
         });
+    if (additioalParamsObj) Object.assign(marker, additioalParamsObj);
     marker.addListener('click', function() {
         if (placeInfoWindow.marker != this) {
             getPlaceDetails(this, placeInfoWindow);
@@ -377,10 +362,6 @@ function initMyPlaceUi(container) {
     container.append(optionsMenu);
 }
 
-function addPlaceInList(places) {
-    $('#search-places-panel').css('display', 'block');
-}
-
 function getFavoritePlaces() {
     if (!token) return;
 
@@ -404,10 +385,12 @@ function getFavoritePlaces() {
                 anchor: new google.maps.Point(15, 34),
                 scaledSize: new google.maps.Size(25, 25)
             };
-            const marker = createMarker(place.googleMapsId, position, place.title, { icon });
-            marker.isMyPlace = true;
-            marker.id = place.id;
-            marker.description = place.description;
+            const additionalParams = {
+                isMyPlace: true,
+                id: place.id,
+                description: place.description
+            };
+            const marker = createMarker(place.googleMapsId, position, place.title, icon, undefined, additionalParams);
         }
     }).fail(function(error) {
         console.error(error);
@@ -417,6 +400,7 @@ function getFavoritePlaces() {
 function createFavoritePlace() {
     const position = placeInfoWindow.marker.getPosition();
     const iconUrl = placeInfoWindow.marker.iconUrl;
+    const placeId = placeInfoWindow.marker.placeId;
     const title = $('.place-title-input').val();
     const description = $('.place-description-input').val();
     const settings = {
@@ -430,17 +414,31 @@ function createFavoritePlace() {
             lat: position.lat(),
             lon: position.lng(),
             icon: iconUrl,
-            googleMapsId: placeInfoWindow.marker.placeId,
+            googleMapsId: placeId,
             title: title,
             description: description
         })
     };
 
+
+
     $('#loading-cover').css('display', 'block');
     $.ajax(settings).done(function() {
+        const icon = {
+            url: iconUrl,
+            size: new google.maps.Size(35, 35),
+            origin: new google.maps.Point(0, 0),
+            anchor: new google.maps.Point(15, 34),
+            scaledSize: new google.maps.Size(25, 25)
+        };
+        const additionalParams = {
+            isMyPlace: true,
+            id: placeId,
+            description: description
+        };
         placeInfoWindow.marker.setMap(null);
-        getFavoritePlaces();
         setInfoWindowToLabeledMode();
+        const marker = createMarker(placeId, position, title, icon, undefined, additionalParams);
     }).fail(function(error) {
         console.error(error);
     }).always(function() {
@@ -499,9 +497,6 @@ function deleteFavoritePlace() {
 
             $('#loading-cover').css('display', 'block');
             $.ajax(settings).done(function() {
-                delete placeInfoWindow.marker.isMyPlace;
-                delete placeInfoWindow.marker.title;
-                delete placeInfoWindow.marker.description;
                 placeInfoWindow.marker.setMap(null);
                 setInfoWindowToDefaultMode();
             }).fail(function(error) {
