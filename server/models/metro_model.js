@@ -1,6 +1,6 @@
-const { transaction, commit, rollback, query } = require('./mysqlcon');
+const { transaction, commit, rollback, query } = require('./mysql_connection');
 
-const createLine = async (line) => {
+const createLine = async(line) => {
     try {
         await transaction();
         const result = await query('INSERT INTO metro_line SET ?', line);
@@ -12,7 +12,7 @@ const createLine = async (line) => {
     }
 };
 
-const createStation = async (station) => {
+const createStation = async(station) => {
     try {
         await transaction();
         const result = await query('INSERT INTO metro_station SET ?', station);
@@ -24,7 +24,7 @@ const createStation = async (station) => {
     }
 };
 
-const createRoute = async (route) => {
+const createRoute = async(route) => {
     try {
         await transaction();
         const result = await query('INSERT INTO metro_route SET ?', route);
@@ -36,7 +36,7 @@ const createRoute = async (route) => {
     }
 };
 
-const createTravelTime = async (travelTime) => {
+const createTravelTime = async(travelTime) => {
     try {
         await transaction();
         const result = await query('INSERT INTO metro_travel_time SET ?', travelTime);
@@ -48,7 +48,7 @@ const createTravelTime = async (travelTime) => {
     }
 };
 
-const createSchedule = async (schedule) => {
+const createSchedule = async(schedule) => {
     try {
         await transaction();
         const result = await query('INSERT INTO metro_schedule SET ?', schedule);
@@ -60,35 +60,35 @@ const createSchedule = async (schedule) => {
     }
 };
 
-const getAllLines = async () => {
+const getAllLines = async() => {
     return await query('SELECT * FROM metro_line');
 };
 
-const getStationById = async (stationId) => {
+const getStationById = async(stationId) => {
     return await query('SELECT * FROM metro_station WHERE station_id = ?', stationId);
 };
 
-const getStationsByLine = async (lineId) => {
+const getStationsByLine = async(lineId) => {
     return await query('SELECT * FROM metro_station WHERE line_id = ?', lineId);
 };
 
-const getAllStations = async () => {
+const getAllStations = async() => {
     return await query('SELECT * FROM metro_station');
 };
 
-const getTravelTimeByLineAndFromStation = async (lineId, fromStationId) => {
+const getTravelTimeByLineAndFromStation = async(lineId, fromStationId) => {
     return await query('SELECT * FROM metro_travel_time WHERE from_line_id = ? AND to_line_id = ? AND from_station_id = ?', [lineId, lineId, fromStationId]);
 };
 
-const getAllTravelTime = async () => {
+const getAllTravelTime = async() => {
     return await query('SELECT * FROM metro_travel_time');
 };
 
-const getAllRoutes = async () => {
+const getAllRoutes = async() => {
     return await query('SELECT * FROM metro_route');
 };
 
-const getCalculatedIntervalByStation = async (fromStationId, toStationId) => {
+const getCalculatedIntervalByStation = async(fromStationId, toStationId) => {
     if (fromStationId[fromStationId.length - 1] === 'A') { // for R22A and G03A
         return await query('SELECT is_holiday, start_time, end_time, \
         AVG(interval_min) DIV COUNT(*) AS interval_min, \
@@ -109,7 +109,7 @@ const getCalculatedIntervalByStation = async (fromStationId, toStationId) => {
         GROUP BY line_id, is_holiday, start_time, end_time', [fromStationId, toStationId]);
 };
 
-const getFrequency = async (fromStationId, toStationId, isHoliday) => {
+const getFrequency = async(fromStationId, toStationId, isHoliday) => {
     return await query('SELECT start_time AS startTime, end_time AS endTime, expected_time AS expectedTime FROM metro_schedule WHERE from_station_id = ? AND to_station_id = ? AND is_holiday = ?', [fromStationId, toStationId, isHoliday]);
 };
 

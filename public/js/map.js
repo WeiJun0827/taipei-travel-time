@@ -3,25 +3,19 @@
 let map;
 let mainMarker;
 let polygon;
-let placeMarkers = [];
+let searchPlaceMarkers = [];
 let placeInfoWindow;
 let directionsRenderer;
 let datetime;
-// let myPicker = new SimplePicker(el, { zIndex: 10 });
 const token = window.localStorage.getItem('access_token');
 
-document.getElementById('my-position-btn').addEventListener('click', goToUsersLocation);
-document.getElementById('search-btn').addEventListener('click', textSearchPlaces);
-document.getElementById('clear-search-btn').addEventListener('click', closeSearchPlaces);
-document.getElementById('travel-time').addEventListener('change', drawTransitArea);
-document.getElementById('transit-mode').addEventListener('change', drawTransitArea);
-// document.getElementById('departure-time').addEventListener('change', drawTransitArea);
-// document.getElementById('take-metro').addEventListener('change', drawTransitArea);
-// document.getElementById('take-bus').addEventListener('change', drawTransitArea);
-// document.getElementById('apply-max-walk-dist').addEventListener('change', drawTransitArea);
-document.getElementById('max-walk-dist').addEventListener('change', drawTransitArea);
-// document.getElementById('apply-max-transfer-times').addEventListener('change', drawTransitArea);
-document.getElementById('max-transfer-times').addEventListener('change', drawTransitArea);
+document.getElementById('my-location-btn').addEventListener('click', moveMainMarkerToUsersLocation);
+document.getElementById('search-place-btn').addEventListener('click', textSearchPlaces);
+document.getElementById('clear-search-place-btn').addEventListener('click', closeSearchPlaces);
+document.getElementById('travel-time').addEventListener('change', displayReachableArea);
+document.getElementById('transit-mode').addEventListener('change', displayReachableArea);
+document.getElementById('max-walk-dist').addEventListener('change', displayReachableArea);
+document.getElementById('max-transfer-times').addEventListener('change', displayReachableArea);
 
 // Menu Toggle Script
 $('#menu-toggle').click((e) => {
@@ -96,17 +90,15 @@ function initMap() {
     initDirectionsRenderer();
     initInfoWindow();
     getLabels();
-    drawTransitArea();
+    displayReachableArea();
 }
 
 function initMarker(position) {
     const icon = {
         url: '../assets/svg/metro-marker.svg',
         strokeWeight: 0,
-        // fillColor: '#09c',
         fillOpacity: 1,
         scale: 10,
-        // size: new google.maps.Size(35, 35),
         origin: new google.maps.Point(0, 0),
         anchor: new google.maps.Point(35, 70),
         scaledSize: new google.maps.Size(70, 70)
@@ -120,7 +112,7 @@ function initMarker(position) {
         animation: google.maps.Animation.DROP
     });
     google.maps.event.addListener(mainMarker, 'dragend', function() {
-        drawTransitArea();
+        displayReachableArea();
     });
 }
 
@@ -130,7 +122,6 @@ function initPolygon() {
         map: map,
         strokeWeight: 0,
         fillColor: '#FAA916',
-        // fillColor: '#FFAAA0', // 草莓蘇打
         fillOpacity: 0.35
     });
 }
@@ -227,11 +218,11 @@ function searchBoxPlaces(searchBox) {
 
 function moveMarkerForPlace() {
     mainMarker.setPosition(placeInfoWindow.marker.position);
-    drawTransitArea();
+    displayReachableArea();
 }
 
 function textSearchPlaces() {
-    $('#clear-search-btn').css('display', 'flex');
+    $('#clear-search-place-btn').css('display', 'flex');
     const bounds = map.getBounds();
     const placesService = new google.maps.places.PlacesService(map);
     placesService.textSearch({
@@ -248,15 +239,15 @@ function textSearchPlaces() {
 }
 
 function resetMarkers() {
-    placeMarkers.forEach(m => m.setMap(null));
-    placeMarkers = [];
+    searchPlaceMarkers.forEach(m => m.setMap(null));
+    searchPlaceMarkers = [];
 }
 
 function resetDirections() {
     if (!$('#sidebar-wrapper').hasClass('hiden'))
         $('#sidebar-wrapper').addClass('hiden');
     directionsRenderer.setMap(null);
-    placeMarkers.forEach(m => m.setMap(map));
+    searchPlaceMarkers.forEach(m => m.setMap(map));
     initDirectionsRenderer();
 }
 
@@ -266,7 +257,7 @@ function createMarkersForPlaces(places, withIconUrl) {
     for (const place of places) {
         count++;
         const marker = createMarker(place.place_id, place.geometry.location, place.name, { label: count.toString(), icon: place.icon });
-        placeMarkers.push(marker);
+        searchPlaceMarkers.push(marker);
         if (place.geometry.viewport) {
             bounds.union(place.geometry.viewport);
         } else {
@@ -278,13 +269,6 @@ function createMarkersForPlaces(places, withIconUrl) {
 
 
 function createMarker(placeId, position, title, markerOptions) {
-    // const icon = {
-    //     url: iconUrl,
-    //     size: new google.maps.Size(35, 35),
-    //     origin: new google.maps.Point(0, 0),
-    //     anchor: new google.maps.Point(15, 34),
-    //     scaledSize: new google.maps.Size(25, 25)
-    // };
     const { icon, label } = markerOptions;
     let marker;
     if (label)
@@ -354,7 +338,6 @@ function initMyPlaceUi(container) {
     const title = placeInfoWindow.marker.title || '';
     const description = placeInfoWindow.marker.description || '';
     const form = $('<form><br></form>').attr({ class: 'my-place-form' });
-    // form.append($('<strong></strong>').text('My Place'));
     form.append($('<input>').attr({
         type: 'text',
         class: 'place-title-input',
@@ -550,8 +533,7 @@ function defaultMode() {
 function displayDirections() {
     if ($('#sidebar-wrapper').hasClass('hiden'))
         $('#sidebar-wrapper').removeClass('hiden');
-    placeMarkers.forEach(m => m.setMap(null));
-    // $('#search-places-panel').css('display', 'none');
+    searchPlaceMarkers.forEach(m => m.setMap(null));
     const modes = [];
     switch (document.getElementById('transit-mode').value) {
         case '1':
@@ -589,17 +571,17 @@ function displayDirections() {
 
 function closeDirections() {
     directionsRenderer.setMap(null);
-    placeMarkers.forEach(m => m.setMap(map));
+    searchPlaceMarkers.forEach(m => m.setMap(map));
     initDirectionsRenderer();
 }
 
 function closeSearchPlaces() {
     resetMarkers();
     $('#search-place').val('');
-    $('#clear-search-btn').css('display', 'none');
+    $('#clear-search-place-btn').css('display', 'none');
 }
 
-function goToUsersLocation() {
+function moveMainMarkerToUsersLocation() {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(function(position) {
             const currentPosition = new google.maps.LatLng(
@@ -607,12 +589,12 @@ function goToUsersLocation() {
                 position.coords.longitude);
             mainMarker.setPosition(currentPosition);
             map.setCenter(currentPosition);
-            drawTransitArea();
+            displayReachableArea();
         });
     }
 }
 
-function drawTransitArea() {
+function displayReachableArea() {
     const maxWalkDist = document.getElementById('max-walk-dist').value;
     const maxTransferTimes = document.getElementById('max-transfer-times').value;
     const transitMode = document.getElementById('transit-mode').value;
@@ -637,6 +619,7 @@ function drawTransitArea() {
         maxWalkDist: maxWalkDist,
         maxTransferTimes: maxTransferTimes
     });
+    $('#loading-cover').css('display', 'block');
     fetch('/api/1.0/tavelTime/transit?' + params).then(response => {
         if (!response.ok) throw new Error(response.statusText);
         return response.json();
@@ -649,6 +632,8 @@ function drawTransitArea() {
         polygon.setPaths(paths);
     }).catch(error => {
         console.log('Fetch Error: ', error);
+    }).finally(() => {
+        $('#loading-cover').css('display', 'none');
     });
 }
 
@@ -687,7 +672,7 @@ function drawCircle(lat, lon, radius, dir) {
 function updateDepartureTime() {
     datetime = $('#departure-time').val();
     $('#departure-time-text').val(datetime.slice(11, 16));
-    drawTransitArea();
+    displayReachableArea();
 }
 
 function cancelSetDepartureTime() {

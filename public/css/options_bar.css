@@ -28,7 +28,7 @@
     border-radius: var(--inner-radius);
 }
 
-#my-position-btn {
+#my-location-btn {
     background-color: var(--btn-background-color);
     border-radius: var(--inner-radius) 0px 0px var(--inner-radius);
     padding-right: 0.3rem;
@@ -41,7 +41,7 @@
     z-index: 2;
 }
 
-#clear-search-btn {
+#clear-search-place-btn {
     display: none;
     background-color: white;
     border-top: 1px solid #ced4da;
@@ -49,7 +49,7 @@
     border-radius: 0;
 }
 
-#search-btn {
+#search-place-btn {
     background-color: var(--btn-background-color);
     border-radius: 0px var(--inner-radius) var(--inner-radius) 0px;
     padding-left: 0.3rem;

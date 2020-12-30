@@ -53,27 +53,22 @@ async function signIn() {
         console.log(json.error);
         switch (response.status) {
             case 400:
-                alert('Email and password are required');
-                // Swal.fire({
-                // 	icon: 'error',
-                // 	title: 'Invalid email or password',
-                // 	// text: 'You can consider using your Google or Facebook account.',
-                // });
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid email or password',
+                });
                 break;
             case 403:
-                alert('Email or password incorrect');
-                // Swal.fire({
-                // 	icon: 'error',
-                // 	title: 'Email has already been taken',
-                // 	text: 'No worry! Let\'s try another one.',
-                // });
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Email or password incorrect',
+                });
                 break;
             case 500:
             default:
                 Swal.fire({
                     icon: 'error',
-                    title: 'Our member service is temporarily unavailable',
-                    text: 'Be right back! Just another second please...',
+                    title: 'Sorry, member service is temporarily unavailable',
                 });
                 break;
         }
@@ -110,7 +105,6 @@ async function signUp() {
                     position: 'top',
                     icon: 'error',
                     title: 'Invalid name, email or password',
-                    text: 'You can consider using your Google or Facebook account.',
                 });
                 break;
             case 403:
@@ -118,7 +112,6 @@ async function signUp() {
                     position: 'top',
                     icon: 'warning',
                     title: 'Email has already been taken',
-                    text: 'No worry! Let\'s try another one.',
                 });
                 break;
             case 500:
@@ -126,8 +119,7 @@ async function signUp() {
                 Swal.fire({
                     position: 'top',
                     icon: 'error',
-                    title: 'Our member service is temporarily unavailable',
-                    text: 'Be right back! Just another second please...',
+                    title: 'Sorry, member service is temporarily unavailable',
                 });
                 break;
         }

@@ -2,7 +2,7 @@ require('dotenv').config();
 const axios = require('axios');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
-const { query, transaction, commit, rollback } = require('./mysqlcon');
+const { query, transaction, commit, rollback } = require('./mysql_connection');
 const salt = parseInt(process.env.BCRYPT_SALT);
 const ProviderType = {
     NATIVE: 'native',
