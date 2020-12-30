@@ -89,7 +89,7 @@ function initMap() {
     initSearchBox();
     initDirectionsRenderer();
     initInfoWindow();
-    getLabels();
+    getFavoritePlaces();
     displayReachableArea();
 }
 
@@ -147,9 +147,9 @@ function initInfoWindow() {
     placeInfoWindow = new google.maps.InfoWindow({ maxWidth: 220 });
     placeInfoWindow.addListener('domready', function() {
         if (placeInfoWindow.marker.isMyPlace)
-            labeledMode();
+            setInfoWindowToLabeledMode();
         else
-            defaultMode();
+            setInfoWindowToDefaultMode();
         $('.set-as-marker').click(moveMarkerForPlace);
         $('.display-directions').click(displayDirections);
         $('.create-label').click(() => {
@@ -165,23 +165,23 @@ function initInfoWindow() {
                         window.location.href = './member.html';
                 });
             } else
-                editingMode();
+                setInfoWindowToEditingMode();
         });
         $('.hide-editor').click(() => {
             if (placeInfoWindow.marker.isMyPlace)
-                labeledMode();
+                setInfoWindowToLabeledMode();
             else
-                defaultMode();
+                setInfoWindowToDefaultMode();
         });
         $('.submit-place').click(() => {
             if (placeInfoWindow.marker.isMyPlace)
-                updateLabel();
+                updateFavoritePlace();
             else
-                createLabel();
+                createFavoritePlace();
         });
-        $('.edit-label').click(editingMode);
+        $('.edit-label').click(setInfoWindowToEditingMode);
         $('.delete-label').click(() => {
-            deleteLabel();
+            deleteFavoritePlace();
         });
     });
     placeInfoWindow.addListener('closeclick', function() {
@@ -290,13 +290,13 @@ function createMarker(placeId, position, title, markerOptions) {
         });
     marker.addListener('click', function() {
         if (placeInfoWindow.marker != this) {
-            getPlacesDetails(this, placeInfoWindow);
+            getPlaceDetails(this, placeInfoWindow);
         }
     });
     return marker;
 }
 
-function getPlacesDetails(marker, placeInfoWindow) {
+function getPlaceDetails(marker, placeInfoWindow) {
     const service = new google.maps.places.PlacesService(map);
     service.getDetails({
         placeId: marker.placeId
@@ -381,7 +381,7 @@ function addPlaceInList(places) {
     $('#search-places-panel').css('display', 'block');
 }
 
-function getLabels() {
+function getFavoritePlaces() {
     if (!token) return;
 
     const settings = {
@@ -414,7 +414,7 @@ function getLabels() {
     });
 }
 
-function createLabel() {
+function createFavoritePlace() {
     const position = placeInfoWindow.marker.getPosition();
     const iconUrl = placeInfoWindow.marker.iconUrl;
     const title = $('.place-title-input').val();
@@ -436,17 +436,19 @@ function createLabel() {
         })
     };
 
-    $.ajax(settings).done(function(response) {
-        const { placeId } = response;
+    $('#loading-cover').css('display', 'block');
+    $.ajax(settings).done(function() {
         placeInfoWindow.marker.setMap(null);
-        getLabels();
-        labeledMode();
+        getFavoritePlaces();
+        setInfoWindowToLabeledMode();
     }).fail(function(error) {
         console.error(error);
+    }).finally(() => {
+        $('#loading-cover').css('display', 'none');
     });
 }
 
-function updateLabel() {
+function updateFavoritePlace() {
     const settings = {
         'url': '/api/1.0/user/places/' + placeInfoWindow.marker.id,
         'method': 'PATCH',
@@ -460,19 +462,22 @@ function updateLabel() {
         })
     };
 
-    $.ajax(settings).done(function(response) {
+    $('#loading-cover').css('display', 'block');
+    $.ajax(settings).done(function() {
         placeInfoWindow.marker.isMyPlace = true;
         placeInfoWindow.marker.title = $('.place-title-input').val();
         placeInfoWindow.marker.description = $('.place-description-input').val();
         $('.place-title-label').text($('.place-title-input').val());
         $('.place-description-label').text($('.place-description-input').val());
-        labeledMode();
+        setInfoWindowToLabeledMode();
     }).fail(function(error) {
         console.error(error);
+    }).finally(() => {
+        $('#loading-cover').css('display', 'none');
     });
 }
 
-function deleteLabel() {
+function deleteFavoritePlace() {
     Swal.fire({
         icon: 'question',
         title: 'Delete place',
@@ -492,21 +497,24 @@ function deleteLabel() {
                 }
             };
 
-            $.ajax(settings).done(function(response) {
+            $('#loading-cover').css('display', 'block');
+            $.ajax(settings).done(function() {
                 delete placeInfoWindow.marker.isMyPlace;
                 delete placeInfoWindow.marker.title;
                 delete placeInfoWindow.marker.description;
                 placeInfoWindow.marker.setMap(null);
-                defaultMode();
+                setInfoWindowToDefaultMode();
             }).fail(function(error) {
                 console.error(error);
+            }).finally(() => {
+                $('#loading-cover').css('display', 'none');
             });
         }
     });
 }
 
 
-function labeledMode() {
+function setInfoWindowToLabeledMode() {
     $('.my-place-form').css('display', 'none');
     $('.my-place-label').css('display', 'block');
     $('.info-window-menu').css('display', 'flex');
@@ -515,13 +523,13 @@ function labeledMode() {
     $('.delete-label').css('display', 'inline-block');
 }
 
-function editingMode() {
+function setInfoWindowToEditingMode() {
     $('.my-place-form').css('display', 'flex');
     $('.my-place-label').css('display', 'none');
     $('.info-window-menu').css('display', 'none');
 }
 
-function defaultMode() {
+function setInfoWindowToDefaultMode() {
     $('.my-place-form').css('display', 'none');
     $('.my-place-label').css('display', 'none');
     $('.info-window-menu').css('display', 'flex');

@@ -7,7 +7,7 @@ const wrapAsync = (fn) => {
     };
 };
 
-const weekdayToString = (index) => {
+const parseIntToWeekday = (index) => {
     if (index == 0) return 'Mon';
     if (index == 1) return 'Tue';
     if (index == 2) return 'Wed';
@@ -18,7 +18,16 @@ const weekdayToString = (index) => {
     return null;
 };
 
+
+const parseDatetimeToWeekday = (datetimeStr) => {
+    const day = new Date(datetimeStr).getDay();
+    const weekday = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    return weekday[day];
+};
+
+
 module.exports = {
     wrapAsync,
-    weekdayToString
+    parseIntToWeekday,
+    parseDatetimeToWeekday
 };

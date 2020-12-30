@@ -1,5 +1,5 @@
 const { transaction, commit, rollback, query } = require('./mysql_connection');
-const { weekdayToString } = require('../../util/util');
+const { parseIntToWeekday } = require('../../util/util');
 
 const createStop = async(stop) => {
     try {
@@ -121,7 +121,7 @@ const getAllFrequencys = async() => {
     for (const f of frequencyData) {
         const subRouteId = f.sub_route_id;
         const direction = f.direction;
-        const serviceDay = weekdayToString(f.service_day);
+        const serviceDay = parseIntToWeekday(f.service_day);
         const routeName = f.sub_route_name_cht;
         const startTime = f.start_time;
         const endTime = f.end_time;
