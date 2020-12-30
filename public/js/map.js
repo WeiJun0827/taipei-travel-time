@@ -443,7 +443,7 @@ function createFavoritePlace() {
         setInfoWindowToLabeledMode();
     }).fail(function(error) {
         console.error(error);
-    }).finally(() => {
+    }).always(function() {
         $('#loading-cover').css('display', 'none');
     });
 }
@@ -472,7 +472,7 @@ function updateFavoritePlace() {
         setInfoWindowToLabeledMode();
     }).fail(function(error) {
         console.error(error);
-    }).finally(() => {
+    }).always(function() {
         $('#loading-cover').css('display', 'none');
     });
 }
@@ -506,7 +506,7 @@ function deleteFavoritePlace() {
                 setInfoWindowToDefaultMode();
             }).fail(function(error) {
                 console.error(error);
-            }).finally(() => {
+            }).always(function() {
                 $('#loading-cover').css('display', 'none');
             });
         }
