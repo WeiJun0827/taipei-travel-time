@@ -241,24 +241,50 @@ const importBusData = async function() {
     }
 };
 
+
+const importBusStationsAndStops = async function(city = 'Taipei', stationNum = 0, skipNum = 0) {
+    const stationNumOption = stationNum ? `&$top=${stationNum}` : '';
+    const skipNumOption = skipNum ? `&$skip=${skipNum}` : '';
+    const stationData = await getPtxData(`https://ptx.transportdata.tw/MOTC/v2/Bus/Station/City/${city}?&$format=JSON${stationNumOption}${skipNumOption}`);
+    for (const station of stationData) {
+        for (const subRoute of station.Stops) {
+            const subRouteInfo = {
+                route_id: station.RouteUID,
+                sub_route_id: subRoute.SubRouteUID,
+                direction: subRoute.Direction,
+                route_name_cht: station.RouteName.Zh_tw,
+                route_name_eng: station.RouteName.En,
+                sub_route_name_cht: subRoute.SubRouteName.Zh_tw,
+                sub_route_name_eng: subRoute.SubRouteName.En,
+                city: station.City
+            };
+            const routeSqlId = await Bus.createRoute(subRouteInfo);
+        }
+    }
+    console.log('Complete');
+};
+
 const importBusRoutes = async function(city = 'Taipei', routeNum = 0, skipNum = 0) {
     const routeNumOption = routeNum ? `&$top=${routeNum}` : '';
     const skipNumOption = skipNum ? `&$skip=${skipNum}` : '';
     const routeData = await getPtxData(`https://ptx.transportdata.tw/MOTC/v2/Bus/Route/City/${city}?&$format=JSON${routeNumOption}${skipNumOption}`);
     for (const route of routeData) {
+        const routeInfo = {
+            route_id: route.RouteUID,
+            route_name_cht: route.RouteName.Zh_tw,
+            route_name_eng: route.RouteName.En,
+            city: route.City
+        };
         for (const subRoute of route.SubRoutes) {
             const subRouteInfo = {
-                route_id: route.RouteUID,
                 sub_route_id: subRoute.SubRouteUID,
                 direction: subRoute.Direction,
-                route_name_cht: route.RouteName.Zh_tw,
-                route_name_eng: route.RouteName.En,
+                route_id: route.RouteUID,
                 sub_route_name_cht: subRoute.SubRouteName.Zh_tw,
                 sub_route_name_eng: subRoute.SubRouteName.En,
-                city: route.City
             };
-            const routeSqlId = await Bus.createRoute(subRouteInfo);
-            // console.log(subRouteInfo);
+            // const routeSqlId = await Bus.createRoute(subRouteInfo);
+            console.log(subRouteInfo);
         }
     }
     console.log('Complete');
@@ -292,7 +318,7 @@ const importBusStopsAndTravelTime = async function(city, routeId) {
                 lon: stop.StopPosition.PositionLon,
                 is_operating: stopIsOperating
             };
-            const stopSqlId = await Bus.createStop(stopInfo);
+            // const stopSqlId = await Bus.createStop(stopInfo);
 
             if (!stopIsOperating) continue; // skip this stop for travel time
 
@@ -304,7 +330,7 @@ const importBusStopsAndTravelTime = async function(city, routeId) {
                     to_stop_id: currStopId,
                     run_time: 0
                 };
-                const travelTimeId = await Bus.createTravelTime(travelTimeInfo);
+                // const travelTimeId = await Bus.createTravelTime(travelTimeInfo);
                 // console.log(travelTimeId);
             }
             prevStopId = currStopId;
@@ -349,7 +375,7 @@ const importBusTimetableAndFrequency = async function(city, routeId) {
                         max_interval_mins: f.MaxHeadwayMins,
                         expected_time_secs: (f.MinHeadwayMins + f.MaxHeadwayMins) * 60 / 2
                     };
-                    const id = await Bus.createFrequency(frequencyInfo);
+                    // const id = await Bus.createFrequency(frequencyInfo);
                 }
             }
             console.log(subRouteNameCht + ' freq added');
@@ -446,8 +472,8 @@ const batchImportBusRunTimeLog = async function() {
 // importBusData('TPE16111');
 // importBusData('TPE16111');
 // updateBusRunTimeBySubRouteIdV2('TPE157462');
-// importBusRoutes(cities[1]);
-// batchImportBusData(17, 12);
+importBusRoutes(cities[0], 2, 0);
+// batchImportBusData(0, 1);
 // Bus.getAllFrequencys();
-batchImportBusRunTimeLog();
-setInterval(() => batchImportBusRunTimeLog(), 600000);
+// batchImportBusRunTimeLog();
+// setInterval(() => batchImportBusRunTimeLog(), 600000);

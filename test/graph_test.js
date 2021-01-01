@@ -19,11 +19,10 @@ describe('Graph', () => {
         assert.equal(graph.nodes['BL01'].edges['BL02'].edgeType, EdgeType.METRO);
     });
 
-    it('Calculate expected time by multiple routes', () => {
-
-    });
-
     it('Get expected time', () => {
-
+        assert.equal(graph.nodes['BL01'].edges['BL02'].getExpectedTime('BL', '06:00:00', 'Mon'), 0);
+        assert.equal(graph.nodes['BL01'].edges['BL02'].getExpectedTime('BL', '06:00:00', 'Sat'), 0);
+        assert.equal(graph.nodes['BL01'].edges['BL02'].getExpectedTime('R', '06:00:00', 'Mon'), 270);
+        assert.equal(graph.nodes['BL01'].edges['BL02'].getExpectedTime('R', '06:00:00', 'Sat'), 240);
     });
 });
