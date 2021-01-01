@@ -15,7 +15,7 @@ const parseIntToWeekday = (index) => {
     if (index == 4) return 'Fri';
     if (index == 5) return 'Sat';
     if (index == 6) return 'Sun';
-    return null;
+    throw new Error('Invalid integer for parsing into weekday');
 };
 
 
@@ -25,9 +25,22 @@ const parseDatetimeToWeekday = (datetimeStr) => {
     return weekday[day];
 };
 
+const calculateAverageExpectedTime = (expectedTimes) => {
+    if (!expectedTimes || !expectedTimes.length || expectedTimes.length === 0)
+        throw new Error('Invalid expected time array');
+    let reciprocal = 0;
+    for (const time of expectedTimes) {
+        if (typeof time !== 'number' || Number.isNaN(time) || time < 0)
+            throw new Error('Invalid expected time');
+        if (time === 0) return 0;
+        reciprocal += 1 / time;
+    }
+    return Math.round(1 / reciprocal);
+};
 
 module.exports = {
     wrapAsync,
     parseIntToWeekday,
-    parseDatetimeToWeekday
+    parseDatetimeToWeekday,
+    calculateAverageExpectedTime
 };

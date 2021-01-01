@@ -4,12 +4,12 @@ const axios = require('axios');
 const jsSHA = require('jssha');
 const moment = require('moment');
 const { PTX_APP_ID, PTX_APP_KEY } = process.env;
-const Metro = require('./server/models/metro_model');
-const Bus = require('./server/models/bus_model');
+const Metro = require('../server/models/metro_model');
+const Bus = require('../server/models/bus_model');
 const cities = ['Taipei', 'NewTaipei'];
 
 
-const getAuthorizationHeader = function () {
+const getAuthorizationHeader = function() {
     const AppID = PTX_APP_ID;
     const AppKey = PTX_APP_KEY;
 
@@ -23,7 +23,7 @@ const getAuthorizationHeader = function () {
     return { 'Authorization': Authorization, 'X-Date': GMTString };
 };
 
-const getPtxData = function (ptxApiUrl) {
+const getPtxData = function(ptxApiUrl) {
     return new Promise((resolve, reject) => {
         axios.get(ptxApiUrl, { headers: getAuthorizationHeader() })
             .then(response => resolve(response.data))
@@ -31,7 +31,7 @@ const getPtxData = function (ptxApiUrl) {
     });
 };
 
-const importMetroLines = async function () {
+const importMetroLines = async function() {
     const lines = ['BL', 'BR', 'G', 'O', 'R', 'Y'];
     for (const line of lines) {
         const id = await Metro.createLine({
@@ -40,7 +40,7 @@ const importMetroLines = async function () {
     }
 };
 
-const importMetroStationAndTravelTime = async function () {
+const importMetroStationAndTravelTime = async function() {
 
     // Add station data
     const stations = {};
@@ -116,7 +116,7 @@ const importMetroStationAndTravelTime = async function () {
     }
 };
 
-const importMetroRoute = async function () {
+const importMetroRoute = async function() {
     // const routeStationData = await getPtxData('https://ptx.transportdata.tw/MOTC/v2/Rail/Metro/StationOfRoute/TRTC?$filter=LineID%20eq%20%27BL%27&$format=JSON');
     const routeStationData = await getPtxData('https://ptx.transportdata.tw/MOTC/v2/Rail/Metro/StationOfRoute/TRTC?$format=JSON');
     const routeStationInfo = {};
@@ -149,7 +149,7 @@ const importMetroRoute = async function () {
     }
 };
 
-const importMetroSchedule = async function () {
+const importMetroSchedule = async function() {
     const lines = ['BL', 'BR', 'G', 'O', 'R', 'Y'];
     for (const line of lines) {
         const stations = await Metro.getStationsByLine(line);
@@ -177,7 +177,7 @@ const importMetroSchedule = async function () {
     console.log('Done');
 };
 
-const importBusData = async function () {
+const importBusData = async function() {
     for (const city of cities) {
         const routeData = await getPtxData(`https://ptx.transportdata.tw/MOTC/v2/Bus/Route/City/${city}?$top=30&$format=JSON`);
         for (const route of routeData) {
@@ -241,7 +241,7 @@ const importBusData = async function () {
     }
 };
 
-const importBusRoutes = async function (city = 'Taipei', routeNum = 0, skipNum = 0) {
+const importBusRoutes = async function(city = 'Taipei', routeNum = 0, skipNum = 0) {
     const routeNumOption = routeNum ? `&$top=${routeNum}` : '';
     const skipNumOption = skipNum ? `&$skip=${skipNum}` : '';
     const routeData = await getPtxData(`https://ptx.transportdata.tw/MOTC/v2/Bus/Route/City/${city}?&$format=JSON${routeNumOption}${skipNumOption}`);
@@ -264,7 +264,7 @@ const importBusRoutes = async function (city = 'Taipei', routeNum = 0, skipNum =
     console.log('Complete');
 };
 
-const importBusStopsAndTravelTime = async function (city, routeId) {
+const importBusStopsAndTravelTime = async function(city, routeId) {
     const subRouteStopData = await getPtxData(`https://ptx.transportdata.tw/MOTC/v2/Bus/StopOfRoute/City/${city}?$filter=RouteUID%20eq%20'${routeId}'&$format=JSON`);
     const realTimeStopData = await getPtxData(`https://ptx.transportdata.tw/MOTC/v2/Bus/EstimatedTimeOfArrival/City/${city}?$filter=RouteUID%20eq%20'${routeId}'&$format=JSON
             `);
@@ -313,7 +313,7 @@ const importBusStopsAndTravelTime = async function (city, routeId) {
 };
 
 // follows MySQL WEEKDAY() standard
-const convertNumOfServiceDay = function (serviceDay) {
+const convertNumOfServiceDay = function(serviceDay) {
     if (!serviceDay) throw new Error('Service day undefined');
     if (serviceDay.Monday === 1) return 0;
     if (serviceDay.Tuesday === 1) return 1;
@@ -325,7 +325,7 @@ const convertNumOfServiceDay = function (serviceDay) {
     return -1;
 };
 
-const importBusTimetableAndFrequency = async function (city, routeId) {
+const importBusTimetableAndFrequency = async function(city, routeId) {
     const busRouteScheduleData = await getPtxData(`https://ptx.transportdata.tw/MOTC/v2/Bus/Schedule/City/${city}/?$filter=RouteUID%20eq%20'${routeId}'&$format=JSON`);
     for (const subRoute of busRouteScheduleData) {
         const routeId = subRoute.RouteUID;
@@ -378,7 +378,7 @@ const importBusTimetableAndFrequency = async function (city, routeId) {
     }
 };
 
-const logBusRunTime = async function (city, routeId) {
+const logBusRunTime = async function(city, routeId) {
 
     const realTimeStopData = await getPtxData(`https://ptx.transportdata.tw/MOTC/v2/Bus/EstimatedTimeOfArrival/City/${city}?$filter=RouteUID%20eq%20'${routeId}'&$orderby=StopID&$format=JSON
         `);
@@ -387,7 +387,7 @@ const logBusRunTime = async function (city, routeId) {
     for (const subRoute of routes) {
         const subRouteId = subRoute.sub_route_id;
         const routeStopSeq = await Bus.getTravelTimeBySubRouteId(subRouteId);
-        if(routeStopSeq.length == 0) console.error(`Find 0 travel time log of ${routes[0].route_name_cht}`);
+        if (routeStopSeq.length == 0) console.error(`Find 0 travel time log of ${routes[0].route_name_cht}`);
 
         for (const stopSeq of routeStopSeq) {
             const direction = stopSeq.direction;
@@ -416,7 +416,7 @@ const logBusRunTime = async function (city, routeId) {
 };
 
 
-const batchImportBusData = async function (skipNum, limitNum) {
+const batchImportBusData = async function(skipNum, limitNum) {
     const routeIds = await Bus.getDistinctRoutes(skipNum, limitNum);
     let i = 0;
     for (const route of routeIds) {
@@ -429,9 +429,10 @@ const batchImportBusData = async function (skipNum, limitNum) {
     }
 };
 
-const batchImportBusRunTimeLog = async function () {
+const batchImportBusRunTimeLog = async function() {
     const routeIds = await Bus.getRoutesWithFrequency();
-    for (const { city, route_id } of routeIds) {
+    for (const { city, route_id }
+        of routeIds) {
         await logBusRunTime(city, route_id);
     }
 };
