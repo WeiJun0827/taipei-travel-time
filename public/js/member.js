@@ -137,12 +137,6 @@ function checkLoginState() {
             if (!response.ok) {
                 console.log(json.error);
                 switch (response.status) {
-                    case 400:
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Invalid name, email or password',
-                        });
-                        break;
                     case 403:
                         Swal.fire({
                             icon: 'error',

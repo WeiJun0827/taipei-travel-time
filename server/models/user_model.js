@@ -89,7 +89,7 @@ const facebookSignIn = async(id, name, email, accessToken, expire) => {
             login_at: loginAt
         };
 
-        const users = await query('SELECT id FROM user WHERE email = ? AND provider = ? FOR UPDATE', [ProviderType.FACEBOOK, email]);
+        const users = await query('SELECT id FROM user WHERE email = ? AND provider = ? FOR UPDATE', [email, ProviderType.FACEBOOK]);
         let userId;
         if (users.length === 0) { // Insert new user
             const queryStr = 'insert into user set ?';
