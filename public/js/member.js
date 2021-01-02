@@ -20,18 +20,6 @@ secondForm.addEventListener('submit', (e) => e.preventDefault());
 document.getElementById('sign-in').addEventListener('click', signIn);
 document.getElementById('sign-up').addEventListener('click', signUp);
 
-window.fbAsyncInit = function() {
-    FB.init({
-        appId: '237769527734722',
-        cookie: true,
-        xfbml: true,
-        version: 'v9.0'
-    });
-
-    FB.AppEvents.logPageView();
-};
-
-
 async function signIn() {
     const userData = {
         provider: 'native',
@@ -130,6 +118,35 @@ async function signUp() {
     window.location.href = './map.html';
 }
 
+
+// Facebook Sign-in
+function statusChangeCallback(response) { // Called with the results from FB.getLoginStatus().
+    console.log('statusChangeCallback');
+    console.log(response); // The current login status of the person.
+    if (response.status === 'connected') { // Logged into your webpage and Facebook.
+        testAPI();
+    } else { // Not logged into your webpage or we are unable to tell.
+        document.getElementById('status').innerHTML = 'Please log ' +
+            'into this webpage.';
+    }
+}
+
+function checkLoginState() {
+    FB.getLoginStatus(function(response) {
+        statusChangeCallback(response);
+    });
+}
+
+window.fbAsyncInit = function() {
+    FB.init({
+        appId: '237769527734722',
+        cookie: true,
+        xfbml: true,
+        version: 'v9.0'
+    });
+
+    FB.AppEvents.logPageView();
+};
 
 (function(d, s, id) {
     var js, fjs = d.getElementsByTagName(s)[0];
