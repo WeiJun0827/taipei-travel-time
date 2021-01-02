@@ -90,14 +90,12 @@ async function signUp() {
         switch (response.status) {
             case 400:
                 Swal.fire({
-                    position: 'top',
                     icon: 'error',
                     title: 'Invalid name, email or password',
                 });
                 break;
             case 403:
                 Swal.fire({
-                    position: 'top',
                     icon: 'warning',
                     title: 'Email has already been taken',
                 });
@@ -105,7 +103,6 @@ async function signUp() {
             case 500:
             default:
                 Swal.fire({
-                    position: 'top',
                     icon: 'error',
                     title: 'Sorry, member service is temporarily unavailable',
                 });
@@ -120,20 +117,57 @@ async function signUp() {
 
 
 // Facebook Sign-in
-function statusChangeCallback(response) { // Called with the results from FB.getLoginStatus().
-    console.log('statusChangeCallback');
-    console.log(response); // The current login status of the person.
-    if (response.status === 'connected') { // Logged into your webpage and Facebook.
-        testAPI();
-    } else { // Not logged into your webpage or we are unable to tell.
-        document.getElementById('status').innerHTML = 'Please log ' +
-            'into this webpage.';
-    }
-}
-
 function checkLoginState() {
-    FB.getLoginStatus(function(response) {
-        statusChangeCallback(response);
+    FB.getLoginStatus(async function(fbResponse) {
+        if (fbResponse.status === 'connected') {
+            const userData = {
+                provider: 'facebook',
+                access_token: fbResponse.authResponse.accessToken,
+            };
+
+            const response = await fetch('/api/1.0/user/signin', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(userData)
+            });
+
+            const json = await response.json();
+            if (!response.ok) {
+                console.log(json.error);
+                switch (response.status) {
+                    case 400:
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Invalid name, email or password',
+                        });
+                        break;
+                    case 403:
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Facebook sign in failed',
+                        });
+                        break;
+                    case 500:
+                    default:
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Sorry, member service is temporarily unavailable',
+                        });
+                        break;
+                }
+                return;
+            }
+            const token = json.data.access_token;
+            localStorage.setItem('access_token', token);
+            window.location.href = './map.html';
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Facebook sign in failed',
+            });
+        }
     });
 }
 
@@ -148,6 +182,7 @@ window.fbAsyncInit = function() {
     FB.AppEvents.logPageView();
 };
 
+// Load Facebook SDK asynchronously
 (function(d, s, id) {
     var js, fjs = d.getElementsByTagName(s)[0];
     if (d.getElementById(id)) { return; }

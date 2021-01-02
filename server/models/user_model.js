@@ -128,7 +128,7 @@ const getFacebookProfile = async function(accessToken) {
         let res = await axios('https://graph.facebook.com/me?fields=id,name,email&access_token=' + accessToken, {
             responseType: 'json'
         });
-        return res.body;
+        return res.data;
     } catch (e) {
         await rollback();
         console.log(e);
