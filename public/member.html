@@ -32,32 +32,24 @@
   <div class="member right-panel-active">
     <!-- Sign Up -->
     <div class="member__form member--signup">
-      <form action="#" class="form" id="form1">
+      <form action="#" class="form" id="sign-up-form">
         <h2 class="form__title">Sign Up</h2>
         <input id="sign-up-name" type="text" placeholder="Name" class="input" />
         <input id="sign-up-email" type="email" placeholder="Email" class="input" />
         <input id="sign-up-password" type="password" placeholder="Password" class="input" />
-        <button id="sign-up" class="btn">Sign Up</button>
-        <!-- <div class="g-signin2" data-width="130" data-height="35" data-onsuccess="onSignIn"></div>
-                        <div class="fb-login-button" data-width="200" data-size="small" data-button-type="login_with"
-                            data-layout="rounded" data-auto-logout-link="false" data-use-continue-as="true"></div> -->
+        <button id="sign-up" class="btn">Sign Up</button> or
+        <div class="fb-login-button" data-width="200" data-size="medium" data-button-type="login_with" data-layout="rounded" data-auto-logout-link="false" data-use-continue-as="true" scope="public_profile,email" onlogin="checkLoginState();"></div>
       </form>
     </div>
 
     <!-- Sign In -->
     <div class="member__form member--signin">
-      <form action="#" class="form" id="form2">
+      <form action="#" class="form" id="sign-in-form">
         <h2 class="form__title">Sign In</h2>
         <input id="sign-in-email" type="email" placeholder="Email" class="input" />
         <input id="sign-in-password" type="password" placeholder="Password" class="input" />
-        <!-- <a href="#" class="link">Forgot your password?</a> -->
-        <button id="sign-in" class="btn">Sign In</button>
-        <!-- <div class="fb-login-button" data-width="100" data-size="small" data-button-type="login_with" data-layout="rounded" data-auto-logout-link="false" data-use-continue-as="false"></div> -->
-        <fb:login-button scope="public_profile,email" onlogin="checkLoginState();">
-        </fb:login-button>
-        <!-- <div class="g-signin2" data-width="130" data-height="35" data-onsuccess="onSignIn"></div>
-                        <div class="fb-login-button" data-width="100" data-size="medium" data-button-type="login_with"
-                            data-layout="rounded" data-auto-logout-link="false" data-use-continue-as="true"></div> -->
+        <button id="sign-in" class="btn">Sign In</button> or
+        <div class="fb-login-button" data-width="200" data-size="medium" data-button-type="login_with" data-layout="rounded" data-auto-logout-link="false" data-use-continue-as="true" scope="public_profile,email" onlogin="checkLoginState();"></div>
       </form>
     </div>
 
@@ -65,10 +57,10 @@
     <div class="member__overlay">
       <div class="overlay">
         <div class="overlay__panel overlay--left">
-          <button class="btn" id="goToSignIn">Sign In</button>
+          <button class="btn" id="go-to-sign-in-btn">Sign In</button>
         </div>
         <div class="overlay__panel overlay--right">
-          <button class="btn" id="goToSignUp">Sign Up</button>
+          <button class="btn" id="go-to-sign-up-btn">Sign Up</button>
         </div>
       </div>
     </div>

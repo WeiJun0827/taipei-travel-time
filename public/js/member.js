@@ -1,8 +1,8 @@
 /* eslint-disable no-undef */
-const goToSignInBtn = document.getElementById('goToSignIn');
-const goToSignUpBtn = document.getElementById('goToSignUp');
-const fistForm = document.getElementById('form1');
-const secondForm = document.getElementById('form2');
+const goToSignInBtn = document.getElementById('go-to-sign-in-btn');
+const goToSignUpBtn = document.getElementById('go-to-sign-up-btn');
+const signUpForm = document.getElementById('sign-up-form');
+const signInForm = document.getElementById('sign-in-form');
 const member = document.querySelector('.member');
 
 
@@ -14,8 +14,8 @@ goToSignUpBtn.addEventListener('click', () => {
     member.classList.add('right-panel-active');
 });
 
-fistForm.addEventListener('submit', (e) => e.preventDefault());
-secondForm.addEventListener('submit', (e) => e.preventDefault());
+signUpForm.addEventListener('submit', (e) => e.preventDefault());
+signInForm.addEventListener('submit', (e) => e.preventDefault());
 
 document.getElementById('sign-in').addEventListener('click', signIn);
 document.getElementById('sign-up').addEventListener('click', signUp);

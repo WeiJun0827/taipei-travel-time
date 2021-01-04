@@ -9,8 +9,8 @@
     /* RADII */
     --button-radius: 0.7rem;
     /* SIZES */
-    --max-width: 600px;
-    --max-height: 370px;
+    --max-width: 650px;
+    --max-height: 420px;
     font-size: 16px;
 }
 
@@ -59,50 +59,6 @@ body {
     #mainNav .navbar-brand:hover {
         color: #fff;
     }
-    #mainNav .navbar-nav .nav-item .nav-link {
-        color: rgba(255, 255, 255, 0.7);
-        padding: 0 1rem;
-    }
-    #mainNav .navbar-nav .nav-item .nav-link:hover {
-        color: #fff;
-    }
-    #mainNav .navbar-nav .nav-item:last-child .nav-link {
-        padding-right: 0;
-    }
-    #mainNav.navbar-scrolled {
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-        background-color: #fff;
-    }
-    #mainNav.navbar-scrolled .navbar-brand {
-        color: #212529;
-    }
-    #mainNav.navbar-scrolled .navbar-brand:hover {
-        color: #f4623a;
-    }
-    #mainNav.navbar-scrolled .navbar-nav .nav-item .nav-link {
-        color: #212529;
-    }
-    #mainNav.navbar-scrolled .navbar-nav .nav-item .nav-link:hover {
-        color: #f4623a;
-    }
-}
-
-.headline-title {
-    font-family: var(--font-family);
-    font-weight: 900;
-    line-height: 3rem;
-    color: #fff;
-    margin-bottom: 1.5rem;
-}
-
-.headline-slogan {
-    font-family: var(--font-family);
-    line-height: 2.5rem;
-    color: rgba(255, 255, 255, 0.7);
-    margin-bottom: 2rem;
-    /* padding-left: 1rem;
-    margin-left: 0.2rem;
-    border-left:  2px solid  #f24516; */
 }
 
 #mainNav .navbar-brand {
@@ -115,13 +71,6 @@ body {
     font-weight: 300;
     margin: 0;
     margin-bottom: 1rem;
-}
-
-.link {
-    color: var(--gray);
-    font-size: 0.9rem;
-    margin: 0.5rem 0;
-    text-decoration: none;
 }
 
 .member {
@@ -241,12 +190,11 @@ body {
     font-size: 1rem;
     font-weight: bold;
     letter-spacing: 0.1rem;
-    padding: 0.75rem 3rem;
+    /* padding: 0.75rem 3rem; */
+    /* height: 28px; */
+    width: 200px;
+    margin: 0.5rem 0;
     transition: transform 80ms ease-in;
-}
-
-.form>.btn {
-    margin-top: 1.5rem;
 }
 
 .btn:active {
@@ -276,6 +224,10 @@ body {
     width: 100%;
 }
 
+.fb-login-button {
+    margin: 0.5rem 0;
+}
+
 @keyframes show {
     0%,
     49.99% {
@@ -287,8 +239,4 @@ body {
         opacity: 1;
         z-index: 5;
     }
-}
-
-.fb_reset {
-    display: none;
 }
