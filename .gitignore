@@ -75,11 +75,5 @@ cert
 # artillery
 artillery*
 
-# midterm
-midterm
-
 # https
 .well-known
-
-# temp ignore
-tempignore*
