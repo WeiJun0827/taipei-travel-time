@@ -1,0 +1,80 @@
+:root {
+    --inner-radius: 29px;
+    --btn-background-color: #ffb004;
+}
+
+#options-bar {
+    position: absolute;
+    top: 1.5rem;
+    left: 0;
+    right: 0;
+    background-color: #ffde4b;
+    opacity: 90%;
+    width: 926px;
+    z-index: 1;
+    border-radius: 37px;
+}
+
+#options-bar select {
+    text-align-last: center;
+}
+
+#options-bar .form-select {
+    font-weight: 600;
+}
+
+#search-place-wrapper {
+    width: 14rem;
+    border-radius: var(--inner-radius);
+}
+
+#my-location-btn {
+    background-color: var(--btn-background-color);
+    border-radius: var(--inner-radius) 0px 0px var(--inner-radius);
+    padding-right: 0.3rem;
+}
+
+#search-place {
+    border-radius: 0;
+    border-left-width: 0;
+    border-right-width: 0;
+    z-index: 2;
+}
+
+#clear-search-place-btn {
+    display: none;
+    background-color: white;
+    border-top: 1px solid #ced4da;
+    border-bottom: 1px solid #ced4da;
+    border-radius: 0;
+}
+
+#search-place-btn {
+    background-color: var(--btn-background-color);
+    border-radius: 0px var(--inner-radius) var(--inner-radius) 0px;
+    padding-left: 0.3rem;
+}
+
+#travel-time,
+#transit-mode {
+    border-radius: var(--inner-radius);
+    width: 152px;
+}
+
+#max-transfer-times,
+#max-walk-dist {
+    border-radius: var(--inner-radius);
+    width: 124px;
+}
+
+#departure-time-text {
+    border-radius: var(--inner-radius);
+    width: 108px;
+    font-weight: 600;
+    text-align-last: center;
+    background-color: white;
+}
+
+.modal-backdrop {
+    z-index: 0;
+}

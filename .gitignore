@@ -75,8 +75,5 @@ cert
 # artillery
 artillery*
 
-# midterm
-midterm
-
 # https
 .well-known

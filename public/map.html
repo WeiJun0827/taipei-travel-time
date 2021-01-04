@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Taipei Travel Time - Map</title>
+  <!-- Favicon-->
+  <link rel="icon" type="image/x-icon" href="assets/img/Taipei Travel Time Logo_v3.png" />
+  <!-- Bootstrap core CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Comfortaa&family=Rubik&display=swap" rel="stylesheet">
+  <!-- Custom styles -->
+  <link href="css/common.css" rel="stylesheet" />
+  <link rel="stylesheet" href="./css/navbar.css" />
+  <link rel="stylesheet" href="./css/loading_cover.css" />
+  <link rel="stylesheet" href="./css/map.css" />
+  <link rel="stylesheet" href="./css/sidebar.css" />
+  <link rel="stylesheet" href="./css/options_bar.css" />
+  <link rel="stylesheet" href="./css/info_window.css" />
+</head>
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-md navbar-light bg-light" id="header">
+    <div class="container">
+      <a class="navbar-brand" href="/">
+        <img width="50" height="50" src='./assets/img/Taipei Travel Time Logo_v3.png' alt=""> Taipei Travel Time
+      </a>
+      <div class="collapse navbar-collapse justify-content-end" id="navbarCollapse">
+        <ul class="navbar-nav">
+          <li class="nav-item" id="sign-in-sign-up">
+            <a class="nav-link" href="/member.html">
+              <img src="./assets/svg/box-arrow-in-right.svg"> Sign-in / Sign-up
+            </a>
+          </li>
+          <li class="nav-item" id="user-name">
+            <a class="nav-link"><img src="./assets/svg/person-fill.svg">
+              <label id="user-name-field"></label>
+            </a>
+          </li>
+          <li class="nav-item" id="sign-out" onclick="signOut()">
+            <a class="nav-link"><img src="./assets/svg/box-arrow-right.svg"> Sign-out</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Wrapper -->
+  <div class="d-flex container-fluid" id="wrapper">
+    <!-- Sidebar -->
+    <div class="list-group bg-light border-right hiden" id="sidebar-wrapper">
+      <!-- header -->
+      <div id="sidebar-header">
+        <span href="#" class="list-group-item">
+          <svg class="align-text-top" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
+            <path d="M0 0h24v24H0z" fill="none" />
+            <path
+              d="M21.71 11.29l-9-9c-.39-.39-1.02-.39-1.41 0l-9 9c-.39.39-.39 1.02 0 1.41l9 9c.39.39 1.02.39 1.41 0l9-9c.39-.38.39-1.01 0-1.41zM14 14.5V12h-4v3H8v-4c0-.55.45-1 1-1h5V7.5l3.5 3.5-3.5 3.5z" />
+          </svg>
+          Directions
+          <span class="float-end" id="close-sidebar-btn">
+            <svg class="align-text-top" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
+              <path d="M0 0h24v24H0z" fill="none" />
+              <path
+                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+            </svg>
+          </span>
+        </span>
+      </div>
+
+      <!-- Directions -->
+      <div class="p-2" id="directions-panel">
+        <div id="directions-info"></div>
+      </div>
+    </div>
+
+    <!-- Map -->
+    <div id="map-wrapper">
+
+      <!-- Options Bar -->
+      <div class="d-flex align-items-stretch justify-content-between p-2 mx-auto" id="options-bar">
+
+        <!-- Search Place -->
+        <div class="d-flex align-items-stretch" id="search-place-wrapper">
+          <div class="d-flex btn align-items-center" id="my-location-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 0 24 24" width="20">
+              <path d="M0 0h24v24H0z" fill="none" />
+              <path
+                d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z" />
+            </svg>
+          </div>
+          <input type="text" class="form-control" id="search-place" placeholder="Search Place" aria-label="Input group example" aria-describedby="btnGroupAddon">
+          <div class="btn p-1 align-items-center" id="clear-search-place-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 0 24 24" width="20">
+              <path d="M0 0h24v24H0z" fill="none" />
+              <path
+                d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+            </svg>
+          </div>
+          <div class="d-flex btn align-items-center" id="search-place-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-search option-icon" viewBox="0 0 16 16">
+              <path fill-rule="evenodd"
+                d="M10.442 10.442a1 1 0 0 1 1.415 0l3.85 3.85a1 1 0 0 1-1.414 1.415l-3.85-3.85a1 1 0 0 1 0-1.415z" />
+              <path fill-rule="evenodd"
+                d="M6.5 12a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11zM13 6.5a6.5 6.5 0 1 1-13 0 6.5 6.5 0 0 1 13 0z" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Travel Time -->
+        <div class="form-floating">
+          <select class="form-select flex-fill" id="travel-time" aria-label="Default select example">
+            <option value="10">10 min</option>
+            <option value="20">20 min</option>
+            <option selected value="30">30 min</option>
+            <option value="40">40 min</option>
+            <option value="50">50 min</option>
+            <option value="60">1 hr</option>
+            <option value="70">1 hr 10 min</option>
+            <option value="80">1 hr 20 min</option>
+            <option value="90">1 hr 30 min</option>
+            <option value="100">1 hr 40 min</option>
+            <option value="110">1 hr 50 min</option>
+            <option value="120">2 hr</option>
+          </select>
+          <label for="travel-time">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
+              <path d="M0 0h24v24H0V0z" fill="none" />
+              <path
+                d="M16 1c-2.4 0-4.52 1.21-5.78 3.05.01-.01.01-.02.02-.03C9.84 4 9.42 4 9 4c-4.42 0-8 .5-8 4v10c0 .88.39 1.67 1 2.22V22c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h8v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1.78c.61-.55 1-1.34 1-2.22v-3.08c3.39-.49 6-3.39 6-6.92 0-3.87-3.13-7-7-7zM4.5 19c-.83 0-1.5-.67-1.5-1.5S3.67 16 4.5 16s1.5.67 1.5 1.5S5.33 19 4.5 19zM3 13V8h6c0 1.96.81 3.73 2.11 5H3zm10.5 6c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm2.5-6c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm.5-9H15v5l3.62 2.16.75-1.23-2.87-1.68z" />
+            </svg>
+            Travel Time
+          </label>
+        </div>
+
+        <!-- Transit Mode-->
+        <div class="form-floating">
+          <select class="form-select flex-fill" id="transit-mode" aria-label="Default select example">
+            <option value="3">Metro & Bus</option>
+            <option value="2">Metro Only </option>
+            <option value="1">Bus Only</option>
+          </select>
+          <label for="transit-mode">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
+              <path d="M0 0h24v24H0z" fill="none" />
+              <path
+                d="M12 2c-4.42 0-8 .5-8 4v9.5C4 17.43 5.57 19 7.5 19L6 20.5v.5h12v-.5L16.5 19c1.93 0 3.5-1.57 3.5-3.5V6c0-3.5-3.58-4-8-4zM7.5 17c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm3.5-6H6V6h5v5zm5.5 6c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6h-5V6h5v5z" />
+            </svg>
+            /
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
+              <path d="M0 0h24v24H0z" fill="none" />
+              <path
+                d="M4 16c0 .88.39 1.67 1 2.22V20c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h8v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z" />
+            </svg>
+            Transit
+          </label>
+        </div>
+
+        <!-- Transfer Times -->
+        <div class="form-floating">
+          <select class="form-select flex-fill" id="max-transfer-times" aria-label="Default select example">
+            <option value="0">No Transfer</option>
+            <option value="1">1</option>
+            <option selected value="2">2</option>
+            <option value="3">3</option>
+          </select>
+          <label for="max-transfer-times">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
+              <path d="M0 0h24v24H0z" fill="none" />
+              <path
+                d="M22 18v-2H8V4h2L7 1 4 4h2v2H2v2h4v8c0 1.1.9 2 2 2h8v2h-2l3 3 3-3h-2v-2h4zM10 8h6v6h2V8c0-1.1-.9-2-2-2h-6v2z" />
+            </svg>
+            Transfer
+          </label>
+        </div>
+
+        <!-- Walking Distance -->
+        <div class="form-floating">
+          <select class="form-select flex-fill" id="max-walk-dist" aria-label="Default select example">
+            <option value="100">100 m</option>
+            <option value="200">200 m</option>
+            <option value="300">300 m</option>
+            <option selected value="400">400 m</option>
+            <option value="500">500 m</option>
+            <option value="600">600 m</option>
+            <option value="700">700 m</option>
+            <option value="800">800 m</option>
+            <option value="900">900 m</option>
+            <option value="1000">1000 m</option>
+            <option value="1100">1100 m</option>
+            <option value="1200">1200 m</option>
+            <option value="1300">1300 m</option>
+            <option value="1400">1400 m</option>
+            <option value="1500">1500 m</option>
+            <option value="1600">1600 m</option>
+            <option value="1700">1700 m</option>
+            <option value="1800">1800 m</option>
+            <option value="1900">1900 m</option>
+            <option value="2000">2000 m</option>
+          </select>
+          <label for="max-walk-dist">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
+              <path d="M0 0h24v24H0z" fill="none" />
+              <path
+                d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7" />
+            </svg>
+            Walking
+          </label>
+        </div>
+
+        <!-- Departure Time -->
+        <div class="form-floating">
+          <input type="text" class="form-control" id="departure-time-text" value="Now" readonly data-bs-toggle="modal" data-bs-target="#exampleModal">
+          <label for="departure-time-text">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock"
+              viewBox="0 0 16 16">
+              <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z" />
+              <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z" />
+            </svg>
+            Depart
+          </label>
+        </div>
+
+        <!-- Departure Time Modal -->
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Departure Time</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <input id="departure-time" type="datetime-local" step="300">
+                <button type="button" class="btn btn-secondary" id="cancel-set-time-btn" onclick="setDepartureTimeToNow()">Set Now</button>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancel-set-time-btn" onclick="cancelSetDepartureTime()" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="set-time-btn" onclick="updateDepartureTime()" data-bs-dismiss="modal">OK</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Spinner -->
+      <div id="loading-cover">
+        <!-- <div id="spinner">
+          <div class="spinner-border text-warning" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div> -->
+      </div>
+
+      <!-- Map -->
+      <div id="map"></div>
+
+    </div>
+  </div>
+  </div>
+
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+  <!-- Bootstrap core JavaScript-->
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js" integrity="sha384-q2kxQ16AaE6UbzuKqyBE9/u/KzioAlnx2maXQHiDX9d4/zp8Ok3f+M7DPm+Ib6IU" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.min.js" integrity="sha384-pQQkAEnwaBkjpqZ8RU1fF1AKtTcHJwFl3pblpTlHXybJjHpMYo79HY3hIi4NKxyj" crossorigin="anonymous"></script>
+  <!-- Customized Scrip -->
+  <script src="./js/map.js"></script>
+  <!-- Google Maps must be after Customized Scrip -->
+  <script async defer src="https://maps.googleapis.com/maps/api/js?libraries=places,geometry,drawing&key=AIzaSyBFFH-k40TGQI-ktrgnvGTlcNbCHm6JOkY&v=weekly&callback=initMap"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+</body>
+
+</html>

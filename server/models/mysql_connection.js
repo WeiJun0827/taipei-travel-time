@@ -65,5 +65,5 @@ module.exports = {
     transaction: promiseTransaction,
     commit: promiseCommit,
     rollback: promiseRollback,
-    end: promiseEnd,
+    end: promiseEnd
 };

@@ -1,0 +1,26 @@
+.my-place-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.place-description-input {
+    resize: none;
+}
+
+.info-window-menu,
+.form-btns {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.info-window-btn {
+    /* margin: 8px 2px; */
+}
+
+.set-as-marker,
+.display-directions,
+.create-label,
+.edit-label,
+.delete-label {
+    color: #4B88FA;
+}

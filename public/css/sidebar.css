@@ -1,0 +1,57 @@
+:root {
+    --sidebar-width: 20rem;
+}
+
+#sidebar-wrapper {
+    width: var(--sidebar-width);
+    -webkit-transition: margin .25s ease-out;
+    -moz-transition: margin .25s ease-out;
+    -o-transition: margin .25s ease-out;
+    transition: margin .25s ease-out;
+}
+
+#sidebar-header,
+#close-sidebar-btn {
+    font-size: 1.5rem;
+    font-weight: 500;
+}
+
+#close-sidebar-btn {
+    padding: 0 8px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#sidebar-wrapper.hiden {
+    margin-left: calc(var(--sidebar-width) * -1);
+}
+
+#directions-panel {
+    font-size: 14px;
+    overflow: auto;
+}
+
+
+/* hide google maps directions warning */
+
+.adp-warnbox {
+    display: none;
+}
+
+.adp-summary {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+@media (min-width: 768px) {
+    #sidebar-wrapper {
+        margin-left: 0;
+    }
+    #map-wrapper {
+        min-width: 0;
+        width: 100%;
+    }
+    #sidebar-wrapper.hiden {
+        margin-left: calc(var(--sidebar-width) * -1);
+    }
+}
