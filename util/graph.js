@@ -38,14 +38,14 @@ class GraphNode {
      */
     getDistanceToNode(lat, lon) {
         const Radius = 6371e3; // metres
-        const φ1 = lat * Math.PI / 180; // φ, λ in radians
-        const φ2 = this.lat * Math.PI / 180;
-        const Δφ = φ2 - φ1;
-        const Δλ = (this.lon - lon) * Math.PI / 180;
+        const phi1 = lat * Math.PI / 180; // phi, lambda in radians
+        const phi2 = this.lat * Math.PI / 180;
+        const deltaPhi = phi2 - phi1;
+        const deltaLambda = (this.lon - lon) * Math.PI / 180;
 
-        const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-            Math.cos(φ1) * Math.cos(φ2) *
-            Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+        const a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
+            Math.cos(phi1) * Math.cos(phi2) *
+            Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
         const distance = Radius * c; // in metres
@@ -292,13 +292,6 @@ class Graph {
                 isVisited[currNodeId] = true;
 
         }
-        // console.log('    basic + expected + stop + run = total');
-        // for (const log of prevNodeLog) {
-        //     if (log == null) continue;
-        //     console.log(`${log.prevNodeName}(${log.prevNodeId}) -${log.arriveBy}-> ${log.currNodeName}(${log.currNodeId})`);
-        //     console.log(`==> ${log.basicTime} + ${log.expectedTime} + ${log.stopTime} + ${log.runTime} = ${log.totalTime}`);
-        // }
-        // console.log('================================================================================================');
         return cost;
     }
 }

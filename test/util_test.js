@@ -1,4 +1,3 @@
-require('dotenv');
 const {
     parseIntToWeekday,
     parseDatetimeToWeekday,

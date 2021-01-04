@@ -1,4 +1,3 @@
-require('dotenv');
 const {
     metro_stations,
     metro_travel_time,
