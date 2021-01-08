@@ -115,6 +115,7 @@ const getUserProfile = async(userId) => {
     const results = await query('SELECT * FROM user WHERE id = ?', userId);
     return {
         data: {
+            id: results[0].id,
             provider: results[0].provider,
             name: results[0].name,
             email: results[0].email

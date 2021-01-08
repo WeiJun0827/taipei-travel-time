@@ -1,9 +1,8 @@
-require('dotenv');
 const {
     metro_stations,
     metro_travel_time,
     metro_frequency
-} = require('./fake_data');
+} = require('./fake_metro_data');
 const { Graph, EdgeType } = require('../util/graph');
 const { assert } = require('./set_up');
 

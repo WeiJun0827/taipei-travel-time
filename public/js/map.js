@@ -46,9 +46,8 @@ function initNavbar() {
             $('#sign-out').css('display', 'block');
             $('#user-name-field').text(name);
             return;
-        }).fail(function(error) {
+        }).fail(function() {
             $('#sign-in-sign-up').css('display', 'block');
-            console.error(error);
             return;
         });
     } else {
@@ -89,8 +88,7 @@ function initMap() {
     initSearchBox();
     initDirectionsRenderer();
     initInfoWindow();
-    getFavoritePlaces();
-    displayReachableArea();
+    if (token) getFavoritePlaces();
 }
 
 function initMarker(position) {
@@ -392,9 +390,7 @@ function getFavoritePlaces() {
             };
             const marker = createMarker(place.googleMapsId, position, place.title, icon, undefined, additionalParams);
         }
-    }).fail(function(error) {
-        console.error(error);
-    });
+    }).fail(function() {});
 }
 
 function createFavoritePlace() {

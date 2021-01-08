@@ -81,6 +81,7 @@ const initBusGraph = async() => {
 
 const createTransferEdges = (maxTransferDist) => {
     console.time('Transfer');
+    let edgeCount = 0;
     for (const nodeIdA in graph.nodes) {
         for (const nodeIdB in graph.nodes) {
             if (nodeIdA != nodeIdB) {
@@ -88,12 +89,15 @@ const createTransferEdges = (maxTransferDist) => {
                 if (nodeA.edges[nodeIdB] != undefined) continue;
                 const nodeB = graph.nodes[nodeIdB];
                 const distance = nodeA.getDistanceToNode(nodeB.lat, nodeB.lon);
-                if (distance <= maxTransferDist) // ignore edge longer than maxTransferDist
+                if (distance <= maxTransferDist) { // ignore edge longer than maxTransferDist
                     graph.addEdge(nodeIdA, nodeIdB, distance, EdgeType.TRANSFER);
+                    edgeCount++;
+                }
             }
         }
     }
     console.timeEnd('Transfer');
+    console.log('Transfer edge count', edgeCount);
 };
 
 const getTravelTimeByTransit = async(req, res) => {
