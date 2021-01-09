@@ -54,21 +54,30 @@ Displays the reachable areas of given travel time and starting point via public 
 * [Public Transport Data Exchange Platform](https://ptx.transportdata.tw)
 
 ## Architecture
-
+![Architecture](./public/assets/readme/architecture.jpg)
 
 ## Database Schema
 ![Database Schema](./public/assets/readme/database_schema.png)
 
 ## Features
-* Travel Time
+###Reachable Area
+* Limited Travel Time
+* Specified Transit Mode
+* Number of Transfer
+* Walking Distance
+* Departure Time
+![Reachable Area](./public/assets/readme/reachable_area.gif)
+ 
+###Place Info
 * Place Keyword Search
 * Destination Directions
 * Favorite Places
+![Place Info](./public/assets/readme/place_info.gif)
 
 ## Demo Account
 * Account: demo1@demo.com
 * Password: demo1
 
 ## Contact
-[Wei-Jun Hung] (https://github.com/WeiJun0827)
+![Wei-Jun Hung](https://github.com/WeiJun0827)
 weijunhung@outlook.com
