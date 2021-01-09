@@ -1,7 +1,10 @@
 # Taipei Travel Time
 
-Displays the reachable areas of given travel time and starting point via public transports in Taipei.
+A Map tool displays the reachable areas of given travel time and starting point via public transports in Taipei.
 
+Website URL: https://taipeitraveltime.site
+
+![Preview](./public/assets/readme/preview.png)
 ---
 
 ## Table of Contents
@@ -60,23 +63,35 @@ Displays the reachable areas of given travel time and starting point via public 
 ![Database Schema](./public/assets/readme/database_schema.png)
 
 ## Features
-###Reachable Area
-* Limited Travel Time
-* Specified Transit Mode
-* Number of Transfer
-* Walking Distance
-* Departure Time
+### Reachable region
+Drag the pin to set the starting point.
+Modify the options to fit the use case.
+  * Travel Time:
+    * The specified period of time spent on moving from the starting point to any other region.
+  * Specified Transit Mode
+    * Supported transits:
+	     1. Taipei Metro system
+	     2. Bus network of Greater Taipei Area.
+  * Number of Transfer
+    * The specified number of transfer between different routes or different transits.
+  * Maximum Walking Distance
+    * The maximum distance a passanger willing to walk from:
+	     1. the starting point to the first transit station of the journey
+	     2. the last transit station of the journey to its nearby area
+  * Departure Time
+    * The specified date and time to depart from the starting point.
+
 ![Reachable Area](./public/assets/readme/reachable_area.gif)
  
-###Place Info
-* Place Keyword Search
-* Destination Directions
-* Favorite Places
+### Place Info
+  * Place Keyword Search
+  * Destination Directions
+  * Favorite Places
 ![Place Info](./public/assets/readme/place_info.gif)
 
 ## Demo Account
-* Account: demo1@demo.com
-* Password: demo1
+  * Account: demo1@demo.com
+  * Password: demo1
 
 ## Contact
 ![Wei-Jun Hung](https://github.com/WeiJun0827)
