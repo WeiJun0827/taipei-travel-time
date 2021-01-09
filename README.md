@@ -90,9 +90,11 @@ Modify the options to fit the use case.
 ![Place Info](./public/assets/readme/place_info.gif)
 
 ## Demo Account
+> You don't need an account to use most of the functions. 
+> The below account has some built-in pins on the map to demonstrate the favorite places feature.
+
   * Account: demo1@demo.com
   * Password: demo1
 
 ## Contact
-![Wei-Jun Hung](https://github.com/WeiJun0827)
-weijunhung@outlook.com
+Wei-Jun Hung @ weijunhung@outlook.com
