@@ -1,7 +1,10 @@
 # Taipei Travel Time
 
-Displays the reachable areas of given travel time and starting point via public transports in Taipei.
+A map tool displays the reachable areas of given travel time and starting point via public transports in Taipei.
 
+Website URL: https://taipeitraveltime.site
+
+![Preview](./public/assets/readme/preview.png)
 ---
 
 ## Table of Contents
@@ -54,21 +57,45 @@ Displays the reachable areas of given travel time and starting point via public 
 * [Public Transport Data Exchange Platform](https://ptx.transportdata.tw)
 
 ## Architecture
-
+![Architecture](./public/assets/readme/architecture.jpg)
 
 ## Database Schema
 ![Database Schema](./public/assets/readme/database_schema.png)
 
 ## Features
-* Travel Time
-* Place Keyword Search
-* Destination Directions
-* Favorite Places
+### Reachable region
+Drag the pin to set the starting point.
+Modify the options to fit the use case.
+  * Travel Time:
+    * The specified period of time spent on moving from the starting point to any other region.
+  * Specified Transit Mode
+    * Supported transits:
+	     1. Taipei Metro system
+	     2. Bus network of Greater Taipei Area.
+  * Number of Transfers
+    * The specified number of transfers between different routes or different transits.
+  * Maximum Walking Distance
+    * The maximum distance a passenger willing to walk from:
+	     1. the starting point to the first transit station of the journey
+	     2. the last transit station of the journey to its nearby area
+  * Departure Time
+    * The specified date and time to depart from the starting point.
+
+![Reachable Area](./public/assets/readme/reachable_area.gif)
+ 
+### Place Info
+  * Place Keyword Search
+  * Destination Directions
+  * Favorite Places
+  
+![Place Info](./public/assets/readme/place_info.gif)
 
 ## Demo Account
-* Account: demo1@demo.com
-* Password: demo1
+> You don't need an account to use most of the functions. 
+> The below account has some built-in pins on the map to demonstrate the favorite places feature.
+
+  * Account: demo1@demo.com
+  * Password: demo1
 
 ## Contact
-[Wei-Jun Hung] (https://github.com/WeiJun0827)
-weijunhung@outlook.com
+Wei-Jun Hung @ weijunhung@outlook.com
