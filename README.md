@@ -10,9 +10,9 @@ Website URL: https://taipeitraveltime.site
 ## Table of Contents
 * [Technologies](#Technologies)
 * [Architecture](#Architecture)
-* [Demonstration](#Demonstration)
 * [Database Schema](#Database-Schema)
 * [Features](#Features)
+* [Demo Account](#Demo-Account)
 * [Contact](#Contact)
 
 ## Technologies
@@ -51,7 +51,6 @@ Website URL: https://taipeitraveltime.site
 * Artiliery
 ### 3rd Party APIs
 * Facebook Login API
-* Google Login API
 * Google Maps APIs
 ### Data Source
 * [Public Transport Data Exchange Platform](https://ptx.transportdata.tw)
@@ -63,7 +62,7 @@ Website URL: https://taipeitraveltime.site
 ![Database Schema](./public/assets/readme/database_schema.png)
 
 ## Features
-### Reachable region
+### Reachable Areas
 Drag the pin to set the starting point.
 Modify the options to fit the use case.
   * Travel Time:
@@ -87,11 +86,11 @@ Modify the options to fit the use case.
   * Place Keyword Search
   * Destination Directions
   * Favorite Places
-  
+
 ![Place Info](./public/assets/readme/place_info.gif)
 
 ## Demo Account
-> You don't need an account to use most of the functions. 
+> An account is not needed for most of the functions. 
 > The below account has some built-in pins on the map to demonstrate the favorite places feature.
 
   * Account: demo1@demo.com
