@@ -1,76 +1,58 @@
-const { transaction, commit, rollback, query } = require('./mysql_connection');
+const { query } = require('./mysql_connection');
 const { parseIntToWeekday } = require('../../util/util');
 
 const createStop = async(stop) => {
     try {
-        await transaction();
         const result = await query('INSERT INTO bus_stop SET ?', stop);
-        await commit();
         return result.insertId;
     } catch (error) {
-        await rollback();
         return error;
     }
 };
 
 const createRoute = async(route) => {
     try {
-        await transaction();
         const result = await query('INSERT INTO bus_route SET ?', route);
-        await commit();
         return result.insertId;
     } catch (error) {
         console.error(error);
-        await rollback();
         return error;
     }
 };
 
 const createTravelTime = async(travelTime) => {
     try {
-        await transaction();
         const result = await query('INSERT INTO bus_travel_time SET ?', travelTime);
-        await commit();
         return result.insertId;
     } catch (error) {
         console.error(error);
-        await rollback();
         return error;
     }
 };
 
 const createTravelTimeLog = async(travelTimeLog) => {
     try {
-        await transaction();
         const result = await query('INSERT INTO bus_travel_time_log SET ?', travelTimeLog);
-        await commit();
         return result.insertId;
     } catch (error) {
-        await rollback();
         return error;
     }
 };
 
 const createTimetables = async(timetable) => {
     try {
-        await transaction();
         const result = await query('INSERT INTO bus_timetable SET ?', timetable);
-        await commit();
         return result.insertId;
     } catch (error) {
-        await rollback();
         return error;
     }
 };
 
 const createFrequency = async(frequency) => {
     try {
-        await transaction();
         const result = await query('INSERT INTO bus_frequency SET ?', frequency);
-        await commit();
         return result.insertId;
     } catch (error) {
-        await rollback();
         return error;
     }
 };

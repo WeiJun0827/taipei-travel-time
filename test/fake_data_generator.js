@@ -54,6 +54,7 @@ function truncateFakeData() {
 
     return setForeignKey(0)
         .then(truncateTable('user'))
+        .then(truncateTable('place'))
         .then(setForeignKey(1))
         .catch(console.log);
 }
