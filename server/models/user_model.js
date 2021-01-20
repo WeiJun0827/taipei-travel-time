@@ -2,7 +2,8 @@ require('dotenv').config();
 const axios = require('axios');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
-const { query, transaction, commit, rollback } = require('./mysql_connection');
+const mysql = require('./mysql_connection');
+const query = mysql.query;
 const salt = parseInt(process.env.BCRYPT_SALT);
 const ProviderType = {
     NATIVE: 'native',
@@ -11,12 +12,13 @@ const ProviderType = {
 };
 
 const signUp = async(name, email, password, expire) => {
+    const connection = await mysql.connection();
     try {
-        await transaction();
+        await connection.query('START TRANSACTION');
 
-        const emails = await query('SELECT email FROM user WHERE email = ? FOR UPDATE', [email]);
+        const emails = await connection.query('SELECT email FROM user WHERE email = ? FOR UPDATE', [email]);
         if (emails.length > 0) {
-            await commit();
+            await connection.query('COMMIT');
             return { error: 'Email Already Exists' };
         }
 
@@ -35,26 +37,29 @@ const signUp = async(name, email, password, expire) => {
         };
         const queryStr = 'INSERT INTO user SET ?';
 
-        const result = await query(queryStr, user);
+        const result = await connection.query(queryStr, user);
         user.id = result.insertId;
 
-        await commit();
+        await connection.query('COMMIT');
         return { accessToken, loginAt, user };
     } catch (error) {
-        await rollback();
+        await connection.query('ROLLBACK');
         return { error };
+    } finally {
+        await connection.release();
     }
 };
 
 const nativeSignIn = async(email, password, expire) => {
+    const connection = await mysql.connection();
     try {
-        await transaction();
+        await connection.query('START TRANSACTION');
 
-        const users = await query('SELECT * FROM user WHERE email = ?', [email]);
+        const users = await connection.query('SELECT * FROM user WHERE email = ?', [email]);
         const user = users[0];
 
         if (!bcrypt.compareSync(password, user.password)) {
-            await commit();
+            await connection.query('COMMIT');
             return { error: 'Password is wrong' };
         }
 
@@ -64,20 +69,23 @@ const nativeSignIn = async(email, password, expire) => {
         const accessToken = sha.digest('hex');
 
         const queryStr = 'UPDATE user SET access_token = ?, access_expired = ?, login_at = ? WHERE id = ?';
-        await query(queryStr, [accessToken, expire, loginAt, user.id]);
+        await connection.query(queryStr, [accessToken, expire, loginAt, user.id]);
 
-        await commit();
+        await connection.query('COMMIT');
 
         return { accessToken, loginAt, user };
     } catch (error) {
-        await rollback();
+        await connection.query('ROLLBACK');
         return { error };
+    } finally {
+        await connection.release();
     }
 };
 
 const facebookSignIn = async(id, name, email, accessToken, expire) => {
+    const connection = await mysql.connection();
     try {
-        await transaction();
+        await connection.query('START TRANSACTION');
 
         const loginAt = new Date();
         let user = {
@@ -89,25 +97,27 @@ const facebookSignIn = async(id, name, email, accessToken, expire) => {
             login_at: loginAt
         };
 
-        const users = await query('SELECT id FROM user WHERE email = ? AND provider = ? FOR UPDATE', [email, ProviderType.FACEBOOK]);
+        const users = await connection.query('SELECT id FROM user WHERE email = ? AND provider = ? FOR UPDATE', [email, ProviderType.FACEBOOK]);
         let userId;
         if (users.length === 0) { // Insert new user
-            const queryStr = 'insert into user set ?';
-            const result = await query(queryStr, user);
+            const queryStr = 'INSERT INTO user SET ?';
+            const result = await connection.query(queryStr, user);
             userId = result.insertId;
         } else { // Update existed user
             userId = users[0].id;
             const queryStr = 'UPDATE user SET access_token = ?, access_expired = ?, login_at = ?  WHERE id = ?';
-            await query(queryStr, [accessToken, expire, loginAt, userId]);
+            await connection.query(queryStr, [accessToken, expire, loginAt, userId]);
         }
         user.id = userId;
 
-        await commit();
+        await connection.query('COMMIT');
 
         return { accessToken, loginAt, user };
     } catch (error) {
-        await rollback();
+        await connection.query('ROLLBACK');
         return { error };
+    } finally {
+        await connection.release();
     }
 };
 
@@ -131,7 +141,6 @@ const getFacebookProfile = async function(accessToken) {
         });
         return res.data;
     } catch (e) {
-        await rollback();
         console.log(e);
         return { error: 'Fail to get user\'s profile.' };
     }
@@ -151,13 +160,10 @@ const getAllPlaces = async(user_id) => {
 
 const createPlace = async(user_id, lat, lon, icon, google_maps_id, title, description) => {
     try {
-        await transaction();
         const place = { user_id, lat, lon, icon, google_maps_id, title, description };
         const result = await query('INSERT INTO place SET ?', place);
-        await commit();
         return result.insertId;
     } catch (e) {
-        await rollback();
         console.log(e);
         return { error: 'Fail to create user\'s favorite place.' };
     }
@@ -170,12 +176,9 @@ const getPlace = async(user_id, place_id) => {
 
 const updatePlace = async(user_id, place_id, title, description) => {
     try {
-        await transaction();
         const result = await query('UPDATE place SET title = ?, description = ? WHERE user_id = ? AND id = ?', [title, description, user_id, place_id]);
-        await commit();
         return result;
     } catch (e) {
-        await rollback();
         console.log(e);
         return { error: 'Fail to update user\'s favorite place.' };
     }
@@ -183,9 +186,7 @@ const updatePlace = async(user_id, place_id, title, description) => {
 
 const deletePlace = async(user_id, place_id) => {
     try {
-        await transaction();
         const result = await query('DELETE FROM place WHERE user_id = ? AND id = ?', [user_id, place_id]);
-        await commit();
         return result;
     } catch (e) {
         console.log(e);
