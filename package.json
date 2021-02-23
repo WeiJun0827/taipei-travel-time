@@ -4,6 +4,7 @@
     "description": "Appworks School individual project",
     "main": "index.js",
     "scripts": {
+        "start": "node index.js",
         "test": "set NODE_ENV=test&&mocha --exit",
         "example": "mocha"
     },

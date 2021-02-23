@@ -28,6 +28,8 @@ const mysqlConfig = {
     }
 };
 
+console.log('Env:', env);
+console.log('Config:', mysqlConfig[env]);
 const mysqlPool = mysql.createPool(mysqlConfig[env]);
 
 // Ping database to check for common exception errors.
