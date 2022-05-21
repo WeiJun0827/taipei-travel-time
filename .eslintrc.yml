@@ -13,7 +13,6 @@ ignorePatterns: ["*.ejs"]
 rules:
   no-console: off
   no-unused-vars: ["error", { "vars": "all", "args": "none"}]
-  linebreak-style: ["error", "windows"]
   quotes: ["error", "single"]
   semi: ["error", "always"]
   no-trailing-spaces: ["error"]

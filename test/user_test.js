@@ -1,8 +1,7 @@
-require('dotenv').config();
 const { assert, requester } = require('./set_up');
 const { users } = require('./fake_user_data');
 const sinon = require('sinon');
-const { query } = require('../server/models/mysql_connection');
+const { pool } = require('../server/models/mysql_connection');
 
 const expectedExpireTime = process.env.TOKEN_EXPIRE;
 const fbTokenSignInFirstTime = 'fbTokenFirstLogin';
@@ -162,7 +161,7 @@ describe('User', () => {
         assert.equal(data.access_expired, expectedExpireTime);
 
         // make sure DB is changed, too
-        const loginTime = await query(
+        const loginTime = await pool.query(
             'SELECT login_at FROM user WHERE email = ?', [user.email]
         );
 
@@ -301,7 +300,7 @@ describe('User', () => {
         assert.equal(data.access_expired, expectedExpireTime);
 
         // make sure DB is changed, too
-        const loginTime = await query(
+        const loginTime = await pool.query(
             'SELECT login_at FROM user WHERE provider = ? AND access_token = ?', [user.provider, user.access_token]
         );
 

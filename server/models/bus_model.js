@@ -1,28 +1,18 @@
-const { query } = require('./mysql_connection');
+const { pool } = require('./mysql_connection');
 const { parseIntToWeekday } = require('../../util/util');
 
-const createStop = async(stop) => {
+const createStop = async (stop) => {
     try {
-        const result = await query('INSERT INTO bus_stop SET ?', stop);
+        const result = await pool.query('INSERT INTO bus_stop SET ?', stop);
         return result.insertId;
     } catch (error) {
         return error;
     }
 };
 
-const createRoute = async(route) => {
+const createRoute = async (route) => {
     try {
-        const result = await query('INSERT INTO bus_route SET ?', route);
-        return result.insertId;
-    } catch (error) {
-        console.error(error);
-        return error;
-    }
-};
-
-const createTravelTime = async(travelTime) => {
-    try {
-        const result = await query('INSERT INTO bus_travel_time SET ?', travelTime);
+        const result = await pool.query('INSERT INTO bus_route SET ?', route);
         return result.insertId;
     } catch (error) {
         console.error(error);
@@ -30,75 +20,95 @@ const createTravelTime = async(travelTime) => {
     }
 };
 
-const createTravelTimeLog = async(travelTimeLog) => {
+const createTravelTime = async (travelTime) => {
     try {
-        const result = await query('INSERT INTO bus_travel_time_log SET ?', travelTimeLog);
+        const result = await pool.query('INSERT INTO bus_travel_time SET ?', travelTime);
+        return result.insertId;
+    } catch (error) {
+        console.error(error);
+        return error;
+    }
+};
+
+const createTravelTimeLog = async (travelTimeLog) => {
+    try {
+        const result = await pool.query('INSERT INTO bus_travel_time_log SET ?', travelTimeLog);
         return result.insertId;
     } catch (error) {
         return error;
     }
 };
 
-const createTimetables = async(timetable) => {
+const createTimetables = async (timetable) => {
     try {
-        const result = await query('INSERT INTO bus_timetable SET ?', timetable);
+        const result = await pool.query('INSERT INTO bus_timetable SET ?', timetable);
         return result.insertId;
     } catch (error) {
         return error;
     }
 };
 
-const createFrequency = async(frequency) => {
+const createFrequency = async (frequency) => {
     try {
-        const result = await query('INSERT INTO bus_frequency SET ?', frequency);
+        const result = await pool.query('INSERT INTO bus_frequency SET ?', frequency);
         return result.insertId;
     } catch (error) {
         return error;
     }
 };
 
-const getRouteBySubRouteId = async(subRouteId) => {
-    return await query('SELECT * FROM bus_route WHERE sub_route_id = ?', subRouteId);
+const getRouteBySubRouteId = async (subRouteId) => {
+    const [results] = await pool.query('SELECT * FROM bus_route WHERE sub_route_id = ?', subRouteId);
+    return results;
 };
 
-const getRoutesWithFrequency = async() => {
-    return await query('SELECT DISTINCT t1.route_id, t2.city FROM travel_time.bus_frequency AS t1 INNER JOIN travel_time.bus_route AS t2 ON t1.route_id = t2.route_id');
+const getRoutesWithFrequency = async () => {
+    const [results] = await pool.query('SELECT DISTINCT t1.route_id, t2.city FROM travel_time.bus_frequency AS t1 INNER JOIN travel_time.bus_route AS t2 ON t1.route_id = t2.route_id');
+    return results;
 };
 
-const getSubRoutesByRouteId = async(routeId) => {
-    return await query('SELECT * FROM bus_route WHERE route_id = ?', routeId);
+const getSubRoutesByRouteId = async (routeId) => {
+    const [results] = await pool.query('SELECT * FROM bus_route WHERE route_id = ?', routeId);
+    return results;
 };
 
-const getDistinctRoutes = async(skipNum, limitNum) => {
-    return await query('SELECT DISTINCT route_id, route_name_cht, city FROM bus_route LIMIT ?, ?', [skipNum, limitNum]);
+const getDistinctRoutes = async (skipNum, limitNum) => {
+    const [results] = await pool.query('SELECT DISTINCT route_id, route_name_cht, city FROM bus_route LIMIT ?, ?', [skipNum, limitNum]);
+    return results;
 };
 
-const getStopById = async(stopId) => {
-    return await query('SELECT stop_id, name_cht, lat, lon FROM bus_stop WHERE stop_id = ?', stopId);
+const getStopById = async (stopId) => {
+    const [results] = await pool.query('SELECT stop_id, name_cht, lat, lon FROM bus_stop WHERE stop_id = ?', stopId);
+    return results;
 };
 
-const getAllStops = async() => {
-    return await query('SELECT * FROM bus_stop');
+const getAllStops = async () => {
+    const [results] = await pool.query('SELECT * FROM bus_stop');
+    return results;
 };
 
-const getTravelTimeByFromStation = async(fromStationID) => {
-    return await query('SELECT * FROM bus_travel_time WHERE from_station_id = ?', fromStationID);
+const getTravelTimeByFromStation = async (fromStationID) => {
+    const [results] = await pool.query('SELECT * FROM bus_travel_time WHERE from_station_id = ?', fromStationID);
+    return results;
 };
 
-const getTravelTimeBySubRouteId = async(subRouteId) => {
-    return await query('SELECT direction, from_stop_id, to_stop_id, run_time FROM bus_travel_time WHERE sub_route_id = ?', subRouteId);
+const getTravelTimeBySubRouteId = async (subRouteId) => {
+    const [results] = await pool.query('SELECT direction, from_stop_id, to_stop_id, run_time FROM bus_travel_time WHERE sub_route_id = ?', subRouteId);
+    return results;
 };
 
-const getAllTravelTime = async() => {
-    return await query('SELECT t2.route_id, t2.sub_route_name_cht, t1.* FROM bus_travel_time AS t1 JOIN bus_route AS t2 ON t1.sub_route_id = t2.sub_route_id');
+const getAllTravelTime = async () => {
+    const [results] = await pool.query('SELECT t2.route_id, t2.sub_route_name_cht, t1.* FROM bus_travel_time AS t1 JOIN bus_route AS t2 ON t1.sub_route_id = t2.sub_route_id');
+    return results;
 };
 
-const getFrequencyByRoute = async(routeId) => {
-    return await query('SELECT * FROM bus_frequency WHERE route_id = ?', );
+const getFrequencyByRoute = async (routeId) => {
+    const [results] = await pool.query('SELECT * FROM bus_frequency WHERE route_id = ?',);
+    return results;
 };
 
-const getAllFrequencys = async() => {
-    const frequencyData = await query('SELECT * FROM bus_frequency');
+const getAllFrequencys = async () => {
+    const frequencyData = await pool.query('SELECT * FROM bus_frequency');
     const frequencys = {};
     for (const f of frequencyData) {
         const subRouteId = f.sub_route_id;
@@ -128,13 +138,13 @@ const getAllFrequencys = async() => {
     return frequencys;
 };
 
-const updateTravelTime = async(subRouteId, direction, fromStopId, toStopId, runTime) => {
-    const data = (await query('SELECT * FROM bus_travel_time WHERE sub_route_id = ? AND direction = ? AND from_stop_id =? AND to_stop_id = ?', [subRouteId, direction, fromStopId, toStopId]))[0];
+const updateTravelTime = async (subRouteId, direction, fromStopId, toStopId, runTime) => {
+    const data = (await pool.query('SELECT * FROM bus_travel_time WHERE sub_route_id = ? AND direction = ? AND from_stop_id =? AND to_stop_id = ?', [subRouteId, direction, fromStopId, toStopId]))[0];
     if (data) {
         const id = data.id;
         const oldRunTime = data.run_time;
         if (runTime > oldRunTime) {
-            await query('UPDATE bus_travel_time SET run_time = ? WHERE id = ?', [runTime, id]);
+            await pool.query('UPDATE bus_travel_time SET run_time = ? WHERE id = ?', [runTime, id]);
             return oldRunTime;
         }
     }

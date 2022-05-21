@@ -1,4 +1,3 @@
-require('dotenv').config();
 const { NODE_ENV } = process.env;
 const bcrypt = require('bcrypt');
 const { users, places } = require('./fake_user_data');

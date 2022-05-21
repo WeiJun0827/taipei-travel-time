@@ -1,5 +1,3 @@
-require('dotenv').config();
-const isProduction = process.env.NODE_ENV == 'production';
 const Metro = require('../models/metro_model');
 const Bus = require('../models/bus_model');
 const { Graph, EdgeType } = require('../../util/graph');
@@ -143,7 +141,7 @@ const getTravelTimeByTransit = async(req, res) => {
 (async() => {
     try {
         await initMetroGraph();
-        if (isProduction) {
+        if (process.env.NODE_ENV === 'production') {
             await initBusGraph();
             createTransferEdges(400);
         }

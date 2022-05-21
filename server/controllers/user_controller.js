@@ -1,8 +1,7 @@
-require('dotenv').config();
 const validator = require('validator');
 const User = require('../models/user_model');
 const ProviderType = User.ProviderType;
-const expire = process.env.TOKEN_EXPIRE; // 30 days by seconds
+const { TOKEN_EXPIRE } = require('../config');
 
 const signUp = async (req, res) => {
     let { name } = req.body;
@@ -20,7 +19,7 @@ const signUp = async (req, res) => {
 
     name = validator.escape(name);
 
-    const result = await User.signUp(name, email, password, expire);
+    const result = await User.signUp(name, email, password, TOKEN_EXPIRE);
     if (result.error) {
         res.status(403).send({ error: result.error });
         return;
@@ -35,7 +34,7 @@ const signUp = async (req, res) => {
     res.status(200).send({
         data: {
             access_token: accessToken,
-            access_expired: expire,
+            access_expired: TOKEN_EXPIRE,
             login_at: loginAt,
             user: {
                 id: user.id,
@@ -53,7 +52,7 @@ const nativeSignIn = async (email, password) => {
     }
 
     try {
-        return await User.nativeSignIn(email, password, expire);
+        return await User.nativeSignIn(email, password, TOKEN_EXPIRE);
     } catch (error) {
         return { error };
     }
@@ -72,7 +71,7 @@ const facebookSignIn = async (accessToken) => {
             return { error: 'Permissions Error: facebook access token can not get user id, name or email' };
         }
 
-        return await User.facebookSignIn(id, name, email, accessToken, expire);
+        return await User.facebookSignIn(id, name, email, accessToken, TOKEN_EXPIRE);
     } catch (error) {
         return { error: error };
     }
@@ -108,7 +107,7 @@ const signIn = async (req, res) => {
     res.status(200).send({
         data: {
             access_token: accessToken,
-            access_expired: expire,
+            access_expired: TOKEN_EXPIRE,
             login_at: loginAt,
             user: {
                 id: user.id,

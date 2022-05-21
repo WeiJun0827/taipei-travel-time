@@ -1,9 +1,10 @@
 {
-    "name": "travel-time",
+    "name": "taipei-travel-time",
     "version": "1.0.0",
-    "description": "Appworks School individual project",
+    "description": "AppWorks School individual project",
     "main": "index.js",
     "scripts": {
+        "start": "node index.js",
         "test": "set NODE_ENV=test&&mocha --exit",
         "example": "mocha"
     },

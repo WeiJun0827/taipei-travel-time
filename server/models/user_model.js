@@ -1,9 +1,7 @@
-require('dotenv').config();
 const axios = require('axios');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
-const mysql = require('./mysql_connection');
-const query = mysql.query;
+const { connection, pool } = require('./mysql_connection');
 const salt = parseInt(process.env.BCRYPT_SALT);
 const ProviderType = {
     NATIVE: 'native',
@@ -11,8 +9,7 @@ const ProviderType = {
     GOOGLE: 'google'
 };
 
-const signUp = async(name, email, password, expire) => {
-    const connection = await mysql.connection();
+const signUp = async (name, email, password, expire) => {
     try {
         await connection.query('START TRANSACTION');
 
@@ -50,8 +47,7 @@ const signUp = async(name, email, password, expire) => {
     }
 };
 
-const nativeSignIn = async(email, password, expire) => {
-    const connection = await mysql.connection();
+const nativeSignIn = async (email, password, expire) => {
     try {
         await connection.query('START TRANSACTION');
 
@@ -82,8 +78,7 @@ const nativeSignIn = async(email, password, expire) => {
     }
 };
 
-const facebookSignIn = async(id, name, email, accessToken, expire) => {
-    const connection = await mysql.connection();
+const facebookSignIn = async (id, name, email, accessToken, expire) => {
     try {
         await connection.query('START TRANSACTION');
 
@@ -121,8 +116,8 @@ const facebookSignIn = async(id, name, email, accessToken, expire) => {
     }
 };
 
-const getUserProfile = async(userId) => {
-    const results = await query('SELECT * FROM user WHERE id = ?', userId);
+const getUserProfile = async (userId) => {
+    const results = await pool.query('SELECT * FROM user WHERE id = ?', userId);
     return {
         data: {
             id: results[0].id,
@@ -134,7 +129,7 @@ const getUserProfile = async(userId) => {
 
 };
 
-const getFacebookProfile = async function(accessToken) {
+const getFacebookProfile = async function (accessToken) {
     try {
         let res = await axios('https://graph.facebook.com/me?fields=id,name,email&access_token=' + accessToken, {
             responseType: 'json'
@@ -147,21 +142,21 @@ const getFacebookProfile = async function(accessToken) {
 };
 
 
-const getUserId = async(accessToken) => {
-    const results = await query('SELECT * FROM user WHERE access_token = ?', accessToken);
+const getUserId = async (accessToken) => {
+    const results = await pool.query('SELECT * FROM user WHERE access_token = ?', accessToken);
     if (results.length === 0) return { error: 'Invalid Access Token' };
     return results[0].id;
 };
 
-const getAllPlaces = async(user_id) => {
-    const places = await query('SELECT id, lat, lon, icon, google_maps_id AS googleMapsId, title, description FROM place WHERE user_id = ?', user_id);
+const getAllPlaces = async (user_id) => {
+    const places = await pool.query('SELECT id, lat, lon, icon, google_maps_id AS googleMapsId, title, description FROM place WHERE user_id = ?', user_id);
     return places;
 };
 
-const createPlace = async(user_id, lat, lon, icon, google_maps_id, title, description) => {
+const createPlace = async (user_id, lat, lon, icon, google_maps_id, title, description) => {
     try {
         const place = { user_id, lat, lon, icon, google_maps_id, title, description };
-        const result = await query('INSERT INTO place SET ?', place);
+        const result = await pool.query('INSERT INTO place SET ?', place);
         return result.insertId;
     } catch (e) {
         console.log(e);
@@ -169,14 +164,14 @@ const createPlace = async(user_id, lat, lon, icon, google_maps_id, title, descri
     }
 };
 
-const getPlace = async(user_id, place_id) => {
-    const place = await query('SELECT * FROM place WHERE user_id = ? AND id = ?', [user_id, place_id]);
+const getPlace = async (user_id, place_id) => {
+    const place = await pool.query('SELECT * FROM place WHERE user_id = ? AND id = ?', [user_id, place_id]);
     return place;
 };
 
-const updatePlace = async(user_id, place_id, title, description) => {
+const updatePlace = async (user_id, place_id, title, description) => {
     try {
-        const result = await query('UPDATE place SET title = ?, description = ? WHERE user_id = ? AND id = ?', [title, description, user_id, place_id]);
+        const result = await pool.query('UPDATE place SET title = ?, description = ? WHERE user_id = ? AND id = ?', [title, description, user_id, place_id]);
         return result;
     } catch (e) {
         console.log(e);
@@ -184,9 +179,9 @@ const updatePlace = async(user_id, place_id, title, description) => {
     }
 };
 
-const deletePlace = async(user_id, place_id) => {
+const deletePlace = async (user_id, place_id) => {
     try {
-        const result = await query('DELETE FROM place WHERE user_id = ? AND id = ?', [user_id, place_id]);
+        const result = await pool.query('DELETE FROM place WHERE user_id = ? AND id = ?', [user_id, place_id]);
         return result;
     } catch (e) {
         console.log(e);

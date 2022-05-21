@@ -63,12 +63,6 @@ dump.rdb
 # next.js build output
 .next
 
-# package-lock
-package-lock.json
-
-# vscode
-.vscode
-
 # cert
 cert
 
@@ -77,3 +71,6 @@ artillery*
 
 # https
 .well-known
+
+# dbdata
+.dbdata

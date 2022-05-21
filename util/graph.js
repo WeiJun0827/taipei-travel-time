@@ -14,8 +14,8 @@ class GraphNode {
     constructor(id, nameCht, lat, lon, stopTime) {
         this.id = id;
         this.nameCht = nameCht;
-        this.lat = lat;
-        this.lon = lon;
+        this.lat = Number(lat);
+        this.lon = Number(lon);
         this.stopTime = stopTime;
         this.edges = {};
     }
