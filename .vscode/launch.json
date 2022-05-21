@@ -10,7 +10,6 @@
       "request": "launch",
       "url": "http://localhost:3000/map.html",
       "webRoot": "${workspaceFolder}/public",
-      "sourceMaps": false,
     },
     {
       "name": "Launch Backend",
