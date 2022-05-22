@@ -22,7 +22,7 @@ services:
       MYSQL_USER: user
       MYSQL_PASSWORD: password
     volumes: 
-      - ./sqls:/docker-entrypoint-initdb.d
+      - ./data/sqls:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "mysql --host=127.0.0.1 --user=root --password=$$MYSQL_ROOT_PASSWORD --silent --execute \"SELECT 1;\"  || exit 0"]
       interval: 30s
