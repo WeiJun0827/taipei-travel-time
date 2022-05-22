@@ -11,7 +11,7 @@ import {
   getPlace,
   updatePlace,
   deletePlace,
-} from '../controllers/user_controller.js';
+} from '../controllers/user.js';
 
 const router = Router();
 

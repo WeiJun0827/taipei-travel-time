@@ -1,4 +1,4 @@
-import { pool } from './mysql_connection.js';
+import { pool } from './mysql.js';
 import { parseIntToWeekday } from '../../util/util.js';
 
 export async function createStop(stop) {

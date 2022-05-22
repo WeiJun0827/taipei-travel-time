@@ -1,4 +1,4 @@
-import { pool } from './mysql_connection.js';
+import { pool } from './mysql.js';
 
 export async function createLine(line) {
   try {

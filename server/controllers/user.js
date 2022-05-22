@@ -1,6 +1,6 @@
 import validator from 'validator';
 
-import User from '../models/user_model.js';
+import User from '../models/user.js';
 
 import { TOKEN_EXPIRE } from '../config.js';
 

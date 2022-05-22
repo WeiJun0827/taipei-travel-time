@@ -3,8 +3,8 @@ import axios from 'axios';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import JSSHA from 'jssha';
 import moment from 'moment';
-import * as Metro from '../server/models/metro_model';
-import * as Bus from '../server/models/bus_model';
+import * as Metro from '../server/models/metro';
+import * as Bus from '../server/models/bus';
 
 const { PTX_APP_ID, PTX_APP_KEY } = process.env;
 const cities = ['Taipei', 'NewTaipei'];

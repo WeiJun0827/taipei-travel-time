@@ -2,7 +2,7 @@ import axios from 'axios';
 import { hashSync, compareSync } from 'bcrypt';
 import { createHash } from 'crypto';
 
-import { connection, pool } from './mysql_connection.js';
+import { connection, pool } from './mysql.js';
 
 const salt = parseInt(process.env.BCRYPT_SALT, 10);
 const ProviderType = {

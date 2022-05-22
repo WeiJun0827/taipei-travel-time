@@ -1,5 +1,5 @@
-import { getAllStations, getAllTravelTime, getFrequency } from '../models/metro_model.js';
-import { getStopById, getAllFrequencys, getTravelTimeBySubRouteId } from '../models/bus_model.js';
+import { getAllStations, getAllTravelTime, getFrequency } from '../models/metro.js';
+import { getStopById, getAllFrequencys, getTravelTimeBySubRouteId } from '../models/bus.js';
 import { EdgeType } from '../../util/EdgeType.js';
 import Graph from '../../util/Graph.js';
 

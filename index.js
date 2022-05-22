@@ -1,7 +1,7 @@
 import express from 'express';
 
-import travelTime from './server/routes/travel_time_route.js';
-import user from './server/routes/user_route.js';
+import travelTime from './server/routes/travelTime.js';
+import user from './server/routes/user.js';
 
 import { PORT, API_VERSION } from './server/config.js';
 
