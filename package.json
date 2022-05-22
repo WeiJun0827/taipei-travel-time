@@ -5,7 +5,7 @@
     "main": "index.js",
     "type": "module",
     "scripts": {
-        "start": "node index.js",
+        "start": "node ./server/index.js",
         "test": "set NODE_ENV=test&&mocha --exit",
         "example": "mocha"
     },

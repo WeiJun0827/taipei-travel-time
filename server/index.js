@@ -1,9 +1,9 @@
 import express from 'express';
 
-import travelTime from './server/routes/travelTime.js';
-import user from './server/routes/user.js';
+import travelTime from './routes/travelTime.js';
+import user from './routes/user.js';
 
-import { PORT, API_VERSION } from './server/config.js';
+import { PORT, API_VERSION } from './config.js';
 
 const app = express();
 
