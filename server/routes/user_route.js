@@ -1,40 +1,42 @@
-const router = require('express').Router();
-const { wrapAsync } = require('../../util/util');
+import { Router } from 'express';
 
-const {
-    signUp,
-    signIn,
-    verifyToken,
-    getUserProfile,
-    getAllPlaces,
-    createPlace,
-    getPlace,
-    updatePlace,
-    deletePlace
-} = require('../controllers/user_controller');
+import { wrapAsync } from '../../util/util.js';
+import {
+  signUp,
+  signIn,
+  verifyToken,
+  getUserProfile,
+  getAllPlaces,
+  createPlace,
+  getPlace,
+  updatePlace,
+  deletePlace,
+} from '../controllers/user_controller.js';
+
+const router = Router();
 
 router.route('/user/signup')
-    .post(wrapAsync(signUp));
+  .post(wrapAsync(signUp));
 
 router.route('/user/signin')
-    .post(wrapAsync(signIn));
+  .post(wrapAsync(signIn));
 
 router.route('/user/profile')
-    .get(wrapAsync(verifyToken), wrapAsync(getUserProfile));
+  .get(wrapAsync(verifyToken), wrapAsync(getUserProfile));
 
 router.route('/user/places')
-    .get(wrapAsync(verifyToken), wrapAsync(getAllPlaces));
+  .get(wrapAsync(verifyToken), wrapAsync(getAllPlaces));
 
 router.route('/user/places')
-    .post(wrapAsync(verifyToken), wrapAsync(createPlace));
+  .post(wrapAsync(verifyToken), wrapAsync(createPlace));
 
 router.route('/user/places/:id')
-    .get(wrapAsync(verifyToken), wrapAsync(getPlace));
+  .get(wrapAsync(verifyToken), wrapAsync(getPlace));
 
 router.route('/user/places/:id')
-    .patch(wrapAsync(verifyToken), wrapAsync(updatePlace));
+  .patch(wrapAsync(verifyToken), wrapAsync(updatePlace));
 
 router.route('/user/places/:id')
-    .delete(wrapAsync(verifyToken), wrapAsync(deletePlace));
+  .delete(wrapAsync(verifyToken), wrapAsync(deletePlace));
 
-module.exports = router;
+export default router;

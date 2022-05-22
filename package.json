@@ -3,6 +3,7 @@
     "version": "1.0.0",
     "description": "AppWorks School individual project",
     "main": "index.js",
+    "type": "module",
     "scripts": {
         "start": "node index.js",
         "test": "set NODE_ENV=test&&mocha --exit",

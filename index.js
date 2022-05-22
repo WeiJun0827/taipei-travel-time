@@ -1,31 +1,33 @@
-const { PORT, API_VERSION } = require('./server/config');
+import express from 'express';
 
-// Express Initialization
-const express = require('express');
-const bodyparser = require('body-parser');
+import travelTime from './server/routes/travel_time_route.js';
+import user from './server/routes/user_route.js';
+
+import { PORT, API_VERSION } from './server/config.js';
+
 const app = express();
 
 app.use(express.static('public'));
-app.use(bodyparser.json());
-app.use(bodyparser.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // API routes
-app.use('/api/' + API_VERSION, [
-    require('./server/routes/travel_time_route'),
-    require('./server/routes/user_route'),
+app.use(`/api/${API_VERSION}`, [
+  travelTime,
+  user,
 ]);
 
 // Page not found
-app.use(function (req, res, next) {
-    res.status(404).sendFile(__dirname + '/public/404.html');
+app.use((req, res, next) => {
+  res.status(404).sendFile(`${__dirname}/public/404.html`);
 });
 
 // Error handling
-app.use(function (err, req, res, next) {
-    console.log(err);
-    res.status(500).send('Internal Server Error');
+app.use((err, req, res, next) => {
+  console.log(err);
+  res.status(500).send('Internal Server Error');
 });
 
 app.listen(PORT, () => { console.log(`Listening on port: ${PORT}`); });
 
-module.exports = app;
+export default app;

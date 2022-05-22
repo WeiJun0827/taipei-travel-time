@@ -1,11 +1,11 @@
-const router = require('express').Router();
-const { wrapAsync } = require('../../util/util');
+import { Router } from 'express';
 
-const {
-    getTravelTimeByTransit
-} = require('../controllers/travel_time_controller');
+import { getTravelTimeByTransit } from '../controllers/travel_time_controller.js';
+import { wrapAsync } from '../../util/util.js';
+
+const router = Router();
 
 router.route('/tavelTime/transit')
-    .get(wrapAsync(getTravelTimeByTransit));
+  .get(wrapAsync(getTravelTimeByTransit));
 
-module.exports = router;
+export default router;
