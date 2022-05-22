@@ -2,7 +2,7 @@ import moment from 'moment';
 
 import { EdgeType } from './EdgeType.js';
 
-import { MOMENT_FORMAT } from '../server/config.js';
+import { MOMENT_FORMAT } from '../config.js';
 
 export default class GraphEdge {
   constructor(fromNode, toNode, runTime, edgeType, edgeInfo) {

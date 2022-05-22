@@ -1,5 +1,5 @@
 import { pool } from './mysql.js';
-import { parseIntToWeekday } from '../../util/util.js';
+import { parseIntToWeekday } from '../util/misc.js';
 
 export async function createStop(stop) {
   try {

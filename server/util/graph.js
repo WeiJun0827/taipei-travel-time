@@ -5,9 +5,9 @@ import GraphEdge from './GraphEdge.js';
 import { EdgeType } from './EdgeType.js';
 import PriorityQueueNode from './PriorityQueueNode.js';
 import PriorityQueue from './PriorityQueue.js';
-import { parseDatetimeToWeekday } from './util.js';
+import { parseDatetimeToWeekday } from './misc.js';
 
-import { MOMENT_FORMAT } from '../server/config.js';
+import { MOMENT_FORMAT } from '../config.js';
 
 export default class Graph {
   constructor() {

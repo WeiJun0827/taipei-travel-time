@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import { wrapAsync } from '../../util/util.js';
+import { wrapAsync } from '../util/misc.js';
 import {
   signUp,
   signIn,
