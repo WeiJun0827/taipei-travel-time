@@ -1,4 +1,4 @@
-import { createConnection, createPool } from 'mysql2/promise';
+import { createPool } from 'mysql2/promise';
 
 import {
   DB_HOST,
@@ -15,5 +15,4 @@ const mysqlConfig = {
   connectionLimit: 10,
 };
 
-export const connection = createConnection(mysqlConfig);
 export const pool = createPool(mysqlConfig);

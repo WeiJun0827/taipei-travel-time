@@ -1,69 +1,48 @@
 import validator from 'validator';
+import jwt from 'jsonwebtoken';
 
 import User from '../models/user.js';
 
-import { TOKEN_EXPIRE } from '../config.js';
+import { JWT_SECRET, TOKEN_EXPIRE } from '../config.js';
+import ErrorWithCode from '../util/error.js';
 
 const { ProviderType } = User;
 
 export async function signUp(req, res) {
-  let { name } = req.body;
-  const { email, password } = req.body;
+  const { name: inputName, email, password } = req.body;
 
-  if (!name || !email || !password) {
-    res.status(400).send({ error: 'Request Error: name, email and password are required.' });
-    return;
+  if (!inputName || !email || !password) {
+    throw new ErrorWithCode(400, 'Name, email and password are required');
   }
 
   if (!validator.isEmail(email)) {
-    res.status(400).send({ error: 'Request Error: Invalid email format' });
-    return;
+    throw new ErrorWithCode(400, 'Invalid email format');
   }
 
-  name = validator.escape(name);
+  const name = validator.escape(inputName);
 
-  const result = await User.signUp(name, email, password, TOKEN_EXPIRE);
-  if (result.error) {
-    res.status(403).send({ error: result.error });
-    return;
-  }
+  const userInfo = await User.signUp(name, email, password);
 
-  const { accessToken, loginAt, user } = result;
-  if (!user) {
-    res.status(500).send({ error: 'Database Query Error' });
-    return;
-  }
+  const accessToken = jwt.sign(userInfo, JWT_SECRET, { expiresIn: TOKEN_EXPIRE });
 
   res.status(200).send({
     data: {
-      access_token: accessToken,
-      access_expired: TOKEN_EXPIRE,
-      login_at: loginAt,
-      user: {
-        id: user.id,
-        provider: user.provider,
-        name: user.name,
-        email: user.email,
-      },
+      accessToken,
     },
   });
 }
 
 export async function nativeSignIn(email, password) {
   if (!email || !password) {
-    return { error: 'Request Error: email and password are required.', status: 400 };
+    throw new ErrorWithCode(400, 'Email and password are required');
   }
-
-  try {
-    return await User.nativeSignIn(email, password, TOKEN_EXPIRE);
-  } catch (error) {
-    return { error };
-  }
+  const userInfo = await User.nativeSignIn(email, password, TOKEN_EXPIRE);
+  return userInfo;
 }
 
 export async function facebookSignIn(accessToken) {
   if (!accessToken) {
-    return { error: 'Request Error: access token is required.', status: 400 };
+    throw new ErrorWithCode(400, 'Access token id required');
   }
 
   try {
@@ -71,7 +50,7 @@ export async function facebookSignIn(accessToken) {
     const { id, name, email } = profile;
 
     if (!id || !name || !email) {
-      return { error: 'Permissions Error: facebook access token can not get user id, name or email' };
+      throw new ErrorWithCode(403, 'Cannot get Facebook user info from token');
     }
 
     return await User.facebookSignIn(id, name, email, accessToken, TOKEN_EXPIRE);
@@ -83,55 +62,29 @@ export async function facebookSignIn(accessToken) {
 export async function signIn(req, res) {
   const data = req.body;
 
-  let result;
+  let userInfo;
   switch (data.provider) {
     case ProviderType.NATIVE:
-      result = await nativeSignIn(data.email, data.password);
+      userInfo = await nativeSignIn(data.email, data.password);
       break;
     case ProviderType.FACEBOOK:
-      result = await facebookSignIn(data.access_token);
+      userInfo = await facebookSignIn(data.access_token);
       break;
     default:
-      result = { error: 'Provider Undefined' };
+      throw new ErrorWithCode(400, 'Provider undefined');
   }
 
-  if (result.error) {
-    const statusCode = result.status ? result.status : 403;
-    res.status(statusCode).send({ error: result.error });
-    return;
-  }
+  const accessToken = jwt.sign(userInfo, JWT_SECRET, { expiresIn: TOKEN_EXPIRE });
 
-  const { accessToken, loginAt, user } = result;
-  if (!user) {
-    res.status(500).send({ error: 'Database Query Error' });
-    return;
-  }
-
-  res.status(200).send({
-    data: {
-      access_token: accessToken,
-      access_expired: TOKEN_EXPIRE,
-      login_at: loginAt,
-      user: {
-        id: user.id,
-        provider: user.provider,
-        name: user.name,
-        email: user.email,
-      },
-    },
-  });
+  res.status(200).json({ accessToken });
 }
 
 export async function verifyToken(req, res, next) {
   let accessToken = req.get('Authorization');
   if (accessToken) {
     accessToken = accessToken.replace('Bearer ', '');
-    const result = await User.getUserId(accessToken);
-    if (result.error) {
-      res.status(403).send({ error: result.error });
-      return;
-    }
-    req.userId = result;
+    const { userId } = jwt.verify(accessToken, JWT_SECRET);
+    res.locals.userId = userId;
     next();
   } else {
     res.status(400).send({ error: 'Wrong Request: authorization is required.' });
@@ -139,12 +92,14 @@ export async function verifyToken(req, res, next) {
 }
 
 export async function getUserProfile(req, res) {
-  const profile = await User.getUserProfile(req.userId);
+  const { userId } = res.locals;
+  const profile = await User.getUserProfile(userId);
   res.status(200).send(profile);
 }
 
 export async function getAllPlaces(req, res) {
-  const places = await User.getAllPlaces(req.userId);
+  const { userId } = res.locals;
+  const places = await User.getAllPlaces(userId);
   res.status(200).send({ places });
 }
 
@@ -152,26 +107,30 @@ export async function createPlace(req, res) {
   const {
     lat, lon, icon, googleMapsId, title, description,
   } = req.body;
+  const { userId } = res.locals;
   const placeId = await User
-    .createPlace(req.userId, lat, lon, icon, googleMapsId, title, description);
+    .createPlace(userId, lat, lon, icon, googleMapsId, title, description);
   res.status(200).send({ placeId });
 }
 
 export async function getPlace(req, res) {
   const placeId = Number(req.params.id);
-  const place = await User.getPlace(req.userId, placeId);
+  const { userId } = res.locals;
+  const place = await User.getPlace(userId, placeId);
   res.status(200).send({ place });
 }
 
 export async function updatePlace(req, res) {
   const placeId = Number(req.params.id);
   const { title, description } = req.body;
-  const myList = await User.updatePlace(req.userId, placeId, title, description);
+  const { userId } = res.locals;
+  const myList = await User.updatePlace(userId, placeId, title, description);
   res.status(200).send({ data: myList });
 }
 
 export async function deletePlace(req, res) {
   const placeId = Number(req.params.id);
-  const myList = await User.deletePlace(req.userId, placeId);
+  const { userId } = res.locals;
+  const myList = await User.deletePlace(userId, placeId);
   res.status(200).send({ data: myList });
 }

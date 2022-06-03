@@ -36,32 +36,13 @@ async function signIn() {
 
   const json = await response.json();
   if (!response.ok) {
-    console.log(json.error);
-    switch (response.status) {
-      case 400:
-        Swal.fire({
-          icon: 'error',
-          title: 'Invalid email or password',
-        });
-        break;
-      case 403:
-        Swal.fire({
-          icon: 'error',
-          title: 'Email or password incorrect',
-        });
-        break;
-      case 500:
-      default:
-        Swal.fire({
-          icon: 'error',
-          title: 'Sorry, member service is temporarily unavailable',
-        });
-        break;
-    }
+    Swal.fire({
+      icon: 'error',
+      title: json.errorMsg,
+    });
     return;
   }
-  const token = json.data.access_token;
-  localStorage.setItem('access_token', token);
+  localStorage.setItem('access_token', json.accessToken);
   window.location.href = './map.html';
 }
 
@@ -82,32 +63,13 @@ async function signUp() {
 
   const json = await response.json();
   if (!response.ok) {
-    console.log(json.error);
-    switch (response.status) {
-      case 400:
-        Swal.fire({
-          icon: 'error',
-          title: 'Invalid name, email or password',
-        });
-        break;
-      case 403:
-        Swal.fire({
-          icon: 'warning',
-          title: 'Email has already been taken',
-        });
-        break;
-      case 500:
-      default:
-        Swal.fire({
-          icon: 'error',
-          title: 'Sorry, member service is temporarily unavailable',
-        });
-        break;
-    }
+    Swal.fire({
+      icon: 'error',
+      title: json.errorMsg,
+    });
     return;
   }
-  const token = json.data.access_token;
-  localStorage.setItem('access_token', token);
+  localStorage.setItem('access_token', json.accessToken);
   window.location.href = './map.html';
 }
 
@@ -118,7 +80,7 @@ function checkLoginState() {
     if (fbResponse.status === 'connected') {
       const userData = {
         provider: 'facebook',
-        access_token: fbResponse.authResponse.accessToken,
+        accessToken: fbResponse.authResponse.accessToken,
       };
 
       const response = await fetch('/api/1.0/user/signin', {
@@ -149,8 +111,7 @@ function checkLoginState() {
         }
         return;
       }
-      const token = json.data.access_token;
-      localStorage.setItem('access_token', token);
+      localStorage.setItem('access_token', json.accessToken);
       window.location.href = './map.html';
     } else {
       Swal.fire({
