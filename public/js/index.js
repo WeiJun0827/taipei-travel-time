@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-undef
 $('#backstretch-container').backstretch([
   './assets/img/bg-bus.jpg',
   './assets/img/bg-street.jpg',

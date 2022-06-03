@@ -112,6 +112,7 @@ async function signUp() {
 }
 
 // Facebook Login
+// eslint-disable-next-line no-unused-vars
 function checkLoginState() {
   FB.getLoginStatus(async (fbResponse) => {
     if (fbResponse.status === 'connected') {
@@ -173,10 +174,9 @@ window.fbAsyncInit = function () {
 
 // Load Facebook SDK asynchronously
 (function (d, s, id) {
-  let js; const
-    fjs = d.getElementsByTagName(s)[0];
+  const fjs = d.getElementsByTagName(s)[0];
   if (d.getElementById(id)) { return; }
-  js = d.createElement(s);
+  const js = d.createElement(s);
   js.id = id;
   js.src = 'https://connect.facebook.net/en_US/sdk.js';
   fjs.parentNode.insertBefore(js, fjs);

@@ -263,13 +263,13 @@ function createMarker(placeId, position, title, icon, label, additioalParamsObj)
   if (additioalParamsObj) Object.assign(marker, additioalParamsObj);
   marker.addListener('click', function () {
     if (placeInfoWindow.marker != this) {
-      getPlaceDetails(this, placeInfoWindow);
+      getPlaceDetails(this);
     }
   });
   return marker;
 }
 
-function getPlaceDetails(marker, placeInfoWindow) {
+function getPlaceDetails(marker) {
   const service = new google.maps.places.PlacesService(map);
   service.getDetails({
     placeId: marker.placeId,
@@ -665,8 +665,7 @@ function drawCircle(lat, lon, radius, dir) {
   if (dir == 1) {
     start = 0;
     end = points + 1;
-  } // one extra here makes sure we connect the
-  else if (dir == -1) {
+  } else if (dir == -1) {
     start = points + 1;
     end = 0;
   } else return;
@@ -678,8 +677,6 @@ function drawCircle(lat, lon, radius, dir) {
     ex = lat + (rlat * Math.sin(theta)); // center b + radius y * sin(theta)
     extp.push(new google.maps.LatLng(ex, ey));
   }
-
-  return extp;
 }
 
 function updateDepartureTime() {
@@ -711,8 +708,9 @@ function signOut() {
   }
 }
 
-Date.prototype.toDateInputValue = (function () {
+// eslint-disable-next-line no-extend-native
+Date.prototype.toDateInputValue = () => {
   const local = new Date(this);
   local.setMinutes(this.getMinutes() - this.getTimezoneOffset());
   return local.toJSON().slice(0, 16);
-});
+};
