@@ -709,8 +709,8 @@ function signOut() {
 }
 
 // eslint-disable-next-line no-extend-native
-Date.prototype.toDateInputValue = () => {
+Date.prototype.toDateInputValue = (function () {
   const local = new Date(this);
   local.setMinutes(this.getMinutes() - this.getTimezoneOffset());
   return local.toJSON().slice(0, 16);
-};
+});
