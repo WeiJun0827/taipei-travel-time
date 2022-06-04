@@ -1,6 +1,6 @@
-export default class ErrorWithCode extends Error {
-  constructor(code, message) {
+export default class ErrorWithStatusCode extends Error {
+  constructor(statusCode, message) {
     super(message);
-    this.code = code;
+    this.statusCode = statusCode;
   }
 }

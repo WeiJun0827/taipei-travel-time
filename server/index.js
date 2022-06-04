@@ -2,7 +2,7 @@ import express from 'express';
 
 import travelTime from './routes/travelTime.js';
 import user from './routes/user.js';
-import ErrorWithCode from './util/error.js';
+import ErrorWithStatusCode from './util/error.js';
 
 import { PORT, API_VERSION } from './config.js';
 
@@ -25,16 +25,16 @@ app.use((req, res, next) => {
 
 // Error handling
 app.use((err, req, res, next) => {
-  if (err instanceof ErrorWithCode) {
-    const { code, message } = err;
+  if (err instanceof ErrorWithStatusCode) {
+    const { statusCode, message } = err;
     if (message) {
-      res.status(code).json({ errorMsg: message });
+      res.status(statusCode).json({ errorMsg: message });
       return;
     }
   } else {
     console.error(err);
   }
-  res.sendStatus(err.code || 500);
+  res.sendStatus(err.statusCode || 500);
 });
 
 app.listen(PORT, () => { console.log(`Listening on port ${PORT}`); });

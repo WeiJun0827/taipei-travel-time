@@ -1,6 +1,6 @@
 import { hashSync, compareSync } from 'bcrypt';
 
-import ErrorWithCode from '../util/error.js';
+import ErrorWithStatusCode from '../util/error.js';
 import { pool } from './mysql.js';
 
 const salt = parseInt(process.env.BCRYPT_SALT, 10);
@@ -18,7 +18,7 @@ export async function signUp(name, email, password) {
     const [emails] = await connection.query('SELECT email FROM user WHERE email = ? FOR UPDATE', [email]);
     if (emails.length > 0) {
       await connection.query('COMMIT');
-      throw new ErrorWithCode(403, 'Email already exists');
+      throw new ErrorWithStatusCode(403, 'Email already exists');
     }
 
     const provider = ProviderType.NATIVE;
@@ -50,13 +50,13 @@ export async function nativeSignIn(email, password) {
     const [users] = await connection.query('SELECT * FROM user WHERE email = ?', [email]);
     if (users.length === 0) {
       await connection.query('COMMIT');
-      throw new ErrorWithCode(401, 'Invalid email');
+      throw new ErrorWithStatusCode(401, 'Invalid email');
     }
 
     const user = users[0];
     if (!compareSync(password, user.password)) {
       await connection.query('COMMIT');
-      throw new ErrorWithCode(401, 'Invalid password');
+      throw new ErrorWithStatusCode(401, 'Invalid password');
     }
 
     const loginAt = new Date();
@@ -109,11 +109,11 @@ export async function facebookSignIn(name, email) {
 }
 
 function handleError(error, message) {
-  if (error instanceof ErrorWithCode) {
+  if (error instanceof ErrorWithStatusCode) {
     throw error;
   } else {
     console.error(error);
-    throw new ErrorWithCode(500, message);
+    throw new ErrorWithStatusCode(500, message);
   }
 }
 

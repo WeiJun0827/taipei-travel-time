@@ -5,7 +5,7 @@ import validator from 'validator';
 import * as User from '../models/user.js';
 
 import { JWT_SECRET, TOKEN_EXPIRE } from '../config.js';
-import ErrorWithCode from '../util/error.js';
+import ErrorWithStatusCode from '../util/error.js';
 
 const { ProviderType } = User;
 
@@ -13,11 +13,11 @@ export async function signUp(req, res) {
   const { name: inputName, email, password } = req.body;
 
   if (!inputName || !email || !password) {
-    throw new ErrorWithCode(400, 'Name, email and password are required');
+    throw new ErrorWithStatusCode(400, 'Name, email and password are required');
   }
 
   if (!validator.isEmail(email)) {
-    throw new ErrorWithCode(400, 'Invalid email format');
+    throw new ErrorWithStatusCode(400, 'Invalid email format');
   }
 
   const name = validator.escape(inputName);
@@ -41,7 +41,7 @@ export async function signIn(req, res) {
       userInfo = await facebookSignIn(data.accessToken);
       break;
     default:
-      throw new ErrorWithCode(400, 'Provider undefined');
+      throw new ErrorWithStatusCode(400, 'Provider undefined');
   }
 
   const accessToken = jwt.sign(userInfo, JWT_SECRET, { expiresIn: TOKEN_EXPIRE });
@@ -51,7 +51,7 @@ export async function signIn(req, res) {
 
 async function nativeSignIn(email, password) {
   if (!email || !password) {
-    throw new ErrorWithCode(400, 'Email and password are required');
+    throw new ErrorWithStatusCode(400, 'Email and password are required');
   }
   const userInfo = await User.nativeSignIn(email, password, TOKEN_EXPIRE);
   return userInfo;
@@ -59,14 +59,14 @@ async function nativeSignIn(email, password) {
 
 async function facebookSignIn(accessToken) {
   if (!accessToken) {
-    throw new ErrorWithCode(400, 'Access token is required');
+    throw new ErrorWithStatusCode(400, 'Access token is required');
   }
 
   const { data } = await axios(`https://graph.facebook.com/me?fields=id,name,email&access_token=${accessToken}`);
   const { name, email } = data;
 
   if (!name || !email) {
-    throw new ErrorWithCode(403, 'Cannot get Facebook user info from token');
+    throw new ErrorWithStatusCode(403, 'Cannot get Facebook user info from token');
   }
 
   const userInfo = await User.facebookSignIn(name, email);
@@ -76,7 +76,7 @@ async function facebookSignIn(accessToken) {
 export async function verifyToken(req, res, next) {
   let accessToken = req.get('Authorization');
   if (!accessToken) {
-    throw new ErrorWithCode(400);
+    throw new ErrorWithStatusCode(400);
   }
   accessToken = accessToken.replace('Bearer ', '');
   const { userId } = jwt.verify(accessToken, JWT_SECRET);
@@ -102,7 +102,7 @@ export async function createPlace(req, res) {
   } = req.body;
 
   if (!lat || !lon || !googleMapsId) {
-    throw new ErrorWithCode(400, 'lat, lon, and googleMapsId are required');
+    throw new ErrorWithStatusCode(400, 'lat, lon, and googleMapsId are required');
   }
 
   const { userId } = res.locals;
@@ -116,7 +116,7 @@ export async function updatePlace(req, res) {
   const id = Number.parseInt(req.params.id, 10);
 
   if (!Number.isInteger(id)) {
-    throw new ErrorWithCode(400, 'Cannot parse place id');
+    throw new ErrorWithStatusCode(400, 'Cannot parse place id');
   }
   const { title, description } = req.body;
   const { userId } = res.locals;
@@ -130,7 +130,7 @@ export async function deletePlace(req, res) {
   const id = Number.parseInt(req.params.id, 10);
 
   if (!Number.isInteger(id)) {
-    throw new ErrorWithCode(400, 'Cannot parse place id');
+    throw new ErrorWithStatusCode(400, 'Cannot parse place id');
   }
 
   const { userId } = res.locals;
