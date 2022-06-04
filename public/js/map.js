@@ -41,7 +41,7 @@ function initNavbar() {
     };
 
     $.ajax(settings).done((response) => {
-      const { data: { name } } = response;
+      const { name } = response;
       $('#user-name').css('display', 'block');
       $('#sign-out').css('display', 'block');
       $('#user-name-field').text(name);
@@ -387,8 +387,7 @@ function getFavoritePlaces() {
     },
   };
 
-  $.ajax(settings).done((response) => {
-    const { places } = response;
+  $.ajax(settings).done((places) => {
     for (const place of places) {
       const position = new google.maps.LatLng(place.lat, place.lon);
       const icon = {
@@ -403,15 +402,14 @@ function getFavoritePlaces() {
         id: place.id,
         description: place.description,
       };
-      const marker = createMarker(place.googleMapsId, position, place.title, icon, undefined, additionalParams);
+      createMarker(place.googleMapsId, position, place.title, icon, undefined, additionalParams);
     }
-  }).fail(() => {});
+  }).fail(() => { });
 }
 
 function createFavoritePlace() {
   const position = placeInfoWindow.marker.getPosition();
-  const { iconUrl } = placeInfoWindow.marker;
-  const { placeId } = placeInfoWindow.marker;
+  const { iconUrl, placeId: googleMapsId } = placeInfoWindow.marker;
   const title = $('.place-title-input').val();
   const description = $('.place-description-input').val();
   const settings = {
@@ -425,14 +423,14 @@ function createFavoritePlace() {
       lat: position.lat(),
       lon: position.lng(),
       icon: iconUrl,
-      googleMapsId: placeId,
+      googleMapsId,
       title,
       description,
     }),
   };
 
   $('#loading-cover').css('display', 'block');
-  $.ajax(settings).done(() => {
+  $.ajax(settings).done(({ placeId: id }) => {
     const icon = {
       url: iconUrl,
       size: new google.maps.Size(35, 35),
@@ -442,12 +440,12 @@ function createFavoritePlace() {
     };
     const additionalParams = {
       isMyPlace: true,
-      id: placeId,
+      id,
       description,
     };
     placeInfoWindow.marker.setMap(null);
     setInfoWindowToLabeledMode();
-    const marker = createMarker(placeId, position, title, icon, undefined, additionalParams);
+    createMarker(placeId, position, title, icon, undefined, additionalParams);
   }).fail((error) => {
     console.error(error);
   }).always(() => {

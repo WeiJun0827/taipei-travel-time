@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { hashSync, compareSync } from 'bcrypt';
 
 import ErrorWithCode from '../util/error.js';
@@ -11,7 +10,7 @@ const ProviderType = {
   GOOGLE: 'google',
 };
 
-async function signUp(name, email, password) {
+export async function signUp(name, email, password) {
   const connection = await pool.getConnection();
   try {
     await connection.query('START TRANSACTION');
@@ -33,27 +32,17 @@ async function signUp(name, email, password) {
     const [result] = await connection.query('INSERT INTO user SET ?', user);
     await connection.query('COMMIT');
 
-    const userInfo = {
-      userId: result.insertId,
-      provider,
-      email,
-      name,
-    };
-    return userInfo;
+    return { userId: result.insertId };
   } catch (error) {
     await connection.query('ROLLBACK');
-    if (error instanceof ErrorWithCode) {
-      throw error;
-    } else {
-      console.error(error);
-      throw new ErrorWithCode(500, 'Sorry, native sign-up is temporarily unavailable');
-    }
+    handleError(error, 'Sorry, native sign-up is temporarily unavailable');
+    return false;
   } finally {
     connection.release();
   }
 }
 
-async function nativeSignIn(email, password) {
+export async function nativeSignIn(email, password) {
   const connection = await pool.getConnection();
   try {
     await connection.query('START TRANSACTION');
@@ -74,142 +63,94 @@ async function nativeSignIn(email, password) {
     await connection.query('UPDATE user SET login_at = ? WHERE id = ?', [loginAt, user.id]);
     await connection.query('COMMIT');
 
-    const userInfo = {
-      userId: user.id,
-      provider: user.provider,
-      email: user.email,
-      name: user.name,
-    };
-    return userInfo;
+    return { userId: user.id };
   } catch (error) {
     await connection.query('ROLLBACK');
-    if (error instanceof ErrorWithCode) {
-      throw error;
-    } else {
-      console.error(error);
-      throw new ErrorWithCode(500, 'Sorry, native sign-in is temporarily unavailable');
-    }
+    handleError(error, 'Sorry, native sign-in is temporarily unavailable');
+    return false;
   } finally {
     connection.release();
   }
 }
 
-const facebookSignIn = async (id, name, email, accessToken, expire) => {
+export async function facebookSignIn(name, email) {
   const connection = await pool.getConnection();
   try {
     await connection.query('START TRANSACTION');
 
+    const provider = ProviderType.FACEBOOK;
     const loginAt = new Date();
     const user = {
-      provider: ProviderType.FACEBOOK,
+      provider,
       email,
       name,
-      access_token: accessToken,
-      access_expired: expire,
       login_at: loginAt,
     };
 
-    const users = await connection.query('SELECT id FROM user WHERE email = ? AND provider = ? FOR UPDATE', [email, ProviderType.FACEBOOK]);
+    const [users] = await connection.query('SELECT id FROM user WHERE email = ? AND provider = ? FOR UPDATE', [email, provider]);
     let userId;
     if (users.length === 0) { // Insert new user
-      const queryStr = 'INSERT INTO user SET ?';
-      const result = await connection.query(queryStr, user);
+      const [result] = await connection.query('INSERT INTO user SET ?', user);
       userId = result.insertId;
     } else { // Update existed user
       userId = users[0].id;
-      const queryStr = 'UPDATE user SET access_token = ?, access_expired = ?, login_at = ?  WHERE id = ?';
-      await connection.query(queryStr, [accessToken, expire, loginAt, userId]);
+      await connection.query('UPDATE user SET login_at = ?  WHERE id = ?', [loginAt, userId]);
     }
-    user.id = userId;
-
     await connection.query('COMMIT');
 
-    return { accessToken, loginAt, user };
+    return { userId };
   } catch (error) {
     await connection.query('ROLLBACK');
-    return { error };
+    handleError(error, 'Sorry, sign-in with Facebook is temporarily unavailable');
+    return false;
   } finally {
     connection.release();
   }
-};
+}
 
-const getUserProfile = async (userId) => {
-  const results = await pool.query('SELECT * FROM user WHERE id = ?', userId);
+function handleError(error, message) {
+  if (error instanceof ErrorWithCode) {
+    throw error;
+  } else {
+    console.error(error);
+    throw new ErrorWithCode(500, message);
+  }
+}
+
+export async function getUserProfile(userId) {
+  const [[user]] = await pool.query('SELECT * FROM user WHERE id = ?', userId);
   return {
-    data: {
-      id: results[0].id,
-      provider: results[0].provider,
-      name: results[0].name,
-      email: results[0].email,
-    },
+    name: user.name,
   };
-};
+}
 
-const getFacebookProfile = async function (accessToken) {
-  try {
-    const res = await axios(`https://graph.facebook.com/me?fields=id,name,email&access_token=${accessToken}`, {
-      responseType: 'json',
-    });
-    return res.data;
-  } catch (e) {
-    console.log(e);
-    return { error: 'Fail to get user\'s profile.' };
-  }
-};
-
-const getAllPlaces = async (userId) => {
-  const places = await pool.query('SELECT id, lat, lon, icon, google_maps_id AS googleMapsId, title, description FROM place WHERE user_id = ?', userId);
+export async function getAllPlaces(userId) {
+  const [places] = await pool.query('SELECT id, lat, lon, icon, google_maps_id AS googleMapsId, title, description FROM place WHERE user_id = ?', userId);
   return places;
-};
+}
 
-const createPlace = async (userId, lat, lon, icon, googleMapsId, title, description) => {
-  try {
-    const place = {
-      user_id: userId, lat, lon, icon, google_maps_id: googleMapsId, title, description,
-    };
-    const result = await pool.query('INSERT INTO place SET ?', place);
-    return result.insertId;
-  } catch (e) {
-    console.log(e);
-    return { error: 'Fail to create user\'s favorite place.' };
-  }
-};
+export async function createPlace({
+  userId, lat, lon, icon, googleMapsId, title, description,
+}) {
+  const place = {
+    user_id: userId,
+    lat,
+    lon,
+    icon,
+    google_maps_id: googleMapsId,
+    title,
+    description,
+  };
+  const [result] = await pool.query('INSERT INTO place SET ?', place);
+  return { placeId: result.insertId };
+}
 
-const getPlace = async (userId, placeId) => {
-  const place = await pool.query('SELECT * FROM place WHERE user_id = ? AND id = ?', [userId, placeId]);
-  return place;
-};
+export async function updatePlace({
+  userId, id, title, description,
+}) {
+  await pool.query('UPDATE place SET title = ?, description = ? WHERE user_id = ? AND id = ?', [title, description, userId, id]);
+}
 
-const updatePlace = async (userId, placeId, title, description) => {
-  try {
-    const result = await pool.query('UPDATE place SET title = ?, description = ? WHERE user_id = ? AND id = ?', [title, description, userId, placeId]);
-    return result;
-  } catch (e) {
-    console.log(e);
-    return { error: 'Fail to update user\'s favorite place.' };
-  }
-};
-
-const deletePlace = async (userId, placeId) => {
-  try {
-    const result = await pool.query('DELETE FROM place WHERE user_id = ? AND id = ?', [userId, placeId]);
-    return result;
-  } catch (e) {
-    console.log(e);
-    return { error: 'Fail to delete user\'s favorite place.' };
-  }
-};
-
-export default {
-  signUp,
-  nativeSignIn,
-  facebookSignIn,
-  getUserProfile,
-  getFacebookProfile,
-  getAllPlaces,
-  createPlace,
-  getPlace,
-  updatePlace,
-  deletePlace,
-  ProviderType,
-};
+export async function deletePlace(userId, id) {
+  await pool.query('DELETE FROM place WHERE user_id = ? AND id = ?', [userId, id]);
+}

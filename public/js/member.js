@@ -93,7 +93,6 @@ function checkLoginState() {
 
       const json = await response.json();
       if (!response.ok) {
-        console.log(json.error);
         switch (response.status) {
           case 403:
             Swal.fire({

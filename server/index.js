@@ -2,9 +2,9 @@ import express from 'express';
 
 import travelTime from './routes/travelTime.js';
 import user from './routes/user.js';
+import ErrorWithCode from './util/error.js';
 
 import { PORT, API_VERSION } from './config.js';
-import ErrorWithCode from './util/error.js';
 
 const app = express();
 
@@ -27,13 +27,16 @@ app.use((req, res, next) => {
 app.use((err, req, res, next) => {
   if (err instanceof ErrorWithCode) {
     const { code, message } = err;
-    res.status(code).json({ errorMsg: message });
+    if (message) {
+      res.status(code).json({ errorMsg: message });
+      return;
+    }
   } else {
     console.error(err);
-    res.status(500).send('Internal Server Error');
   }
+  res.sendStatus(err.code || 500);
 });
 
-app.listen(PORT, () => { console.log(`Listening on port: ${PORT}`); });
+app.listen(PORT, () => { console.log(`Listening on port ${PORT}`); });
 
 export default app;

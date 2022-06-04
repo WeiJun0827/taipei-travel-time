@@ -8,7 +8,6 @@ import {
   getUserProfile,
   getAllPlaces,
   createPlace,
-  getPlace,
   updatePlace,
   deletePlace,
 } from '../controllers/user.js';
@@ -29,9 +28,6 @@ router.route('/user/places')
 
 router.route('/user/places')
   .post(wrapAsync(verifyToken), wrapAsync(createPlace));
-
-router.route('/user/places/:id')
-  .get(wrapAsync(verifyToken), wrapAsync(getPlace));
 
 router.route('/user/places/:id')
   .patch(wrapAsync(verifyToken), wrapAsync(updatePlace));

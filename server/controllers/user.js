@@ -1,7 +1,8 @@
-import validator from 'validator';
+import axios from 'axios';
 import jwt from 'jsonwebtoken';
+import validator from 'validator';
 
-import User from '../models/user.js';
+import * as User from '../models/user.js';
 
 import { JWT_SECRET, TOKEN_EXPIRE } from '../config.js';
 import ErrorWithCode from '../util/error.js';
@@ -25,38 +26,7 @@ export async function signUp(req, res) {
 
   const accessToken = jwt.sign(userInfo, JWT_SECRET, { expiresIn: TOKEN_EXPIRE });
 
-  res.status(200).send({
-    data: {
-      accessToken,
-    },
-  });
-}
-
-export async function nativeSignIn(email, password) {
-  if (!email || !password) {
-    throw new ErrorWithCode(400, 'Email and password are required');
-  }
-  const userInfo = await User.nativeSignIn(email, password, TOKEN_EXPIRE);
-  return userInfo;
-}
-
-export async function facebookSignIn(accessToken) {
-  if (!accessToken) {
-    throw new ErrorWithCode(400, 'Access token id required');
-  }
-
-  try {
-    const profile = await User.getFacebookProfile(accessToken);
-    const { id, name, email } = profile;
-
-    if (!id || !name || !email) {
-      throw new ErrorWithCode(403, 'Cannot get Facebook user info from token');
-    }
-
-    return await User.facebookSignIn(id, name, email, accessToken, TOKEN_EXPIRE);
-  } catch (error) {
-    return { error };
-  }
+  res.status(200).json({ accessToken });
 }
 
 export async function signIn(req, res) {
@@ -68,7 +38,7 @@ export async function signIn(req, res) {
       userInfo = await nativeSignIn(data.email, data.password);
       break;
     case ProviderType.FACEBOOK:
-      userInfo = await facebookSignIn(data.access_token);
+      userInfo = await facebookSignIn(data.accessToken);
       break;
     default:
       throw new ErrorWithCode(400, 'Provider undefined');
@@ -79,58 +49,91 @@ export async function signIn(req, res) {
   res.status(200).json({ accessToken });
 }
 
+async function nativeSignIn(email, password) {
+  if (!email || !password) {
+    throw new ErrorWithCode(400, 'Email and password are required');
+  }
+  const userInfo = await User.nativeSignIn(email, password, TOKEN_EXPIRE);
+  return userInfo;
+}
+
+async function facebookSignIn(accessToken) {
+  if (!accessToken) {
+    throw new ErrorWithCode(400, 'Access token is required');
+  }
+
+  const { data } = await axios(`https://graph.facebook.com/me?fields=id,name,email&access_token=${accessToken}`);
+  const { name, email } = data;
+
+  if (!name || !email) {
+    throw new ErrorWithCode(403, 'Cannot get Facebook user info from token');
+  }
+
+  const userInfo = await User.facebookSignIn(name, email);
+  return userInfo;
+}
+
 export async function verifyToken(req, res, next) {
   let accessToken = req.get('Authorization');
-  if (accessToken) {
-    accessToken = accessToken.replace('Bearer ', '');
-    const { userId } = jwt.verify(accessToken, JWT_SECRET);
-    res.locals.userId = userId;
-    next();
-  } else {
-    res.status(400).send({ error: 'Wrong Request: authorization is required.' });
+  if (!accessToken) {
+    throw new ErrorWithCode(400);
   }
+  accessToken = accessToken.replace('Bearer ', '');
+  const { userId } = jwt.verify(accessToken, JWT_SECRET);
+  res.locals.userId = userId;
+  next();
 }
 
 export async function getUserProfile(req, res) {
   const { userId } = res.locals;
   const profile = await User.getUserProfile(userId);
-  res.status(200).send(profile);
+  res.status(200).json(profile);
 }
 
 export async function getAllPlaces(req, res) {
   const { userId } = res.locals;
   const places = await User.getAllPlaces(userId);
-  res.status(200).send({ places });
+  res.status(200).json(places);
 }
 
 export async function createPlace(req, res) {
   const {
     lat, lon, icon, googleMapsId, title, description,
   } = req.body;
-  const { userId } = res.locals;
-  const placeId = await User
-    .createPlace(userId, lat, lon, icon, googleMapsId, title, description);
-  res.status(200).send({ placeId });
-}
 
-export async function getPlace(req, res) {
-  const placeId = Number(req.params.id);
+  if (!lat || !lon || !googleMapsId) {
+    throw new ErrorWithCode(400, 'lat, lon, and googleMapsId are required');
+  }
+
   const { userId } = res.locals;
-  const place = await User.getPlace(userId, placeId);
-  res.status(200).send({ place });
+  const placeInfo = await User.createPlace({
+    userId, lat, lon, icon, googleMapsId, title, description,
+  });
+  res.json(placeInfo);
 }
 
 export async function updatePlace(req, res) {
-  const placeId = Number(req.params.id);
+  const id = Number.parseInt(req.params.id, 10);
+
+  if (!Number.isInteger(id)) {
+    throw new ErrorWithCode(400, 'Cannot parse place id');
+  }
   const { title, description } = req.body;
   const { userId } = res.locals;
-  const myList = await User.updatePlace(userId, placeId, title, description);
-  res.status(200).send({ data: myList });
+  await User.updatePlace({
+    userId, id, title, description,
+  });
+  res.sendStatus(200);
 }
 
 export async function deletePlace(req, res) {
-  const placeId = Number(req.params.id);
+  const id = Number.parseInt(req.params.id, 10);
+
+  if (!Number.isInteger(id)) {
+    throw new ErrorWithCode(400, 'Cannot parse place id');
+  }
+
   const { userId } = res.locals;
-  const myList = await User.deletePlace(userId, placeId);
-  res.status(200).send({ data: myList });
+  await User.deletePlace(userId, id);
+  res.sendStatus(200);
 }
