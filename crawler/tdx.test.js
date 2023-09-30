@@ -1,4 +1,5 @@
 /* eslint-disable no-unused-vars */
+import 'dotenv/config';
 import { Bus, Metro, Train } from './tdx.js';
 
 const metroClient = new Metro(Metro.SYSTEM.TRTC);
