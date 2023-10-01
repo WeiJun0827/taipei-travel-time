@@ -1,4 +1,4 @@
-export default class PriorityQueueNode {
+export default class GraphPQNode {
 
   id: string;
   arriveBy: string | null;

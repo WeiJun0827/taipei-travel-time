@@ -1,9 +1,9 @@
 import moment from 'moment';
 
+import { EdgeType } from './EdgeType.js';
 import GraphNode from './GraphNode.js';
 import GraphEdge from './GraphEdge.js';
-import { EdgeType } from './EdgeType.js';
-import PriorityQueueNode from './PriorityQueueNode.js';
+import GraphPQNode from './GraphPQNode.js';
 import PriorityQueue from './PriorityQueue.js';
 import { parseDatetimeToWeekday } from './misc.js';
 
@@ -96,10 +96,10 @@ export default class Graph {
     const cost = {};
     const prevNodeLog = [] as any; // TODO: type
     const isVisited = {};
-    const pq = new PriorityQueue();
+    const pq = new PriorityQueue<GraphPQNode>();
     let logSequence = 0;
 
-    const starter = new PriorityQueueNode(fromNodeId, null, 0, null, 0, false);
+    const starter = new GraphPQNode(fromNodeId, null, 0, null, 0, false);
     pq.enqueue(starter, 0);
     for (const nodeId in this.nodes) {
       cost[nodeId] = nodeId == fromNodeId ? 0 : Infinity;
@@ -107,7 +107,7 @@ export default class Graph {
     }
 
     while (!pq.isEmpty()) {
-      const currPqNode = pq.dequeue().pqNode;
+      const currPqNode = pq.dequeue().data;
       const currNodeId = currPqNode.id;
       const baseTransferCount = currPqNode.transferCount;
       const currNode = this.nodes[currNodeId];
@@ -133,7 +133,7 @@ export default class Graph {
         const isByWalking = currEdge.isByWalking();
         if (isInvalidTransferNode) isInvalidTransferNode = isByWalking;
         const edgeDetail = currEdge.getEdgeDetail();
-        const nextPqNode = (new PriorityQueueNode(nextNodeId, edgeDetail, currTransferCount, logSequence, cost[nextNodeId], isByWalking));
+        const nextPqNode = new GraphPQNode(nextNodeId, edgeDetail, currTransferCount, logSequence, cost[nextNodeId], isByWalking);
         pq.enqueue(nextPqNode, alternative);
         cost[nextNodeId] = alternative;
 

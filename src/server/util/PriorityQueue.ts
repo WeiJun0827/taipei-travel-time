@@ -1,28 +1,27 @@
-import PriorityQueueNode from './PriorityQueueNode';
-
-class PriorityQueueNodeWrapper {
-  pqNode: PriorityQueueNode;
+class PriorityQueueNode<T> {
+  data: T;
   priority: number;
-  constructor(pqNode: PriorityQueueNode, priority: number) {
-    this.pqNode = pqNode;
+
+  constructor(data: T, priority: number) {
+    this.data = data;
     this.priority = priority;
   }
 }
 
-export default class PriorityQueue {
+export default class PriorityQueue<T> {
 
-  private nodes: PriorityQueueNodeWrapper[];
+  private nodes: PriorityQueueNode<T>[];
 
   constructor() {
     this.nodes = [];
   }
 
-  enqueue(pqNode: PriorityQueueNode, priority: number) {
-    this.nodes.push({ pqNode, priority });
+  enqueue(data: T, priority: number) {
+    this.nodes.push(new PriorityQueueNode(data, priority));
     this.bubbleUp();
   }
 
-  bubbleUp() {
+  private bubbleUp() {
     let idx = this.nodes.length - 1;
     const element = this.nodes[idx];
     while (idx > 0) {
@@ -46,15 +45,15 @@ export default class PriorityQueue {
     return min;
   }
 
-  sinkDown() {
+  private sinkDown() {
     let idx = 0;
     const { length } = this.nodes;
     const element = this.nodes[0];
     while (true) {
       const leftChildIdx = 2 * idx + 1;
       const rightChildIdx = 2 * idx + 2;
-      let leftChild: PriorityQueueNodeWrapper;
-      let rightChild: PriorityQueueNodeWrapper;
+      let leftChild: PriorityQueueNode<T>;
+      let rightChild: PriorityQueueNode<T>;
       let swapIdx: number | null = null;
 
       if (leftChildIdx < length) {
