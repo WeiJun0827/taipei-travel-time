@@ -9,7 +9,7 @@
       "type": "pwa-chrome",
       "request": "launch",
       "url": "http://localhost:3000/map.html",
-      "webRoot": "${workspaceFolder}/public",
+      "webRoot": "${workspaceFolder}/src/public",
     },
     {
       "name": "Launch Backend",
@@ -18,7 +18,7 @@
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "program": "${workspaceFolder}/server/index.js"
+      "program": "${workspaceFolder}/src/server/index.js"
     },
     {
       "name": "Launch Crawler",
@@ -27,7 +27,7 @@
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "program": "${workspaceFolder}/crawler/tdx.test.js"
+      "program": "${workspaceFolder}/src/server/crawlers/tdx.test.js"
     }
   ]
 }
