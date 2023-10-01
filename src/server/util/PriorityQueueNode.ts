@@ -1,5 +1,13 @@
 export default class PriorityQueueNode {
-  constructor(id, arriveBy, transferCount, logSequence, originalCost, isArrivedByWalking) {
+
+  id: string;
+  arriveBy: string | null;
+  transferCount: number;
+  logSequence: number | null;
+  originalCost: number;
+  isArrivedByWalking: boolean;
+
+  constructor(id: string, arriveBy: string | null, transferCount: number, logSequence: number | null, originalCost: number, isArrivedByWalking: boolean) {
     this.id = id;
     this.arriveBy = arriveBy;
     this.transferCount = transferCount;

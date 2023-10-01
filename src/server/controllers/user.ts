@@ -53,7 +53,7 @@ async function nativeSignIn(email, password) {
   if (!email || !password) {
     throw new ErrorWithStatusCode(400, 'Email and password are required');
   }
-  const userInfo = await User.nativeSignIn(email, password, TOKEN_EXPIRE);
+  const userInfo = await User.nativeSignIn(email, password);
   return userInfo;
 }
 

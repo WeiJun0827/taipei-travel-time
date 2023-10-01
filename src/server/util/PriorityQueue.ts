@@ -1,9 +1,23 @@
+import PriorityQueueNode from './PriorityQueueNode';
+
+class PriorityQueueNodeWrapper {
+  pqNode: PriorityQueueNode;
+  priority: number;
+  constructor(pqNode: PriorityQueueNode, priority: number) {
+    this.pqNode = pqNode;
+    this.priority = priority;
+  }
+}
+
 export default class PriorityQueue {
+
+  private nodes: PriorityQueueNodeWrapper[];
+
   constructor() {
     this.nodes = [];
   }
 
-  enqueue(pqNode, priority) {
+  enqueue(pqNode: PriorityQueueNode, priority: number) {
     this.nodes.push({ pqNode, priority });
     this.bubbleUp();
   }
@@ -24,7 +38,7 @@ export default class PriorityQueue {
   dequeue() {
     if (this.isEmpty()) throw new Error('Queue underflow');
     const min = this.nodes[0];
-    const end = this.nodes.pop();
+    const end = this.nodes.pop()!;
     if (!this.isEmpty()) {
       this.nodes[0] = end;
       this.sinkDown();
@@ -39,9 +53,9 @@ export default class PriorityQueue {
     while (true) {
       const leftChildIdx = 2 * idx + 1;
       const rightChildIdx = 2 * idx + 2;
-      let leftChild; let
-        rightChild;
-      let swapIdx = null;
+      let leftChild: PriorityQueueNodeWrapper;
+      let rightChild: PriorityQueueNodeWrapper;
+      let swapIdx: number | null = null;
 
       if (leftChildIdx < length) {
         leftChild = this.nodes[leftChildIdx];
@@ -53,7 +67,7 @@ export default class PriorityQueue {
         rightChild = this.nodes[rightChildIdx];
         if (
           (swapIdx === null && rightChild.priority < element.priority)
-                    || (swapIdx !== null && rightChild.priority < leftChild.priority)
+          || (swapIdx !== null && rightChild.priority < leftChild!.priority)
         ) {
           swapIdx = rightChildIdx;
         }

@@ -10,16 +10,19 @@ import { parseDatetimeToWeekday } from './misc.js';
 import { MOMENT_FORMAT } from '../config.js';
 
 export default class Graph {
+
+  nodes: Record<string, GraphNode>;
+
   constructor() {
     this.nodes = {};
   }
 
-  addNode(id, nameCht, lat, lon, stopTime) {
+  addNode(id: string, nameCht: string, lat: number, lon: number, stopTime: number) {
     if (this.nodes[id] != undefined) throw new Error(`Node ${id} already existed`);
     this.nodes[id] = new GraphNode(id, nameCht, lat, lon, stopTime);
   }
 
-  addEdge(fromNodeId, toNodeId, runTime, edgeType, edgeInfo) {
+  addEdge(fromNodeId: string, toNodeId: string, runTime: number, edgeType: EdgeType, edgeInfo: any = {}) {
     const fromNode = this.nodes[fromNodeId];
     const toNode = this.nodes[toNodeId];
     if (fromNode == undefined) throw new Error(`From node ${fromNodeId} not found`);
@@ -36,7 +39,7 @@ export default class Graph {
      * @param {Number} time maximum available time in seconds
      * @param {Number} speed average moving speed in m/s
      */
-  addStarterNode(starterId, lat, lon, time, speed, maxWalkDist) {
+  addStarterNode(starterId: string, lat: number, lon: number, time: number, speed: number, maxWalkDist: number) {
     const availableDist = Math.min(time * speed, maxWalkDist); // metre
     this.addNode(starterId, starterId, lat, lon, 0);
     for (const nodeId in this.nodes) {
@@ -52,7 +55,7 @@ export default class Graph {
     }
   }
 
-  deleteStarterNode(starterId) {
+  deleteStarterNode(starterId: string) {
     if (this.nodes[starterId]) delete this.nodes[starterId];
   }
 
@@ -88,10 +91,10 @@ export default class Graph {
      * @param {Number} maxTransferCount maximum transfer time between transits
      * @returns {Object} key: node ID, value: travel time in seconds for available nodes, Infinity for unavailable nodes
      */
-  dijkstraAlgorithm(fromNodeId, maxTime, departureDatetime, takeMetro, takeBus, maxTransferCount) {
+  dijkstraAlgorithm(fromNodeId: string, maxTime: number, departureDatetime: string, takeMetro: boolean, takeBus: boolean, maxTransferCount: number): object {
     const weekday = parseDatetimeToWeekday(departureDatetime);
     const cost = {};
-    const prevNodeLog = [];
+    const prevNodeLog = [] as any; // TODO: type
     const isVisited = {};
     const pq = new PriorityQueue();
     let logSequence = 0;
@@ -118,7 +121,7 @@ export default class Graph {
         const currEdge = currNode.edges[nextNodeId];
         if (currEdge.edgeType == EdgeType.METRO && !takeMetro) continue;
         if (currEdge.edgeType == EdgeType.BUS && !takeBus) continue;
-        const needTransfer = currEdge.needTransfer(currPqNode.arriveBy);
+        const needTransfer = currEdge.needTransfer(currPqNode.arriveBy!);
         if (isInvalidTransferNode && needTransfer) continue;
         const currTransferCount = needTransfer ? baseTransferCount + 1 : baseTransferCount;
         if (currTransferCount > maxTransferCount) continue;
@@ -152,7 +155,7 @@ export default class Graph {
 
       if (isInvalidTransferNode) {
         cost[currNodeId] = currPqNode.originalCost;
-        prevNodeLog[currPqNode.logSequence] = null;
+        prevNodeLog[currPqNode.logSequence!] = null;
       } else isVisited[currNodeId] = true;
     }
     return cost;

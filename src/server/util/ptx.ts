@@ -470,6 +470,6 @@ const batchImportBusRunTimeLog = async function () {
 // updateBusRunTimeBySubRouteIdV2('TPE157462');
 importBusRoutes(cities[0], 2, 0);
 // batchImportBusData(0, 1);
-// Bus.getAllFrequencys();
+// Bus.getAllFrequencies();
 // batchImportBusRunTimeLog();
 // setInterval(() => batchImportBusRunTimeLog(), 600000);
