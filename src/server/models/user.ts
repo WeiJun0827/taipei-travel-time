@@ -36,8 +36,7 @@ export async function signUp(name: string, email: string, password: string) {
     return { userId: result.insertId };
   } catch (error) {
     await connection.query('ROLLBACK');
-    handleError(error, 'Sorry, native sign-up is temporarily unavailable');
-    return false;
+    handleError(error as Error, 'Sorry, native sign-up is temporarily unavailable');
   } finally {
     connection.release();
   }
@@ -67,8 +66,7 @@ export async function nativeSignIn(email: string, password: string) {
     return { userId: user.id };
   } catch (error) {
     await connection.query('ROLLBACK');
-    handleError(error, 'Sorry, native sign-in is temporarily unavailable');
-    return false;
+    handleError(error as Error, 'Sorry, native sign-in is temporarily unavailable');
   } finally {
     connection.release();
   }
@@ -102,8 +100,7 @@ export async function facebookSignIn(name: string, email: string) {
     return { userId };
   } catch (error) {
     await connection.query('ROLLBACK');
-    handleError(error, 'Sorry, sign-in with Facebook is temporarily unavailable');
-    return false;
+    handleError(error as Error, 'Sorry, sign-in with Facebook is temporarily unavailable');
   } finally {
     connection.release();
   }
