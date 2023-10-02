@@ -5,7 +5,10 @@
     "main": "index.js",
     "type": "module",
     "scripts": {
-        "start": "node ./src/server/index.js",
+        "crawl": "node ./src/server/crawlers/tdx.test.ts",
+        "dev": "ts-node ./src/server/index.ts",
+        "build": "tsc",
+        "start": "node ./dist/server/index.js",
         "test": "set NODE_ENV=test&&mocha --exit",
         "example": "mocha"
     },
