@@ -1,28 +1,25 @@
 import moment from 'moment';
 
-import { EdgeType } from './EdgeType';
-import GraphNode from './GraphNode';
-import GraphEdge from './GraphEdge';
-import GraphPQNode from './GraphPQNode';
-import PriorityQueue from './PriorityQueue';
-import { parseDatetimeToWeekday } from './misc';
+import GraphNode from './GraphNode.js';
+import GraphEdge from './GraphEdge.js';
+import { EdgeType } from './EdgeType.js';
+import PriorityQueueNode from './PriorityQueueNode.js';
+import PriorityQueue from './PriorityQueue.js';
+import { parseDatetimeToWeekday } from './misc.js';
 
-import { MOMENT_FORMAT } from '../config';
+import { MOMENT_FORMAT } from '../config.js';
 
 export default class Graph {
-
-  nodes: Record<string, GraphNode>;
-
   constructor() {
     this.nodes = {};
   }
 
-  addNode(id: string, nameCht: string, lat: number, lon: number, stopTime: number) {
+  addNode(id, nameCht, lat, lon, stopTime) {
     if (this.nodes[id] != undefined) throw new Error(`Node ${id} already existed`);
     this.nodes[id] = new GraphNode(id, nameCht, lat, lon, stopTime);
   }
 
-  addEdge(fromNodeId: string, toNodeId: string, runTime: number, edgeType: EdgeType, edgeInfo: any = {}) {
+  addEdge(fromNodeId, toNodeId, runTime, edgeType, edgeInfo) {
     const fromNode = this.nodes[fromNodeId];
     const toNode = this.nodes[toNodeId];
     if (fromNode == undefined) throw new Error(`From node ${fromNodeId} not found`);
@@ -39,7 +36,7 @@ export default class Graph {
      * @param {Number} time maximum available time in seconds
      * @param {Number} speed average moving speed in m/s
      */
-  addStarterNode(starterId: string, lat: number, lon: number, time: number, speed: number, maxWalkDist: number) {
+  addStarterNode(starterId, lat, lon, time, speed, maxWalkDist) {
     const availableDist = Math.min(time * speed, maxWalkDist); // metre
     this.addNode(starterId, starterId, lat, lon, 0);
     for (const nodeId in this.nodes) {
@@ -55,7 +52,7 @@ export default class Graph {
     }
   }
 
-  deleteStarterNode(starterId: string) {
+  deleteStarterNode(starterId) {
     if (this.nodes[starterId]) delete this.nodes[starterId];
   }
 
@@ -91,15 +88,15 @@ export default class Graph {
      * @param {Number} maxTransferCount maximum transfer time between transits
      * @returns {Object} key: node ID, value: travel time in seconds for available nodes, Infinity for unavailable nodes
      */
-  dijkstraAlgorithm(fromNodeId: string, maxTime: number, departureDatetime: string, takeMetro: boolean, takeBus: boolean, maxTransferCount: number): object {
+  dijkstraAlgorithm(fromNodeId, maxTime, departureDatetime, takeMetro, takeBus, maxTransferCount) {
     const weekday = parseDatetimeToWeekday(departureDatetime);
     const cost = {};
-    const prevNodeLog = [] as any; // TODO: type
+    const prevNodeLog = [];
     const isVisited = {};
-    const pq = new PriorityQueue<GraphPQNode>();
+    const pq = new PriorityQueue();
     let logSequence = 0;
 
-    const starter = new GraphPQNode(fromNodeId, null, 0, null, 0, false);
+    const starter = new PriorityQueueNode(fromNodeId, null, 0, null, 0, false);
     pq.enqueue(starter, 0);
     for (const nodeId in this.nodes) {
       cost[nodeId] = nodeId == fromNodeId ? 0 : Infinity;
@@ -107,7 +104,7 @@ export default class Graph {
     }
 
     while (!pq.isEmpty()) {
-      const currPqNode = pq.dequeue().data;
+      const currPqNode = pq.dequeue().pqNode;
       const currNodeId = currPqNode.id;
       const baseTransferCount = currPqNode.transferCount;
       const currNode = this.nodes[currNodeId];
@@ -121,7 +118,7 @@ export default class Graph {
         const currEdge = currNode.edges[nextNodeId];
         if (currEdge.edgeType == EdgeType.METRO && !takeMetro) continue;
         if (currEdge.edgeType == EdgeType.BUS && !takeBus) continue;
-        const needTransfer = currEdge.needTransfer(currPqNode.arriveBy!);
+        const needTransfer = currEdge.needTransfer(currPqNode.arriveBy);
         if (isInvalidTransferNode && needTransfer) continue;
         const currTransferCount = needTransfer ? baseTransferCount + 1 : baseTransferCount;
         if (currTransferCount > maxTransferCount) continue;
@@ -133,7 +130,7 @@ export default class Graph {
         const isByWalking = currEdge.isByWalking();
         if (isInvalidTransferNode) isInvalidTransferNode = isByWalking;
         const edgeDetail = currEdge.getEdgeDetail();
-        const nextPqNode = new GraphPQNode(nextNodeId, edgeDetail, currTransferCount, logSequence, cost[nextNodeId], isByWalking);
+        const nextPqNode = (new PriorityQueueNode(nextNodeId, edgeDetail, currTransferCount, logSequence, cost[nextNodeId], isByWalking));
         pq.enqueue(nextPqNode, alternative);
         cost[nextNodeId] = alternative;
 
@@ -155,7 +152,7 @@ export default class Graph {
 
       if (isInvalidTransferNode) {
         cost[currNodeId] = currPqNode.originalCost;
-        prevNodeLog[currPqNode.logSequence!] = null;
+        prevNodeLog[currPqNode.logSequence] = null;
       } else isVisited[currNodeId] = true;
     }
     return cost;

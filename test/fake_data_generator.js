@@ -1,7 +1,7 @@
 const { NODE_ENV } = process.env;
 const bcrypt = require('bcrypt');
 const { users, places } = require('./fake_user_data');
-const { query, end } = require('../src/server/models/mysql');
+const { query, end } = require('../server/models/mysql');
 
 const salt = parseInt(process.env.BCRYPT_SALT);
 

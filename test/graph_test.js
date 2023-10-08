@@ -3,7 +3,7 @@ const {
   metro_travel_time,
   metro_frequency,
 } = require('./fake_metro_data');
-const { Graph, EdgeType } = require('../src/server/util/Graph');
+const { Graph, EdgeType } = require('../util/Graph');
 const { assert } = require('./set_up');
 
 describe('Graph', () => {

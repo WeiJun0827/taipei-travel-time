@@ -5,7 +5,7 @@ import {
   DB_USERNAME,
   DB_PASSWORD,
   DB_DATABASE,
-} from '../config';
+} from '../config.js';
 
 const mysqlConfig = {
   host: DB_HOST,

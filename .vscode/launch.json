@@ -6,30 +6,28 @@
   "configurations": [
     {
       "name": "Launch Frontend",
-      "type": "chrome",
+      "type": "pwa-chrome",
       "request": "launch",
       "url": "http://localhost:3000/map.html",
-      "webRoot": "${workspaceFolder}/src/public",
+      "webRoot": "${workspaceFolder}/public",
     },
     {
       "name": "Launch Backend",
-      "type": "node",
+      "type": "pwa-node",
       "request": "launch",
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "runtimeExecutable": "nodemon",
-      "program": "${workspaceFolder}/src/server/index.ts"
+      "program": "${workspaceFolder}/server/index.js"
     },
     {
       "name": "Launch Crawler",
-      "type": "node",
+      "type": "pwa-node",
       "request": "launch",
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "runtimeExecutable": "ts-node",
-      "program": "${workspaceFolder}/src/server/crawlers/tdx.test.ts"
+      "program": "${workspaceFolder}/crawler/tdx.test.js"
     }
   ]
 }

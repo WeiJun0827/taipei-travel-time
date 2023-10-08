@@ -1,6 +1,6 @@
 import { Router } from 'express';
 
-import { wrapAsync } from '../util/misc';
+import { wrapAsync } from '../util/misc.js';
 import {
   signUp,
   signIn,
@@ -10,7 +10,7 @@ import {
   createPlace,
   updatePlace,
   deletePlace,
-} from '../controllers/user';
+} from '../controllers/user.js';
 
 const router = Router();
 

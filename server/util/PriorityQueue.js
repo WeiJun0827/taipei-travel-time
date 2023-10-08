@@ -1,27 +1,14 @@
-class PriorityQueueNode<T> {
-  data: T;
-  priority: number;
-
-  constructor(data: T, priority: number) {
-    this.data = data;
-    this.priority = priority;
-  }
-}
-
-export default class PriorityQueue<T> {
-
-  private nodes: PriorityQueueNode<T>[];
-
+export default class PriorityQueue {
   constructor() {
     this.nodes = [];
   }
 
-  enqueue(data: T, priority: number) {
-    this.nodes.push(new PriorityQueueNode(data, priority));
+  enqueue(pqNode, priority) {
+    this.nodes.push({ pqNode, priority });
     this.bubbleUp();
   }
 
-  private bubbleUp() {
+  bubbleUp() {
     let idx = this.nodes.length - 1;
     const element = this.nodes[idx];
     while (idx > 0) {
@@ -37,7 +24,7 @@ export default class PriorityQueue<T> {
   dequeue() {
     if (this.isEmpty()) throw new Error('Queue underflow');
     const min = this.nodes[0];
-    const end = this.nodes.pop()!;
+    const end = this.nodes.pop();
     if (!this.isEmpty()) {
       this.nodes[0] = end;
       this.sinkDown();
@@ -45,16 +32,16 @@ export default class PriorityQueue<T> {
     return min;
   }
 
-  private sinkDown() {
+  sinkDown() {
     let idx = 0;
     const { length } = this.nodes;
     const element = this.nodes[0];
     while (true) {
       const leftChildIdx = 2 * idx + 1;
       const rightChildIdx = 2 * idx + 2;
-      let leftChild: PriorityQueueNode<T>;
-      let rightChild: PriorityQueueNode<T>;
-      let swapIdx: number | null = null;
+      let leftChild; let
+        rightChild;
+      let swapIdx = null;
 
       if (leftChildIdx < length) {
         leftChild = this.nodes[leftChildIdx];
@@ -66,7 +53,7 @@ export default class PriorityQueue<T> {
         rightChild = this.nodes[rightChildIdx];
         if (
           (swapIdx === null && rightChild.priority < element.priority)
-          || (swapIdx !== null && rightChild.priority < leftChild!.priority)
+                    || (swapIdx !== null && rightChild.priority < leftChild.priority)
         ) {
           swapIdx = rightChildIdx;
         }

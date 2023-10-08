@@ -1,11 +1,11 @@
 import axios from 'axios';
-import jwt, { JwtPayload } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import validator from 'validator';
 
-import * as User from '../models/user';
+import * as User from '../models/user.js';
 
-import { JWT_SECRET, TOKEN_EXPIRE } from '../config';
-import ErrorWithStatusCode from '../util/error';
+import { JWT_SECRET, TOKEN_EXPIRE } from '../config.js';
+import ErrorWithStatusCode from '../util/error.js';
 
 const { ProviderType } = User;
 
@@ -24,7 +24,7 @@ export async function signUp(req, res) {
 
   const userInfo = await User.signUp(name, email, password);
 
-  const accessToken = jwt.sign(userInfo as Object, JWT_SECRET, { expiresIn: TOKEN_EXPIRE });
+  const accessToken = jwt.sign(userInfo, JWT_SECRET, { expiresIn: TOKEN_EXPIRE });
 
   res.status(200).json({ accessToken });
 }
@@ -53,7 +53,7 @@ async function nativeSignIn(email, password) {
   if (!email || !password) {
     throw new ErrorWithStatusCode(400, 'Email and password are required');
   }
-  const userInfo = await User.nativeSignIn(email, password);
+  const userInfo = await User.nativeSignIn(email, password, TOKEN_EXPIRE);
   return userInfo;
 }
 
@@ -79,7 +79,7 @@ export async function verifyToken(req, res, next) {
     throw new ErrorWithStatusCode(400);
   }
   accessToken = accessToken.replace('Bearer ', '');
-  const { userId } = jwt.verify(accessToken, JWT_SECRET) as JwtPayload;
+  const { userId } = jwt.verify(accessToken, JWT_SECRET);
   res.locals.userId = userId;
   next();
 }

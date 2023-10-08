@@ -1,10 +1,10 @@
 import express from 'express';
 
-import travelTime from './routes/travelTime';
-import user from './routes/user';
-import ErrorWithStatusCode from './util/error';
+import travelTime from './routes/travelTime.js';
+import user from './routes/user.js';
+import ErrorWithStatusCode from './util/error.js';
 
-import { PORT, API_VERSION } from './config';
+import { PORT, API_VERSION } from './config.js';
 
 const app = express();
 

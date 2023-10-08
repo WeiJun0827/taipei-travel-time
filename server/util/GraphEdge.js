@@ -1,18 +1,11 @@
 import moment from 'moment';
 
-import { EdgeType } from './EdgeType';
-import GraphNode from './GraphNode';
+import { EdgeType } from './EdgeType.js';
 
-import { MOMENT_FORMAT } from '../config';
+import { MOMENT_FORMAT } from '../config.js';
 
 export default class GraphEdge {
-  fromNode: GraphNode;
-  toNode: GraphNode;
-  runTime: number;
-  edgeType: EdgeType;
-  edgeInfo: any; // TODO: type
-
-  constructor(fromNode: GraphNode, toNode: GraphNode, runTime: number, edgeType: EdgeType, edgeInfo: any) {
+  constructor(fromNode, toNode, runTime, edgeType, edgeInfo) {
     this.fromNode = fromNode;
     this.toNode = toNode;
     this.runTime = runTime;
@@ -30,11 +23,11 @@ export default class GraphEdge {
       case EdgeType.BUS:
         return false;
       default:
-        throw new Error('Edge type undefined');
+        throw new Error('Edge type non-defined');
     }
   }
 
-  needTransfer(arriveBy: string) {
+  needTransfer(arriveBy) {
     switch (this.edgeType) {
       case EdgeType.METRO_TRANSFER:
       case EdgeType.TRANSFER:
@@ -65,7 +58,7 @@ export default class GraphEdge {
     }
   }
 
-  getExpectedTime(prevEdgeDetail, departureTime, weekday: string) {
+  getExpectedTime(prevEdgeDetail, departureTime, weekday) {
     switch (this.edgeType) {
       case EdgeType.WALKING_FROM_STARTER:
       case EdgeType.METRO_TRANSFER:
@@ -90,7 +83,6 @@ export default class GraphEdge {
     for (const freq of freqTable) {
       const startTime = moment(freq.startTime, MOMENT_FORMAT);
       const endTime = freq.startTime < freq.endTime ? moment(freq.endTime, MOMENT_FORMAT) : moment(freq.endTime, MOMENT_FORMAT).add(1, 'day');
-      // TODO: do not change input
       departureTime = moment(departureTime, MOMENT_FORMAT);
       if (departureTime.isBetween(startTime, endTime, undefined, '[]')) return freq.expectedTime;
     }

@@ -3,8 +3,8 @@ import axios from 'axios';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import JSSHA from 'jssha';
 import moment from 'moment';
-import * as Metro from '../models/metro';
-import * as Bus from '../models/bus';
+import * as Metro from '../models/metro.js';
+import * as Bus from '../models/bus.js';
 
 const { PTX_APP_ID, PTX_APP_KEY } = process.env;
 const cities = ['Taipei', 'NewTaipei'];
@@ -470,6 +470,6 @@ const batchImportBusRunTimeLog = async function () {
 // updateBusRunTimeBySubRouteIdV2('TPE157462');
 importBusRoutes(cities[0], 2, 0);
 // batchImportBusData(0, 1);
-// Bus.getAllFrequencies();
+// Bus.getAllFrequencys();
 // batchImportBusRunTimeLog();
 // setInterval(() => batchImportBusRunTimeLog(), 600000);
