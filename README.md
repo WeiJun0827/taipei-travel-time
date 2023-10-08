@@ -4,7 +4,7 @@ A map tool displays the reachable areas of given travel time and starting point 
 
 Website URL: https://taipeitraveltime.site
 
-![Preview](./public/assets/readme/preview.png)
+![Preview](./src/public/assets/readme/preview.png)
 ---
 
 ## Table of Contents
@@ -56,10 +56,10 @@ Website URL: https://taipeitraveltime.site
 * [Public Transport Data Exchange Platform](https://ptx.transportdata.tw)
 
 ## Architecture
-![Architecture](./public/assets/readme/architecture.jpg)
+![Architecture](./src/public/assets/readme/architecture.jpg)
 
 ## Database Schema
-![Database Schema](./public/assets/readme/database_schema.png)
+![Database Schema](./src/public/assets/readme/database_schema.png)
 
 ## Features
 ### Reachable Areas
@@ -80,14 +80,14 @@ Modify the options to fit the use case.
   * Departure Time
     * The specified date and time to depart from the starting point.
 
-![Reachable Area](./public/assets/readme/reachable_area.gif)
+![Reachable Area](./src/public/assets/readme/reachable_area.gif)
  
 ### Place Info
   * Place Keyword Search
   * Destination Directions
   * Favorite Places
 
-![Place Info](./public/assets/readme/place_info.gif)
+![Place Info](./src/public/assets/readme/place_info.gif)
 
 ## Demo Account
 > An account is not needed for most of the functions. 
