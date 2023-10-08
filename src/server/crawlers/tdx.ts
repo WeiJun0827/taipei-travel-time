@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosInstance } from 'axios';
 
 const { TDX_CLIENT_ID, TDX_CLIENT_SECRET } = process.env;
 
@@ -7,13 +7,18 @@ const TDX_API_URL = `${TDX_DOMAIN}/api/basic`;
 const TDX_AUTH_URL = `${TDX_DOMAIN}/auth/realms/TDXConnect/protocol/openid-connect/token`;
 
 class TDX {
-  constructor(domain, service) {
+
+  protected domain: string;
+  protected service: string;
+  private client: AxiosInstance | null;
+
+  constructor(domain: string, service: string) {
     this.domain = domain;
     this.service = service;
     this.client = null;
   }
 
-  static async fetchAuthToken() {
+  private static async fetchAuthToken() {
     try {
       const body = 'grant_type=client_credentials';
       const { data } = await axios.post(TDX_AUTH_URL, body, {
@@ -29,7 +34,7 @@ class TDX {
     }
   }
 
-  async createClient() {
+  private async createClient() {
     if (!this.client) {
       const token = await TDX.fetchAuthToken();
       this.client = axios.create({
@@ -42,7 +47,7 @@ class TDX {
     return this.client;
   }
 
-  formatResourcePath(app, subpath) {
+  protected formatResourcePath(app: string, subpath: string) {
     let path = 'v2';
     if (this.domain) path += `/${this.domain}`;
     path += `/${this.service}/${app}`;
@@ -50,7 +55,7 @@ class TDX {
     return path;
   }
 
-  async fetchData(app, subpath = '', params = {}) {
+  async fetchData(app: string, subpath = '', params = {}) {
     try {
       const client = await this.createClient();
       const resourcePath = this.formatResourcePath(app, subpath);
@@ -68,29 +73,36 @@ class TDX {
   }
 }
 
+enum BusCity {
+  TAIPEI = 'Taipei', // 台北市
+  NEW_TAIPEI = 'NewTaipei', // 新北市
+  KEELUNG = 'Keelung', // 基隆市
+  TAOYUAN = 'Taoyuan', // 桃園市
+}
+
+enum BusApp {
+  STATION = 'Station',
+  ROUTE = 'Route',
+  STOP_OF_ROUTE = 'StopOfRoute',
+  S2S_TRAVEL_TIME = 'S2STravelTime',
+  // ESTIMATED_TIME_OF_ARRIVAL = 'EstimatedTimeOfArrival',
+  SCHEDULE = 'Schedule',
+}
+
 export class Bus extends TDX {
-  constructor(city) {
+
+  protected city: BusCity;
+
+  constructor(city: BusCity) {
     super('', 'Bus');
     this.city = city;
   }
 
-  static CITY = {
-    TAIPEI: 'Taipei', // 台北市
-    NEW_TAIPEI: 'NewTaipei', // 新北市
-    KEELUNG: 'Keelung', // 基隆市
-    TAOYUAN: 'Taoyuan', // 桃園市
-  };
+  static readonly CITY = BusCity;
 
-  static APP = {
-    STATION: 'Station',
-    ROUTE: 'Route',
-    STOP_OF_ROUTE: 'StopOfRoute',
-    S2S_TRAVEL_TIME: 'S2STravelTime',
-    // ESTIMATED_TIME_OF_ARRIVAL: 'EstimatedTimeOfArrival',
-    SCHEDULE: 'Schedule',
-  };
+  static readonly APP = BusApp;
 
-  formatResourcePath(app, subpath) {
+  protected formatResourcePath(app: BusApp, subpath: string) {
     let path = `City/${this.city}`;
     if (subpath) path += `/${subpath}`;
     return super.formatResourcePath(app, path);
@@ -98,33 +110,47 @@ export class Bus extends TDX {
 }
 
 class Rail extends TDX {
-  constructor(service) {
+  constructor(service: string) {
     super('Rail', service);
   }
 }
 
+enum MetroSystem {
+  TRTC = 'TRTC', // 台北捷運
+  NTMC = 'NTMC', // 新北捷運
+}
+
+enum MetroApp {
+  STATION = 'Station',
+  STATION_OF_LINE = 'StationOfLine',
+  LINE_TRANSFER = 'LineTransfer',
+  S2S_TRAVEL_TIME = 'S2STravelTime',
+  STATION_TIME_TABLE = 'StationTimeTable',
+}
+
 export class Metro extends Rail {
-  constructor(system) {
+
+  protected system: MetroSystem;
+
+  constructor(system: MetroSystem) {
     super('Metro');
     this.system = system;
   }
 
-  static SYSTEM = {
-    TRTC: 'TRTC', // 台北捷運
-    NTMC: 'NTMC', // 新北捷運
-  };
+  static readonly SYSTEM = MetroSystem;
 
-  static APP = {
-    STATION: 'Station',
-    STATION_OF_LINE: 'StationOfLine',
-    LINE_TRANSFER: 'LineTransfer',
-    S2S_TRAVEL_TIME: 'S2STravelTime',
-    STATION_TIME_TABLE: 'StationTimeTable',
-  };
+  static readonly APP = MetroApp;
 
-  formatResourcePath(app) {
+  protected formatResourcePath(app: MetroApp) {
     return super.formatResourcePath(app, this.system);
   }
+}
+
+enum TrainApp {
+  STATION = 'Station',
+  LINE = 'Line',
+  STATION_OF_LINE = 'StationOfLine',
+  TRAIN_TYPE = 'TrainType',
 }
 
 export class Train extends Rail {
@@ -132,10 +158,5 @@ export class Train extends Rail {
     super('TRA');
   }
 
-  static APP = {
-    STATION: 'Station',
-    LINE: 'Line',
-    STATION_OF_LINE: 'StationOfLine',
-    TRAIN_TYPE: 'TrainType',
-  };
+  static readonly APP = TrainApp;
 }

@@ -2,7 +2,7 @@ const {
   parseIntToWeekday,
   parseDatetimeToWeekday,
   calculateAverageExpectedTime,
-} = require('../util/util');
+} = require('../src/server/util/misc');
 const { assert } = require('./set_up');
 
 describe('Util', () => {
