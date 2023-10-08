@@ -1,7 +1,7 @@
-import { getAllStations, getAllTravelTime, getFrequency } from '../models/metro.js';
-import { getStopById, getAllFrequencies, getTravelTimeBySubRouteId } from '../models/bus.js';
-import { EdgeType } from '../util/EdgeType.js';
-import Graph from '../util/Graph.js';
+import { getAllStations, getAllTravelTime, getFrequency } from '../models/metro';
+import { getStopById, getAllFrequencies, getTravelTimeBySubRouteId } from '../models/bus';
+import { EdgeType } from '../util/EdgeType';
+import Graph from '../util/Graph';
 
 const graph = new Graph();
 const WALKING_SPEED = 1; // in meter/sec

@@ -1,5 +1,5 @@
-import { EdgeType } from './EdgeType.js';
-import GraphEdge from './GraphEdge.js';
+import { EdgeType } from './EdgeType';
+import GraphEdge from './GraphEdge';
 
 export default class GraphNode {
 

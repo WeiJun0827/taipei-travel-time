@@ -1,8 +1,8 @@
 import { hashSync, compareSync } from 'bcrypt';
 import { OkPacket, RowDataPacket } from 'mysql2';
 
-import ErrorWithStatusCode from '../util/error.js';
-import { pool } from './mysql.js';
+import ErrorWithStatusCode from '../util/error';
+import { pool } from './mysql';
 
 const salt = parseInt(process.env.BCRYPT_SALT!, 10); // TODO: type
 export enum ProviderType {

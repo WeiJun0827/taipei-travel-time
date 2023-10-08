@@ -1,9 +1,9 @@
 import moment from 'moment';
 
-import { EdgeType } from './EdgeType.js';
-import GraphNode from './GraphNode.js';
+import { EdgeType } from './EdgeType';
+import GraphNode from './GraphNode';
 
-import { MOMENT_FORMAT } from '../config.js';
+import { MOMENT_FORMAT } from '../config';
 
 export default class GraphEdge {
   fromNode: GraphNode;

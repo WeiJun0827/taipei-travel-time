@@ -1,7 +1,7 @@
 import { OkPacket, RowDataPacket } from 'mysql2';
 
-import { pool } from './mysql.js';
-import { parseIntToWeekday } from '../util/misc.js';
+import { pool } from './mysql';
+import { parseIntToWeekday } from '../util/misc';
 
 export async function createStop(stop) {
   try {

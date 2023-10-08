@@ -1,13 +1,13 @@
 import moment from 'moment';
 
-import { EdgeType } from './EdgeType.js';
-import GraphNode from './GraphNode.js';
-import GraphEdge from './GraphEdge.js';
-import GraphPQNode from './GraphPQNode.js';
-import PriorityQueue from './PriorityQueue.js';
-import { parseDatetimeToWeekday } from './misc.js';
+import { EdgeType } from './EdgeType';
+import GraphNode from './GraphNode';
+import GraphEdge from './GraphEdge';
+import GraphPQNode from './GraphPQNode';
+import PriorityQueue from './PriorityQueue';
+import { parseDatetimeToWeekday } from './misc';
 
-import { MOMENT_FORMAT } from '../config.js';
+import { MOMENT_FORMAT } from '../config';
 
 export default class Graph {
 

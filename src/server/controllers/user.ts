@@ -2,10 +2,10 @@ import axios from 'axios';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import validator from 'validator';
 
-import * as User from '../models/user.js';
+import * as User from '../models/user';
 
-import { JWT_SECRET, TOKEN_EXPIRE } from '../config.js';
-import ErrorWithStatusCode from '../util/error.js';
+import { JWT_SECRET, TOKEN_EXPIRE } from '../config';
+import ErrorWithStatusCode from '../util/error';
 
 const { ProviderType } = User;
 

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 
-import { getTravelTimeByTransit } from '../controllers/travelTime.js';
-import { wrapAsync } from '../util/misc.js';
+import { getTravelTimeByTransit } from '../controllers/travelTime';
+import { wrapAsync } from '../util/misc';
 
 const router = Router();
 

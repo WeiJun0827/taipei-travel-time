@@ -1,7 +1,7 @@
 const sinon = require('sinon');
-const { assert, requester } = require('./set_up.js');
-const { users } = require('./fake_user_data.js');
-const { pool } = require('../src/server/models/mysql.js');
+const { assert, requester } = require('./set_up');
+const { users } = require('./fake_user_data');
+const { pool } = require('../src/server/models/mysql');
 
 const expectedExpireTime = process.env.TOKEN_EXPIRE;
 const fbTokenSignInFirstTime = 'fbTokenFirstLogin';
@@ -20,7 +20,7 @@ let stub;
 
 describe('User', () => {
   before(() => {
-    const userModel = require('../src/server/models/user.js');
+    const userModel = require('../src/server/models/user');
     const fakeGetFacebookProfile = (token) => {
       if (!token) {
         return Promise.resolve();

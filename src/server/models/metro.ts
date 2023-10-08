@@ -1,5 +1,5 @@
 import { OkPacket, RowDataPacket } from 'mysql2';
-import { pool } from './mysql.js';
+import { pool } from './mysql';
 
 export async function createLine(line) {
   try {
