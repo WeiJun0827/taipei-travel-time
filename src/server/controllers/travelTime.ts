@@ -1,5 +1,5 @@
 import { getAllStations, getAllTravelTime, getFrequency } from '../models/metro.js';
-import { getStopById, getAllFrequencys, getTravelTimeBySubRouteId } from '../models/bus.js';
+import { getStopById, getAllFrequencies, getTravelTimeBySubRouteId } from '../models/bus.js';
 import { EdgeType } from '../util/EdgeType.js';
 import Graph from '../util/Graph.js';
 
@@ -48,7 +48,7 @@ const initBusGraph = async () => {
   }
 
   console.time('Bus data');
-  const freqData = await getAllFrequencys();
+  const freqData = await getAllFrequencies();
 
   console.log(`Available sub-route: ${Object.keys(freqData).length}`);
 
@@ -80,7 +80,7 @@ const initBusGraph = async () => {
   console.timeEnd('Bus data');
 };
 
-const createTransferEdges = (maxTransferDist) => {
+const createTransferEdges = (maxTransferDist: number) => {
   console.time('Transfer');
   let edgeCount = 0;
   for (const nodeIdA in graph.nodes) {
@@ -118,7 +118,7 @@ export async function getTravelTimeByTransit(req, res) {
   console.time('getTravelTime');
   graph.addStarterNode(starterId, lat, lon, maxTravelTime, WALKING_SPEED, maxWalkDist);
   const cost = graph.dijkstraAlgorithm(starterId, maxTravelTime, departureTime, takeMetro, takeBus, maxTransferTimes);
-  const data = [];
+  const data: any[] = []; // TODO: type
   for (const stationId in cost) {
     const travelTime = cost[stationId];
     if (travelTime != Infinity) {

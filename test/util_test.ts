@@ -2,8 +2,8 @@ const {
   parseIntToWeekday,
   parseDatetimeToWeekday,
   calculateAverageExpectedTime,
-} = require('../util/util');
-const { assert } = require('./set_up');
+} = require('../src/server/util/misc.js');
+const { assert } = require('./set_up.js');
 
 describe('Util', () => {
   it('Parse int to weekday', () => {

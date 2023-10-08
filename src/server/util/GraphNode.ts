@@ -1,7 +1,16 @@
 import { EdgeType } from './EdgeType.js';
+import GraphEdge from './GraphEdge.js';
 
 export default class GraphNode {
-  constructor(id, nameCht, lat, lon, stopTime) {
+
+  id: string;
+  nameCht: string;
+  lat: number;
+  lon: number;
+  stopTime: number;
+  edges: Record<string, GraphEdge>;
+
+  constructor(id: string, nameCht: string, lat: number, lon: number, stopTime: number) {
     this.id = id;
     this.nameCht = nameCht;
     this.lat = Number(lat);
@@ -10,7 +19,7 @@ export default class GraphNode {
     this.edges = {};
   }
 
-  getStopTime(nextEdgeType) {
+  getStopTime(nextEdgeType: EdgeType) {
     switch (nextEdgeType) {
       case EdgeType.METRO:
       case EdgeType.BUS:
@@ -24,10 +33,10 @@ export default class GraphNode {
      * Get distance from specified location to this node.
      * @param {Number} lat latitude
      * @param {Number} lon longitude
-     * @returns {Number} distance in metres
+     * @returns {Number} distance in meters
      */
-  getDistanceToNode(lat, lon) {
-    const Radius = 6371e3; // metres
+  getDistanceToNode(lat: number, lon: number): number {
+    const Radius = 6371e3; // meters
     const phi1 = (lat * Math.PI) / 180; // phi, lambda in radians
     const phi2 = (this.lat * Math.PI) / 180;
     const deltaPhi = phi2 - phi1;
@@ -38,7 +47,7 @@ export default class GraphNode {
       * Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-    const distance = Radius * c; // in metres
+    const distance = Radius * c; // in meters
     return distance;
   }
 }
