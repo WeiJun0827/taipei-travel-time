@@ -7,7 +7,8 @@ const metroStation = await metroClient.fetchData(Metro.APP.STATION);
 const metroStationOfLine = await metroClient.fetchData(Metro.APP.STATION_OF_LINE);
 const metroLineTransfer = await metroClient.fetchData(Metro.APP.LINE_TRANSFER);
 const metroS2sTravelTime = await metroClient.fetchData(Metro.APP.S2S_TRAVEL_TIME);
-const metroStationTimeTable = await metroClient.fetchData(Metro.APP.STATION_TIME_TABLE);
+const metroStationTimetable = await metroClient.fetchData(Metro.APP.STATION_TIMETABLE);
+const metroFrequency = await metroClient.fetchData(Metro.APP.FREQUENCY);
 
 const busClient = new Bus(Bus.CITY.TAIPEI);
 const busStation = await busClient.fetchData(Bus.APP.STATION);

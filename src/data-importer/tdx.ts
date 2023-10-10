@@ -125,7 +125,9 @@ enum MetroApp {
   STATION_OF_LINE = 'StationOfLine',
   LINE_TRANSFER = 'LineTransfer',
   S2S_TRAVEL_TIME = 'S2STravelTime',
-  STATION_TIME_TABLE = 'StationTimeTable',
+  // NOTE: timetable is not provided for automatic driverless lines, such as line BR and Y
+  STATION_TIMETABLE = 'StationTimeTable',
+  FREQUENCY = 'Frequency',
 }
 
 export class Metro extends Rail {
