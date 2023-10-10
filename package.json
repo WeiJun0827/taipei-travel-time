@@ -5,7 +5,7 @@
     "main": "index.js",
     "type": "module",
     "scripts": {
-        "crawl": "node ./src/server/crawlers/tdx.test.ts",
+        "import-data": "ts-node ./src/data-importer/tdx.test.ts",
         "dev": "ts-node ./src/server/index.ts",
         "prebuild": "rimraf ./dist",
         "build": "tsc",
