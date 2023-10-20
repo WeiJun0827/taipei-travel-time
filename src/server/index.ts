@@ -1,4 +1,5 @@
 import express from 'express';
+import 'reflect-metadata';
 
 import travelTime from './routes/travelTime.js';
 import user from './routes/user.js';
