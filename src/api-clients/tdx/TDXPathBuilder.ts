@@ -22,14 +22,14 @@ export class TDXPathBuilder {
   }
 }
 
-enum BusCity {
+export enum BusCity {
   TAIPEI = 'Taipei', // 台北市
   NEW_TAIPEI = 'NewTaipei', // 新北市
   KEELUNG = 'Keelung', // 基隆市
   TAOYUAN = 'Taoyuan', // 桃園市
 }
 
-enum BusApp {
+export enum BusApp {
   STATION = 'Station',
   ROUTE = 'Route',
   STOP_OF_ROUTE = 'StopOfRoute',
@@ -59,10 +59,6 @@ export class BusPathBuilder extends TDXPathBuilder {
     }
     super('', 'Bus', app, subpath);
   }
-
-  static readonly CITY = BusCity;
-
-  static readonly APP = BusApp;
 }
 
 class RailPathBuilder extends TDXPathBuilder {
@@ -71,12 +67,12 @@ class RailPathBuilder extends TDXPathBuilder {
   }
 }
 
-enum MetroSystem {
+export enum MetroSystem {
   TRTC = 'TRTC', // 台北捷運
   NTMC = 'NTMC', // 新北捷運
 }
 
-enum MetroApp {
+export enum MetroApp {
   STATION = 'Station',
   STATION_OF_LINE = 'StationOfLine',
   LINE_TRANSFER = 'LineTransfer',
@@ -90,13 +86,9 @@ export class MetroPathBuilder extends RailPathBuilder {
   constructor(app: MetroApp, system: MetroSystem) {
     super('Metro', app, system);
   }
-
-  static readonly SYSTEM = MetroSystem;
-
-  static readonly APP = MetroApp;
 }
 
-enum TrainApp {
+export enum TrainApp {
   STATION = 'Station',
   LINE = 'Line',
   STATION_OF_LINE = 'StationOfLine',
@@ -107,6 +99,4 @@ export class TrainPathBuilder extends RailPathBuilder {
   constructor(app: TrainApp) {
     super('TRA', app);
   }
-
-  static readonly APP = TrainApp;
 }
