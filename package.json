@@ -5,7 +5,7 @@
     "main": "index.js",
     "type": "module",
     "scripts": {
-        "import-data": "ts-node ./src/data-importer/tdx.test.ts",
+        "tdx-sample": "ts-node ./src/api-clients/tdx/sample.ts",
         "dev": "ts-node ./src/server/index.ts",
         "prebuild": "rimraf ./dist",
         "build": "tsc",

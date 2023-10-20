@@ -30,7 +30,7 @@
       ],
       "runtimeExecutable": "yarn",
       "runtimeArgs": [
-        "import-data"
+        "tdx-sample"
       ],
     }
   ]
