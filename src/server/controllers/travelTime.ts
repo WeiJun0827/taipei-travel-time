@@ -1,4 +1,12 @@
 import { getAllStations, getAllTravelTime, getFrequency } from '../models/metro.js';
+import { 
+  dataSource,
+  MetroFrequency, 
+  MetroStation, 
+  MetroTimetable, 
+  MetroTransfer, 
+  MetroTransit, 
+} from '../../entities/index.js';
 import { getStopById, getAllFrequencies, getTravelTimeBySubRouteId } from '../models/bus.js';
 import { EdgeType } from '../util/EdgeType.js';
 import Graph from '../util/Graph.js';
@@ -7,6 +15,16 @@ const graph = new Graph();
 const WALKING_SPEED = 1; // in meter/sec
 const STOP_TIME_FOR_BUS = 0; // sec
 const DEFAULT_RUN_TIME_FOR_BUS = 60; // sec
+
+async function initMetroGraphV2() {
+  await dataSource.initialize();
+  const stations = await dataSource.getRepository(MetroStation).find();
+  const transits = await dataSource.getRepository(MetroTransit).find();
+  const transfers = await dataSource.getRepository(MetroTransfer).find();
+  const timetables = await dataSource.getRepository(MetroTimetable).find();
+  const frequencies = await dataSource.getRepository(MetroFrequency).find();
+  console.log('Loaded data from database');
+}
 
 async function initMetroGraph() {
   console.time('Metro data');
