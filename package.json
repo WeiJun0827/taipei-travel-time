@@ -6,6 +6,7 @@
     "type": "module",
     "scripts": {
         "tdx-sample": "ts-node ./src/api-clients/tdx/sample.ts",
+        "import-data": "ts-node ./src/data-importers/metro.ts",
         "dev": "ts-node ./src/server/index.ts",
         "prebuild": "rimraf ./dist",
         "build": "tsc",

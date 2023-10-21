@@ -32,6 +32,18 @@
       "runtimeArgs": [
         "tdx-sample"
       ],
+    },
+    {
+      "name": "Import Data",
+      "type": "node",
+      "request": "launch",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": [
+        "import-data"
+      ],
     }
   ]
 }
