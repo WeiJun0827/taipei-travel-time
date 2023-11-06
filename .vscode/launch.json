@@ -22,14 +22,28 @@
       "program": "${workspaceFolder}/src/server/index.ts"
     },
     {
-      "name": "Launch Crawler",
+      "name": "Fetch TDX",
       "type": "node",
       "request": "launch",
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "runtimeExecutable": "ts-node",
-      "program": "${workspaceFolder}/src/server/crawlers/tdx.test.ts"
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": [
+        "tdx-sample"
+      ],
+    },
+    {
+      "name": "Import Data",
+      "type": "node",
+      "request": "launch",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "runtimeExecutable": "yarn",
+      "runtimeArgs": [
+        "import-data"
+      ],
     }
   ]
 }
